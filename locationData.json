@@ -1,0 +1,1666 @@
+[
+  {
+    "id": "LOC-00001",
+    "name": "Los Angeles School 44",
+    "type": "school",
+    "address": {
+      "street": "8218 Maple Ave",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipCode": "40774",
+      "country": "USA",
+      "fullAddress": "8218 Maple Ave, Los Angeles, CA 40774, USA"
+    },
+    "coordinates": {
+      "latitude": 33.783624,
+      "longitude": -118.336188,
+      "accuracy": 6.2
+    },
+    "contact": {
+      "phone": "+79-143-8532",
+      "email": "location1@example.com",
+      "website": "https://example.com/location-1"
+    },
+    "metadata": {
+      "createdAt": "2025-09-23T02:06:19.727302",
+      "updatedAt": "2026-01-17T02:06:19.727333",
+      "isActive": true,
+      "capacity": 373
+    },
+    "tags": [
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00002",
+    "name": "Sydney Restaurant 81",
+    "type": "restaurant",
+    "address": {
+      "street": "1997 Broadway",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "21493",
+      "country": "Australia",
+      "fullAddress": "1997 Broadway, Sydney, NSW 21493, Australia"
+    },
+    "coordinates": {
+      "latitude": -34.113475,
+      "longitude": 150.816259,
+      "accuracy": 8.0
+    },
+    "contact": {
+      "phone": "+70-112-9496",
+      "email": "location2@example.com",
+      "website": "https://example.com/location-2"
+    },
+    "metadata": {
+      "createdAt": "2025-02-21T02:06:19.727393",
+      "updatedAt": "2026-01-26T02:06:19.727400",
+      "isActive": true,
+      "rating": 3.9,
+      "capacity": 19
+    },
+    "tags": [
+      "24h",
+      "accessible",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00003",
+    "name": "London Office 74",
+    "type": "office",
+    "address": {
+      "street": "3362 Main St",
+      "city": "London",
+      "state": "England",
+      "zipCode": "68975",
+      "country": "UK",
+      "fullAddress": "3362 Main St, London, England 68975, UK"
+    },
+    "coordinates": {
+      "latitude": 51.44871,
+      "longitude": 0.024604,
+      "accuracy": 5.9
+    },
+    "contact": {
+      "phone": "+10-654-1123",
+      "email": "location3@example.com",
+      "website": "https://example.com/location-3"
+    },
+    "metadata": {
+      "createdAt": "2025-12-03T02:06:19.727433",
+      "updatedAt": "2026-01-09T02:06:19.727437",
+      "isActive": true,
+      "capacity": 216
+    },
+    "tags": [
+      "accessible",
+      "delivery",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00004",
+    "name": "New York Residential 84",
+    "type": "residential",
+    "address": {
+      "street": "7798 Third Ave",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "72307",
+      "country": "USA",
+      "fullAddress": "7798 Third Ave, New York, NY 72307, USA"
+    },
+    "coordinates": {
+      "latitude": 40.697901,
+      "longitude": -73.886394,
+      "accuracy": 8.7
+    },
+    "contact": {
+      "phone": "+17-684-9394",
+      "email": "location4@example.com",
+      "website": "https://example.com/location-4"
+    },
+    "metadata": {
+      "createdAt": "2025-10-28T02:06:19.727464",
+      "updatedAt": "2026-01-25T02:06:19.727468",
+      "isActive": true
+    },
+    "tags": [
+      "wifi",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00005",
+    "name": "Houston Office 16",
+    "type": "office",
+    "address": {
+      "street": "6574 Market St",
+      "city": "Houston",
+      "state": "TX",
+      "zipCode": "10664",
+      "country": "USA",
+      "fullAddress": "6574 Market St, Houston, TX 10664, USA"
+    },
+    "coordinates": {
+      "latitude": 29.916069,
+      "longitude": -95.444733,
+      "accuracy": 5.7
+    },
+    "contact": {
+      "phone": "+40-379-1732",
+      "email": "location5@example.com",
+      "website": "https://example.com/location-5"
+    },
+    "metadata": {
+      "createdAt": "2025-10-02T02:06:19.727491",
+      "updatedAt": "2026-01-18T02:06:19.727495",
+      "isActive": false,
+      "capacity": 245
+    },
+    "tags": [
+      "accessible",
+      "outdoor",
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00006",
+    "name": "Houston Residential 82",
+    "type": "residential",
+    "address": {
+      "street": "2462 Queen St",
+      "city": "Houston",
+      "state": "TX",
+      "zipCode": "58079",
+      "country": "USA",
+      "fullAddress": "2462 Queen St, Houston, TX 58079, USA"
+    },
+    "coordinates": {
+      "latitude": 29.805927,
+      "longitude": -95.541959,
+      "accuracy": 8.4
+    },
+    "contact": {
+      "phone": "+22-186-9210",
+      "email": "location6@example.com",
+      "website": "https://example.com/location-6"
+    },
+    "metadata": {
+      "createdAt": "2025-10-28T02:06:19.727532",
+      "updatedAt": "2026-01-01T02:06:19.727536",
+      "isActive": true
+    },
+    "tags": [
+      "parking",
+      "24h",
+      "delivery",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00007",
+    "name": "New York Hotel 12",
+    "type": "hotel",
+    "address": {
+      "street": "1065 Third Ave",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "12585",
+      "country": "USA",
+      "fullAddress": "1065 Third Ave, New York, NY 12585, USA"
+    },
+    "coordinates": {
+      "latitude": 40.891364,
+      "longitude": -74.11839,
+      "accuracy": 1.9
+    },
+    "contact": {
+      "phone": "+11-285-1399",
+      "email": "location7@example.com",
+      "website": "https://example.com/location-7"
+    },
+    "metadata": {
+      "createdAt": "2025-04-24T02:06:19.727558",
+      "updatedAt": "2025-12-29T02:06:19.727562",
+      "isActive": true,
+      "rating": 1.7
+    },
+    "tags": [
+      "parking",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00008",
+    "name": "Phoenix Retail 1",
+    "type": "retail",
+    "address": {
+      "street": "484 Maple Ave",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zipCode": "55120",
+      "country": "USA",
+      "fullAddress": "484 Maple Ave, Phoenix, AZ 55120, USA"
+    },
+    "coordinates": {
+      "latitude": 33.573213,
+      "longitude": -112.275139,
+      "accuracy": 3.9
+    },
+    "contact": {
+      "phone": "+76-678-2757",
+      "email": "location8@example.com",
+      "website": "https://example.com/location-8"
+    },
+    "metadata": {
+      "createdAt": "2025-08-30T02:06:19.727583",
+      "updatedAt": "2026-01-07T02:06:19.727587",
+      "isActive": true,
+      "rating": 2.0
+    },
+    "tags": [
+      "takeout",
+      "parking"
+    ]
+  },
+  {
+    "id": "LOC-00009",
+    "name": "Phoenix School 75",
+    "type": "school",
+    "address": {
+      "street": "1644 Third Ave",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zipCode": "67015",
+      "country": "USA",
+      "fullAddress": "1644 Third Ave, Phoenix, AZ 67015, USA"
+    },
+    "coordinates": {
+      "latitude": 33.349017,
+      "longitude": -112.295841,
+      "accuracy": 6.8
+    },
+    "contact": {
+      "phone": "+72-763-3600",
+      "email": "location9@example.com",
+      "website": "https://example.com/location-9"
+    },
+    "metadata": {
+      "createdAt": "2026-01-18T02:06:19.727607",
+      "updatedAt": "2026-01-16T02:06:19.727611",
+      "isActive": false,
+      "capacity": 433
+    },
+    "tags": [
+      "wifi",
+      "delivery"
+    ]
+  },
+  {
+    "id": "LOC-00010",
+    "name": "Houston Hospital 51",
+    "type": "hospital",
+    "address": {
+      "street": "5427 Park Ave",
+      "city": "Houston",
+      "state": "TX",
+      "zipCode": "24707",
+      "country": "USA",
+      "fullAddress": "5427 Park Ave, Houston, TX 24707, USA"
+    },
+    "coordinates": {
+      "latitude": 30.023153,
+      "longitude": -95.421703,
+      "accuracy": 4.7
+    },
+    "contact": {
+      "phone": "+28-933-3884",
+      "email": "location10@example.com",
+      "website": "https://example.com/location-10"
+    },
+    "metadata": {
+      "createdAt": "2025-05-01T02:06:19.727646",
+      "updatedAt": "2026-01-10T02:06:19.727653",
+      "isActive": true
+    },
+    "tags": [
+      "24h",
+      "delivery",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00011",
+    "name": "Sydney Warehouse 36",
+    "type": "warehouse",
+    "address": {
+      "street": "536 Queen St",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "91722",
+      "country": "Australia",
+      "fullAddress": "536 Queen St, Sydney, NSW 91722, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.758564,
+      "longitude": 150.548421,
+      "accuracy": 8.0
+    },
+    "contact": {
+      "phone": "+60-838-7340",
+      "email": "location11@example.com",
+      "website": "https://example.com/location-11"
+    },
+    "metadata": {
+      "createdAt": "2025-07-04T02:06:19.727686",
+      "updatedAt": "2026-01-13T02:06:19.727691",
+      "isActive": true,
+      "capacity": 93
+    },
+    "tags": [
+      "accessible",
+      "parking",
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00012",
+    "name": "Sydney Restaurant 34",
+    "type": "restaurant",
+    "address": {
+      "street": "6340 Second St",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "47623",
+      "country": "Australia",
+      "fullAddress": "6340 Second St, Sydney, NSW 47623, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.937421,
+      "longitude": 150.731037,
+      "accuracy": 6.6
+    },
+    "contact": {
+      "phone": "+96-310-6262",
+      "email": "location12@example.com",
+      "website": "https://example.com/location-12"
+    },
+    "metadata": {
+      "createdAt": "2025-12-11T02:06:19.727733",
+      "updatedAt": "2026-01-14T02:06:19.727739",
+      "isActive": true,
+      "rating": 1.6,
+      "capacity": 478
+    },
+    "tags": [
+      "outdoor",
+      "accessible",
+      "24h",
+      "parking"
+    ]
+  },
+  {
+    "id": "LOC-00013",
+    "name": "Phoenix Warehouse 3",
+    "type": "warehouse",
+    "address": {
+      "street": "2044 Oak St",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zipCode": "21184",
+      "country": "USA",
+      "fullAddress": "2044 Oak St, Phoenix, AZ 21184, USA"
+    },
+    "coordinates": {
+      "latitude": 33.850297,
+      "longitude": -112.179183,
+      "accuracy": 1.4
+    },
+    "contact": {
+      "phone": "+35-793-6236",
+      "email": "location13@example.com",
+      "website": "https://example.com/location-13"
+    },
+    "metadata": {
+      "createdAt": "2025-05-19T02:06:19.727762",
+      "updatedAt": "2026-01-06T02:06:19.727766",
+      "isActive": true,
+      "capacity": 197
+    },
+    "tags": [
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00014",
+    "name": "Los Angeles Hotel 66",
+    "type": "hotel",
+    "address": {
+      "street": "5010 Broadway",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipCode": "53061",
+      "country": "USA",
+      "fullAddress": "5010 Broadway, Los Angeles, CA 53061, USA"
+    },
+    "coordinates": {
+      "latitude": 33.737924,
+      "longitude": -118.621627,
+      "accuracy": 1.3
+    },
+    "contact": {
+      "phone": "+14-130-7215",
+      "email": "location14@example.com",
+      "website": "https://example.com/location-14"
+    },
+    "metadata": {
+      "createdAt": "2025-07-30T02:06:19.727786",
+      "updatedAt": "2026-01-24T02:06:19.727799",
+      "isActive": true,
+      "rating": 2.0
+    },
+    "tags": [
+      "24h",
+      "outdoor",
+      "parking"
+    ]
+  },
+  {
+    "id": "LOC-00015",
+    "name": "Toronto Warehouse 75",
+    "type": "warehouse",
+    "address": {
+      "street": "1618 Market St",
+      "city": "Toronto",
+      "state": "ON",
+      "zipCode": "71070",
+      "country": "Canada",
+      "fullAddress": "1618 Market St, Toronto, ON 71070, Canada"
+    },
+    "coordinates": {
+      "latitude": 43.606394,
+      "longitude": -79.425183,
+      "accuracy": 2.5
+    },
+    "contact": {
+      "phone": "+37-321-1854",
+      "email": "location15@example.com",
+      "website": "https://example.com/location-15"
+    },
+    "metadata": {
+      "createdAt": "2025-08-03T02:06:19.727821",
+      "updatedAt": "2026-01-26T02:06:19.727825",
+      "isActive": true,
+      "capacity": 126
+    },
+    "tags": [
+      "parking",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00016",
+    "name": "London Warehouse 84",
+    "type": "warehouse",
+    "address": {
+      "street": "6147 Maple Ave",
+      "city": "London",
+      "state": "England",
+      "zipCode": "40646",
+      "country": "UK",
+      "fullAddress": "6147 Maple Ave, London, England 40646, UK"
+    },
+    "coordinates": {
+      "latitude": 51.449013,
+      "longitude": 0.127053,
+      "accuracy": 5.8
+    },
+    "contact": {
+      "phone": "+42-830-8448",
+      "email": "location16@example.com",
+      "website": "https://example.com/location-16"
+    },
+    "metadata": {
+      "createdAt": "2025-10-01T02:06:19.727858",
+      "updatedAt": "2026-01-25T02:06:19.727865",
+      "isActive": true,
+      "capacity": 109
+    },
+    "tags": [
+      "parking",
+      "accessible",
+      "wifi",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00017",
+    "name": "Chicago Hotel 88",
+    "type": "hotel",
+    "address": {
+      "street": "9087 King St",
+      "city": "Chicago",
+      "state": "IL",
+      "zipCode": "13926",
+      "country": "USA",
+      "fullAddress": "9087 King St, Chicago, IL 13926, USA"
+    },
+    "coordinates": {
+      "latitude": 41.952127,
+      "longitude": -87.70235,
+      "accuracy": 8.6
+    },
+    "contact": {
+      "phone": "+12-711-3860",
+      "email": "location17@example.com",
+      "website": "https://example.com/location-17"
+    },
+    "metadata": {
+      "createdAt": "2025-09-11T02:06:19.727899",
+      "updatedAt": "2026-01-20T02:06:19.727906",
+      "isActive": true,
+      "rating": 3.9
+    },
+    "tags": [
+      "parking",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00018",
+    "name": "Toronto School 81",
+    "type": "school",
+    "address": {
+      "street": "480 First Ave",
+      "city": "Toronto",
+      "state": "ON",
+      "zipCode": "72030",
+      "country": "Canada",
+      "fullAddress": "480 First Ave, Toronto, ON 72030, Canada"
+    },
+    "coordinates": {
+      "latitude": 43.638604,
+      "longitude": -79.604741,
+      "accuracy": 4.2
+    },
+    "contact": {
+      "phone": "+29-358-1219",
+      "email": "location18@example.com",
+      "website": "https://example.com/location-18"
+    },
+    "metadata": {
+      "createdAt": "2025-08-17T02:06:19.727939",
+      "updatedAt": "2025-12-29T02:06:19.727944",
+      "isActive": true,
+      "capacity": 300
+    },
+    "tags": [
+      "accessible",
+      "takeout",
+      "parking",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00019",
+    "name": "Toronto Restaurant 31",
+    "type": "restaurant",
+    "address": {
+      "street": "5945 Oak St",
+      "city": "Toronto",
+      "state": "ON",
+      "zipCode": "90872",
+      "country": "Canada",
+      "fullAddress": "5945 Oak St, Toronto, ON 90872, Canada"
+    },
+    "coordinates": {
+      "latitude": 43.706805,
+      "longitude": -79.508763,
+      "accuracy": 3.8
+    },
+    "contact": {
+      "phone": "+90-765-1577",
+      "email": "location19@example.com",
+      "website": "https://example.com/location-19"
+    },
+    "metadata": {
+      "createdAt": "2025-08-12T02:06:19.727970",
+      "updatedAt": "2026-01-27T02:06:19.727974",
+      "isActive": true,
+      "rating": 2.1,
+      "capacity": 435
+    },
+    "tags": [
+      "parking",
+      "24h",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00020",
+    "name": "Chicago Hospital 20",
+    "type": "hospital",
+    "address": {
+      "street": "5078 Oak St",
+      "city": "Chicago",
+      "state": "IL",
+      "zipCode": "73804",
+      "country": "USA",
+      "fullAddress": "5078 Oak St, Chicago, IL 73804, USA"
+    },
+    "coordinates": {
+      "latitude": 41.668869,
+      "longitude": -87.787033,
+      "accuracy": 4.2
+    },
+    "contact": {
+      "phone": "+47-226-6137",
+      "email": "location20@example.com",
+      "website": "https://example.com/location-20"
+    },
+    "metadata": {
+      "createdAt": "2025-09-07T02:06:19.727995",
+      "updatedAt": "2026-01-15T02:06:19.727999",
+      "isActive": true
+    },
+    "tags": [
+      "wifi",
+      "outdoor",
+      "delivery",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00021",
+    "name": "Berlin Restaurant 54",
+    "type": "restaurant",
+    "address": {
+      "street": "512 First Ave",
+      "city": "Berlin",
+      "state": "Berlin",
+      "zipCode": "81503",
+      "country": "Germany",
+      "fullAddress": "512 First Ave, Berlin, Berlin 81503, Germany"
+    },
+    "coordinates": {
+      "latitude": 52.401303,
+      "longitude": 13.268378,
+      "accuracy": 2.0
+    },
+    "contact": {
+      "phone": "+5-768-9958",
+      "email": "location21@example.com",
+      "website": "https://example.com/location-21"
+    },
+    "metadata": {
+      "createdAt": "2025-09-18T02:06:19.728023",
+      "updatedAt": "2026-01-13T02:06:19.728027",
+      "isActive": true,
+      "rating": 1.2,
+      "capacity": 10
+    },
+    "tags": [
+      "accessible",
+      "parking",
+      "delivery",
+      "wifi"
+    ]
+  },
+  {
+    "id": "LOC-00022",
+    "name": "Sydney Hotel 28",
+    "type": "hotel",
+    "address": {
+      "street": "9128 Washington St",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "55556",
+      "country": "Australia",
+      "fullAddress": "9128 Washington St, Sydney, NSW 55556, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.760309,
+      "longitude": 151.052572,
+      "accuracy": 8.1
+    },
+    "contact": {
+      "phone": "+97-771-8340",
+      "email": "location22@example.com",
+      "website": "https://example.com/location-22"
+    },
+    "metadata": {
+      "createdAt": "2025-03-30T02:06:19.728049",
+      "updatedAt": "2026-01-15T02:06:19.728053",
+      "isActive": true,
+      "rating": 5.0
+    },
+    "tags": [
+      "wifi"
+    ]
+  },
+  {
+    "id": "LOC-00023",
+    "name": "Tokyo Hospital 78",
+    "type": "hospital",
+    "address": {
+      "street": "4365 Sunset Blvd",
+      "city": "Tokyo",
+      "state": "Tokyo",
+      "zipCode": "96980",
+      "country": "Japan",
+      "fullAddress": "4365 Sunset Blvd, Tokyo, Tokyo 96980, Japan"
+    },
+    "coordinates": {
+      "latitude": 35.850032,
+      "longitude": 139.408293,
+      "accuracy": 3.3
+    },
+    "contact": {
+      "phone": "+1-960-9326",
+      "email": "location23@example.com",
+      "website": "https://example.com/location-23"
+    },
+    "metadata": {
+      "createdAt": "2025-10-18T02:06:19.728073",
+      "updatedAt": "2026-01-14T02:06:19.728077",
+      "isActive": true
+    },
+    "tags": [
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00024",
+    "name": "Phoenix Residential 31",
+    "type": "residential",
+    "address": {
+      "street": "2545 Maple Ave",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zipCode": "21749",
+      "country": "USA",
+      "fullAddress": "2545 Maple Ave, Phoenix, AZ 21749, USA"
+    },
+    "coordinates": {
+      "latitude": 33.832818,
+      "longitude": -112.31856,
+      "accuracy": 5.2
+    },
+    "contact": {
+      "phone": "+46-307-7457",
+      "email": "location24@example.com",
+      "website": "https://example.com/location-24"
+    },
+    "metadata": {
+      "createdAt": "2025-07-02T02:06:19.728096",
+      "updatedAt": "2026-01-05T02:06:19.728100",
+      "isActive": false
+    },
+    "tags": [
+      "takeout",
+      "24h",
+      "parking",
+      "delivery"
+    ]
+  },
+  {
+    "id": "LOC-00025",
+    "name": "Los Angeles Office 62",
+    "type": "office",
+    "address": {
+      "street": "3555 Second St",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipCode": "51889",
+      "country": "USA",
+      "fullAddress": "3555 Second St, Los Angeles, CA 51889, USA"
+    },
+    "coordinates": {
+      "latitude": 34.080511,
+      "longitude": -118.501227,
+      "accuracy": 9.1
+    },
+    "contact": {
+      "phone": "+56-355-2776",
+      "email": "location25@example.com",
+      "website": "https://example.com/location-25"
+    },
+    "metadata": {
+      "createdAt": "2025-04-10T02:06:19.728118",
+      "updatedAt": "2026-01-13T02:06:19.728122",
+      "isActive": true,
+      "capacity": 98
+    },
+    "tags": [
+      "takeout",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00026",
+    "name": "Toronto Hospital 57",
+    "type": "hospital",
+    "address": {
+      "street": "5364 Second St",
+      "city": "Toronto",
+      "state": "ON",
+      "zipCode": "73271",
+      "country": "Canada",
+      "fullAddress": "5364 Second St, Toronto, ON 73271, Canada"
+    },
+    "coordinates": {
+      "latitude": 43.6433,
+      "longitude": -79.637254,
+      "accuracy": 3.5
+    },
+    "contact": {
+      "phone": "+53-976-9785",
+      "email": "location26@example.com",
+      "website": "https://example.com/location-26"
+    },
+    "metadata": {
+      "createdAt": "2025-11-13T02:06:19.728142",
+      "updatedAt": "2026-01-26T02:06:19.728146",
+      "isActive": true
+    },
+    "tags": [
+      "outdoor",
+      "delivery",
+      "parking",
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00027",
+    "name": "Berlin Restaurant 71",
+    "type": "restaurant",
+    "address": {
+      "street": "6293 Lake Shore Dr",
+      "city": "Berlin",
+      "state": "Berlin",
+      "zipCode": "70885",
+      "country": "Germany",
+      "fullAddress": "6293 Lake Shore Dr, Berlin, Berlin 70885, Germany"
+    },
+    "coordinates": {
+      "latitude": 52.381542,
+      "longitude": 13.152211,
+      "accuracy": 2.7
+    },
+    "contact": {
+      "phone": "+69-183-5721",
+      "email": "location27@example.com",
+      "website": "https://example.com/location-27"
+    },
+    "metadata": {
+      "createdAt": "2025-02-04T02:06:19.728165",
+      "updatedAt": "2026-01-09T02:06:19.728169",
+      "isActive": false,
+      "rating": 2.3,
+      "capacity": 239
+    },
+    "tags": [
+      "24h",
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00028",
+    "name": "Tokyo Warehouse 4",
+    "type": "warehouse",
+    "address": {
+      "street": "3548 Main St",
+      "city": "Tokyo",
+      "state": "Tokyo",
+      "zipCode": "85647",
+      "country": "Japan",
+      "fullAddress": "3548 Main St, Tokyo, Tokyo 85647, Japan"
+    },
+    "coordinates": {
+      "latitude": 35.510891,
+      "longitude": 139.774742,
+      "accuracy": 7.7
+    },
+    "contact": {
+      "phone": "+80-787-9324",
+      "email": "location28@example.com",
+      "website": "https://example.com/location-28"
+    },
+    "metadata": {
+      "createdAt": "2025-08-22T02:06:19.728189",
+      "updatedAt": "2026-01-01T02:06:19.728193",
+      "isActive": false,
+      "capacity": 265
+    },
+    "tags": [
+      "accessible",
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00029",
+    "name": "Sydney Warehouse 38",
+    "type": "warehouse",
+    "address": {
+      "street": "1285 Washington St",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "37003",
+      "country": "Australia",
+      "fullAddress": "1285 Washington St, Sydney, NSW 37003, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.959915,
+      "longitude": 151.160896,
+      "accuracy": 2.3
+    },
+    "contact": {
+      "phone": "+57-779-1267",
+      "email": "location29@example.com",
+      "website": "https://example.com/location-29"
+    },
+    "metadata": {
+      "createdAt": "2025-03-31T02:06:19.728214",
+      "updatedAt": "2026-01-08T02:06:19.728218",
+      "isActive": true,
+      "capacity": 50
+    },
+    "tags": [
+      "wifi"
+    ]
+  },
+  {
+    "id": "LOC-00030",
+    "name": "Tokyo Warehouse 54",
+    "type": "warehouse",
+    "address": {
+      "street": "5335 Lake Shore Dr",
+      "city": "Tokyo",
+      "state": "Tokyo",
+      "zipCode": "84891",
+      "country": "Japan",
+      "fullAddress": "5335 Lake Shore Dr, Tokyo, Tokyo 84891, Japan"
+    },
+    "coordinates": {
+      "latitude": 35.615044,
+      "longitude": 139.377734,
+      "accuracy": 3.0
+    },
+    "contact": {
+      "phone": "+9-132-8658",
+      "email": "location30@example.com",
+      "website": "https://example.com/location-30"
+    },
+    "metadata": {
+      "createdAt": "2025-02-08T02:06:19.728236",
+      "updatedAt": "2026-01-26T02:06:19.728240",
+      "isActive": true,
+      "capacity": 187
+    },
+    "tags": [
+      "delivery"
+    ]
+  },
+  {
+    "id": "LOC-00031",
+    "name": "New York Hospital 15",
+    "type": "hospital",
+    "address": {
+      "street": "3815 Queen St",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "85493",
+      "country": "USA",
+      "fullAddress": "3815 Queen St, New York, NY 85493, USA"
+    },
+    "coordinates": {
+      "latitude": 40.496257,
+      "longitude": -73.789453,
+      "accuracy": 9.6
+    },
+    "contact": {
+      "phone": "+71-864-9244",
+      "email": "location31@example.com",
+      "website": "https://example.com/location-31"
+    },
+    "metadata": {
+      "createdAt": "2025-07-19T02:06:19.728258",
+      "updatedAt": "2025-12-31T02:06:19.728262",
+      "isActive": false
+    },
+    "tags": [
+      "takeout",
+      "accessible",
+      "outdoor",
+      "wifi"
+    ]
+  },
+  {
+    "id": "LOC-00032",
+    "name": "Houston Residential 75",
+    "type": "residential",
+    "address": {
+      "street": "942 Sunset Blvd",
+      "city": "Houston",
+      "state": "TX",
+      "zipCode": "68342",
+      "country": "USA",
+      "fullAddress": "942 Sunset Blvd, Houston, TX 68342, USA"
+    },
+    "coordinates": {
+      "latitude": 29.9418,
+      "longitude": -95.616977,
+      "accuracy": 3.3
+    },
+    "contact": {
+      "phone": "+35-605-6782",
+      "email": "location32@example.com",
+      "website": "https://example.com/location-32"
+    },
+    "metadata": {
+      "createdAt": "2025-10-25T02:06:19.728282",
+      "updatedAt": "2026-01-23T02:06:19.728285",
+      "isActive": false
+    },
+    "tags": [
+      "delivery"
+    ]
+  },
+  {
+    "id": "LOC-00033",
+    "name": "Sydney Hospital 61",
+    "type": "hospital",
+    "address": {
+      "street": "7406 Broadway",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "43845",
+      "country": "Australia",
+      "fullAddress": "7406 Broadway, Sydney, NSW 43845, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.745915,
+      "longitude": 151.041394,
+      "accuracy": 8.6
+    },
+    "contact": {
+      "phone": "+45-556-2559",
+      "email": "location33@example.com",
+      "website": "https://example.com/location-33"
+    },
+    "metadata": {
+      "createdAt": "2025-09-16T02:06:19.728311",
+      "updatedAt": "2026-01-10T02:06:19.728318",
+      "isActive": true
+    },
+    "tags": [
+      "accessible",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00034",
+    "name": "Berlin Office 6",
+    "type": "office",
+    "address": {
+      "street": "9547 Market St",
+      "city": "Berlin",
+      "state": "Berlin",
+      "zipCode": "22704",
+      "country": "Germany",
+      "fullAddress": "9547 Market St, Berlin, Berlin 22704, Germany"
+    },
+    "coordinates": {
+      "latitude": 52.438121,
+      "longitude": 13.331328,
+      "accuracy": 1.8
+    },
+    "contact": {
+      "phone": "+51-291-8433",
+      "email": "location34@example.com",
+      "website": "https://example.com/location-34"
+    },
+    "metadata": {
+      "createdAt": "2025-02-13T02:06:19.728345",
+      "updatedAt": "2025-12-28T02:06:19.728350",
+      "isActive": false,
+      "capacity": 234
+    },
+    "tags": [
+      "parking",
+      "takeout",
+      "24h",
+      "delivery"
+    ]
+  },
+  {
+    "id": "LOC-00035",
+    "name": "Los Angeles Residential 21",
+    "type": "residential",
+    "address": {
+      "street": "7254 Sunset Blvd",
+      "city": "Los Angeles",
+      "state": "CA",
+      "zipCode": "19811",
+      "country": "USA",
+      "fullAddress": "7254 Sunset Blvd, Los Angeles, CA 19811, USA"
+    },
+    "coordinates": {
+      "latitude": 34.295876,
+      "longitude": -118.613748,
+      "accuracy": 3.1
+    },
+    "contact": {
+      "phone": "+29-812-2231",
+      "email": "location35@example.com",
+      "website": "https://example.com/location-35"
+    },
+    "metadata": {
+      "createdAt": "2026-01-26T02:06:19.728370",
+      "updatedAt": "2026-01-18T02:06:19.728374",
+      "isActive": false
+    },
+    "tags": [
+      "outdoor",
+      "takeout",
+      "wifi",
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00036",
+    "name": "Phoenix Hospital 63",
+    "type": "hospital",
+    "address": {
+      "street": "4618 Queen St",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zipCode": "10584",
+      "country": "USA",
+      "fullAddress": "4618 Queen St, Phoenix, AZ 10584, USA"
+    },
+    "coordinates": {
+      "latitude": 33.326064,
+      "longitude": -112.101021,
+      "accuracy": 9.2
+    },
+    "contact": {
+      "phone": "+54-442-4042",
+      "email": "location36@example.com",
+      "website": "https://example.com/location-36"
+    },
+    "metadata": {
+      "createdAt": "2025-03-26T02:06:19.728394",
+      "updatedAt": "2026-01-18T02:06:19.728398",
+      "isActive": true
+    },
+    "tags": [
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00037",
+    "name": "Houston Restaurant 30",
+    "type": "restaurant",
+    "address": {
+      "street": "6033 Lake Shore Dr",
+      "city": "Houston",
+      "state": "TX",
+      "zipCode": "69429",
+      "country": "USA",
+      "fullAddress": "6033 Lake Shore Dr, Houston, TX 69429, USA"
+    },
+    "coordinates": {
+      "latitude": 29.859281,
+      "longitude": -95.675867,
+      "accuracy": 8.2
+    },
+    "contact": {
+      "phone": "+55-232-9439",
+      "email": "location37@example.com",
+      "website": "https://example.com/location-37"
+    },
+    "metadata": {
+      "createdAt": "2025-07-24T02:06:19.728416",
+      "updatedAt": "2026-01-25T02:06:19.728420",
+      "isActive": true,
+      "rating": 4.6,
+      "capacity": 54
+    },
+    "tags": [
+      "delivery",
+      "outdoor"
+    ]
+  },
+  {
+    "id": "LOC-00038",
+    "name": "Houston Office 4",
+    "type": "office",
+    "address": {
+      "street": "173 First Ave",
+      "city": "Houston",
+      "state": "TX",
+      "zipCode": "10602",
+      "country": "USA",
+      "fullAddress": "173 First Ave, Houston, TX 10602, USA"
+    },
+    "coordinates": {
+      "latitude": 29.68966,
+      "longitude": -95.560744,
+      "accuracy": 7.4
+    },
+    "contact": {
+      "phone": "+52-658-4676",
+      "email": "location38@example.com",
+      "website": "https://example.com/location-38"
+    },
+    "metadata": {
+      "createdAt": "2025-11-26T02:06:19.728440",
+      "updatedAt": "2026-01-14T02:06:19.728444",
+      "isActive": true,
+      "capacity": 220
+    },
+    "tags": [
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00039",
+    "name": "Tokyo Hospital 26",
+    "type": "hospital",
+    "address": {
+      "street": "2240 Oak St",
+      "city": "Tokyo",
+      "state": "Tokyo",
+      "zipCode": "44393",
+      "country": "Japan",
+      "fullAddress": "2240 Oak St, Tokyo, Tokyo 44393, Japan"
+    },
+    "coordinates": {
+      "latitude": 35.792079,
+      "longitude": 139.331009,
+      "accuracy": 4.1
+    },
+    "contact": {
+      "phone": "+65-209-2419",
+      "email": "location39@example.com",
+      "website": "https://example.com/location-39"
+    },
+    "metadata": {
+      "createdAt": "2025-05-27T02:06:19.728465",
+      "updatedAt": "2025-12-29T02:06:19.728469",
+      "isActive": false
+    },
+    "tags": [
+      "parking",
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00040",
+    "name": "Tokyo Hotel 9",
+    "type": "hotel",
+    "address": {
+      "street": "1686 Broadway",
+      "city": "Tokyo",
+      "state": "Tokyo",
+      "zipCode": "33504",
+      "country": "Japan",
+      "fullAddress": "1686 Broadway, Tokyo, Tokyo 33504, Japan"
+    },
+    "coordinates": {
+      "latitude": 35.751141,
+      "longitude": 139.71696,
+      "accuracy": 3.2
+    },
+    "contact": {
+      "phone": "+77-941-5786",
+      "email": "location40@example.com",
+      "website": "https://example.com/location-40"
+    },
+    "metadata": {
+      "createdAt": "2025-12-29T02:06:19.728488",
+      "updatedAt": "2026-01-14T02:06:19.728492",
+      "isActive": true,
+      "rating": 1.9
+    },
+    "tags": [
+      "wifi",
+      "delivery",
+      "takeout",
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00041",
+    "name": "Sydney Residential 60",
+    "type": "residential",
+    "address": {
+      "street": "4196 Park Ave",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "48791",
+      "country": "Australia",
+      "fullAddress": "4196 Park Ave, Sydney, NSW 48791, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.914404,
+      "longitude": 151.078987,
+      "accuracy": 8.8
+    },
+    "contact": {
+      "phone": "+77-386-9078",
+      "email": "location41@example.com",
+      "website": "https://example.com/location-41"
+    },
+    "metadata": {
+      "createdAt": "2025-10-26T02:06:19.728523",
+      "updatedAt": "2026-01-19T02:06:19.728527",
+      "isActive": true
+    },
+    "tags": [
+      "accessible",
+      "parking"
+    ]
+  },
+  {
+    "id": "LOC-00042",
+    "name": "London Warehouse 51",
+    "type": "warehouse",
+    "address": {
+      "street": "3714 Oak St",
+      "city": "London",
+      "state": "England",
+      "zipCode": "29279",
+      "country": "UK",
+      "fullAddress": "3714 Oak St, London, England 29279, UK"
+    },
+    "coordinates": {
+      "latitude": 51.515281,
+      "longitude": -0.218926,
+      "accuracy": 2.3
+    },
+    "contact": {
+      "phone": "+43-465-7774",
+      "email": "location42@example.com",
+      "website": "https://example.com/location-42"
+    },
+    "metadata": {
+      "createdAt": "2025-11-09T02:06:19.728548",
+      "updatedAt": "2026-01-18T02:06:19.728552",
+      "isActive": true,
+      "capacity": 415
+    },
+    "tags": [
+      "outdoor",
+      "delivery",
+      "accessible",
+      "parking"
+    ]
+  },
+  {
+    "id": "LOC-00043",
+    "name": "New York Warehouse 43",
+    "type": "warehouse",
+    "address": {
+      "street": "3583 Main St",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "33831",
+      "country": "USA",
+      "fullAddress": "3583 Main St, New York, NY 33831, USA"
+    },
+    "coordinates": {
+      "latitude": 40.49773,
+      "longitude": -74.186494,
+      "accuracy": 4.4
+    },
+    "contact": {
+      "phone": "+63-470-9650",
+      "email": "location43@example.com",
+      "website": "https://example.com/location-43"
+    },
+    "metadata": {
+      "createdAt": "2025-07-14T02:06:19.728585",
+      "updatedAt": "2026-01-04T02:06:19.728592",
+      "isActive": false,
+      "capacity": 211
+    },
+    "tags": [
+      "wifi"
+    ]
+  },
+  {
+    "id": "LOC-00044",
+    "name": "Sydney Office 62",
+    "type": "office",
+    "address": {
+      "street": "8319 Second St",
+      "city": "Sydney",
+      "state": "NSW",
+      "zipCode": "67532",
+      "country": "Australia",
+      "fullAddress": "8319 Second St, Sydney, NSW 67532, Australia"
+    },
+    "coordinates": {
+      "latitude": -33.857179,
+      "longitude": 150.648157,
+      "accuracy": 8.4
+    },
+    "contact": {
+      "phone": "+27-643-4713",
+      "email": "location44@example.com",
+      "website": "https://example.com/location-44"
+    },
+    "metadata": {
+      "createdAt": "2025-06-17T02:06:19.728617",
+      "updatedAt": "2025-12-28T02:06:19.728621",
+      "isActive": true,
+      "capacity": 404
+    },
+    "tags": [
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00045",
+    "name": "New York School 42",
+    "type": "school",
+    "address": {
+      "street": "7064 Lake Shore Dr",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "90954",
+      "country": "USA",
+      "fullAddress": "7064 Lake Shore Dr, New York, NY 90954, USA"
+    },
+    "coordinates": {
+      "latitude": 40.635599,
+      "longitude": -73.720155,
+      "accuracy": 2.4
+    },
+    "contact": {
+      "phone": "+5-531-3887",
+      "email": "location45@example.com",
+      "website": "https://example.com/location-45"
+    },
+    "metadata": {
+      "createdAt": "2025-04-18T02:06:19.728640",
+      "updatedAt": "2026-01-15T02:06:19.728645",
+      "isActive": true,
+      "capacity": 205
+    },
+    "tags": [
+      "accessible",
+      "parking",
+      "takeout"
+    ]
+  },
+  {
+    "id": "LOC-00046",
+    "name": "New York Residential 82",
+    "type": "residential",
+    "address": {
+      "street": "9943 Lake Shore Dr",
+      "city": "New York",
+      "state": "NY",
+      "zipCode": "21162",
+      "country": "USA",
+      "fullAddress": "9943 Lake Shore Dr, New York, NY 21162, USA"
+    },
+    "coordinates": {
+      "latitude": 40.80553,
+      "longitude": -74.0571,
+      "accuracy": 3.8
+    },
+    "contact": {
+      "phone": "+39-900-3825",
+      "email": "location46@example.com",
+      "website": "https://example.com/location-46"
+    },
+    "metadata": {
+      "createdAt": "2025-07-30T02:06:19.728664",
+      "updatedAt": "2026-01-08T02:06:19.728668",
+      "isActive": true
+    },
+    "tags": [
+      "delivery"
+    ]
+  },
+  {
+    "id": "LOC-00047",
+    "name": "Phoenix Warehouse 64",
+    "type": "warehouse",
+    "address": {
+      "street": "3878 Third Ave",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zipCode": "50653",
+      "country": "USA",
+      "fullAddress": "3878 Third Ave, Phoenix, AZ 50653, USA"
+    },
+    "coordinates": {
+      "latitude": 33.326881,
+      "longitude": -111.935254,
+      "accuracy": 4.6
+    },
+    "contact": {
+      "phone": "+71-832-5299",
+      "email": "location47@example.com",
+      "website": "https://example.com/location-47"
+    },
+    "metadata": {
+      "createdAt": "2025-03-26T02:06:19.728686",
+      "updatedAt": "2026-01-22T02:06:19.728690",
+      "isActive": true,
+      "capacity": 54
+    },
+    "tags": [
+      "24h"
+    ]
+  },
+  {
+    "id": "LOC-00048",
+    "name": "Toronto Office 74",
+    "type": "office",
+    "address": {
+      "street": "7385 Park Ave",
+      "city": "Toronto",
+      "state": "ON",
+      "zipCode": "75851",
+      "country": "Canada",
+      "fullAddress": "7385 Park Ave, Toronto, ON 75851, Canada"
+    },
+    "coordinates": {
+      "latitude": 43.712356,
+      "longitude": -79.549505,
+      "accuracy": 4.9
+    },
+    "contact": {
+      "phone": "+58-358-1821",
+      "email": "location48@example.com",
+      "website": "https://example.com/location-48"
+    },
+    "metadata": {
+      "createdAt": "2025-10-02T02:06:19.728712",
+      "updatedAt": "2026-01-16T02:06:19.728716",
+      "isActive": true,
+      "capacity": 384
+    },
+    "tags": [
+      "24h",
+      "parking"
+    ]
+  },
+  {
+    "id": "LOC-00049",
+    "name": "Tokyo Restaurant 75",
+    "type": "restaurant",
+    "address": {
+      "street": "3842 Second St",
+      "city": "Tokyo",
+      "state": "Tokyo",
+      "zipCode": "24798",
+      "country": "Japan",
+      "fullAddress": "3842 Second St, Tokyo, Tokyo 24798, Japan"
+    },
+    "coordinates": {
+      "latitude": 35.717211,
+      "longitude": 139.424067,
+      "accuracy": 2.9
+    },
+    "contact": {
+      "phone": "+92-573-1818",
+      "email": "location49@example.com",
+      "website": "https://example.com/location-49"
+    },
+    "metadata": {
+      "createdAt": "2025-05-14T02:06:19.728743",
+      "updatedAt": "2026-01-16T02:06:19.728747",
+      "isActive": true,
+      "rating": 2.9,
+      "capacity": 422
+    },
+    "tags": [
+      "wifi",
+      "accessible"
+    ]
+  },
+  {
+    "id": "LOC-00050",
+    "name": "London Office 13",
+    "type": "office",
+    "address": {
+      "street": "5634 Maple Ave",
+      "city": "London",
+      "state": "England",
+      "zipCode": "33700",
+      "country": "UK",
+      "fullAddress": "5634 Maple Ave, London, England 33700, UK"
+    },
+    "coordinates": {
+      "latitude": 51.507312,
+      "longitude": -0.42045,
+      "accuracy": 6.4
+    },
+    "contact": {
+      "phone": "+11-402-3545",
+      "email": "location50@example.com",
+      "website": "https://example.com/location-50"
+    },
+    "metadata": {
+      "createdAt": "2025-03-05T02:06:19.728767",
+      "updatedAt": "2026-01-21T02:06:19.728771",
+      "isActive": false,
+      "capacity": 473
+    },
+    "tags": [
+      "outdoor",
+      "delivery",
+      "wifi"
+    ]
+  }
+]

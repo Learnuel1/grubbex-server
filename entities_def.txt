@@ -1,0 +1,429 @@
+TemporalAccount 
+  - _id          -> ObjectId
+  - email        -> String
+  - refreshToken -> [String] 
+  - otp          -> String
+
+Account
+  - _id       -> ObjectId
+  - userId     -> String 
+  - firstName  -> String
+  - lastName   -> String
+  - email      -> String
+  - dob        -> Date 
+  - password   -> String;
+  - refreshToken ->[String],
+  - phone        -> String
+  - type          -> enum:["shopper", "admin", "rider", "service", "super","business"]
+  - role          -> enum ["shopper", "rider", "service", "super", "business"]
+  - picture     -> [ {id, url}]
+  - state       -> enum: ["active","suspended","deactivated"]
+  - link        -> String
+  - createdAt    -> Date
+  - updatedAt    -> Date
+  - verified     -> Boolean
+  - balance       -> Number
+
+Subscription
+  - id            -> String
+  - email          -> String
+  - waitingList   -> Boolean
+  - subscribe       -> Boolean
+  - createdAt       -> Date
+  - updatedAt       -> Date
+
+StoreCategory 
+  -id             -> String
+  -name           -> String
+  -description    -> String
+  -parentId       -> String
+  -createdBy      -> {
+                      name      -> String
+                      -role     -> String
+                      -id       ->String
+                     }
+  -createdAt       -> Date
+  -updatedAt       -> Date
+
+Invitation
+  - id         -> String
+  - email       -> String
+  - token       -> String
+  - role        ->enum["admin", "service", "super"]
+  - createdAt   -> Date
+  - updatedAt   -> Date
+
+Recovery
+  - user            -> Account(_id)
+  - uniqueString    -> String
+  - token           -> String
+  - createdAt       -> Date
+  - updatedAt       -> Date
+
+store
+  - id        -> String
+  - type      -> String
+  - user       -> Account(_id)
+  - createdAt   -> Date
+  - updatedAt    -> Date
+  
+
+ profile
+    - stateOfResidence     -> String
+    - address              -> String
+    - landMark             -> String
+    - workingHours         [{day, time}],
+    - logo                  [{id, url}],
+    - emergencyContact      [
+                            firstName, 
+                            lastName,
+                            email
+                            - phone        -> String
+                            ]
+    - user:                -> Account(_id)
+    - otherAddress          -> [String]
+    - createdAt            -> Date
+    - updatedAt            -> Date
+
+KYC
+  - _id           -> ObjectId
+  - user          -> Account(_id)
+  - profile       -> [Object]
+  - startDate     -> Date
+  - bankDetails   -> [Object]
+  - documents      -> [Object]
+  - logistics     -> [Object]
+  - onBoarded     -> Boolean
+  - tin
+  - createdAt     -> Date
+  - updatedAt     -> Date
+
+City
+  - _id                   -> ObjectId
+  - cityId                -> String
+  - city                  -> String
+  - createdAt             -> Date
+  - updatedAt             -> Date
+
+Town
+  - id                  -> ObjectId
+  - townId              -> String
+  - town                -> String
+  - cityId              -> String
+  - City                -> City(_id)
+  - createdAt           -> Date
+  - updatedAt           -> Date
+
+
+Notification
+  - _id                 -> ObjectId
+  - id                  -> String
+  - account             -> Account(_id)
+  - title               -> String
+  - message             -> String
+  - category            -> enum ["transaction", "services", "activities"]
+  - viewed              -> Boolean
+  - createdAt            -> Date
+  - viewedAt             -> Date
+  - updatedAt            -> Date
+
+Preference
+  - _id                   -> ObjectId
+  - id                    -> String
+  - account               -> Account(_id)
+  - category              -> [String]
+  - createdForYou         ->[]
+  - searched              ->[]
+  - createdAt             -> Date
+  - updatedAt             -> Date
+  
+Product
+  - _id                 -> ObjectId
+  - prodId               -> String
+  - storeId             -> String 
+  - store               -> Store(_id)
+  - title                -> String
+  - description         -> String
+  - media               -> [ {
+                          mainImage: {id ->String, url ->String},
+                          others: [ {id ->String, url ->String} ]
+                          }
+                        ]
+  - status              -> enum["draft", "published"]
+  - category            -> [String]
+  - subcategory         -> String
+  - brand               ->String
+  - tags                -> [String]
+  - pricing             -> {
+                            price           -> Number
+                            discount        -> Number
+                            discountCode    -> String
+                          }
+  - additionalInfo        -> [ {
+                            author           -> String
+                            isbn             -> String
+                            genre            -> String
+                            edition          -> String
+                            model:           -> String
+                            screenSize       -> String
+                            storageCapacity  -> String
+                            warranty         -> String
+                            operatingSystem  -> String
+                          }
+                        ]
+  - quantity            -> Number
+  - barcodeValue        -> String
+  - barcode             -> [{
+                          id         -> String,
+                          url:       -> String
+                         }
+                        ]
+  - weight              -> String
+  - variation           -> [ {
+                        type      -> String
+                        size      -> String
+                        price     -> Number
+                        quantity  -> Number
+                       } 
+                      ]
+  - rating            -> Number
+  - likes             -> Number
+  - createdAt         -> Date
+  - updatedAt         -> Date
+
+Ratings:
+  - _id                   -> ObjectId 
+  - prodId                -> String
+  - storeId               -> String
+  - riderId               -> String
+  - product               -> Product(_id);
+  - store                 -> Store(_id)
+  - rider                 -> Account(_id)
+  - rating                -> number
+  - account              -> Account(_id) 
+  - createdAt             -> Date    
+  - updatedAt             -> Date 
+
+Likes:
+  - _id                   -> ObjectId 
+  - prodId                -> String
+  - storeId               -> String
+  - product               -> Product(_id);
+  - store                 -> Store(_id)
+  - riderId               -> String
+  - rider                 -> Account(_id) 
+  - rating                 -> Number
+  - ratingWeight          -> Number
+  - account                -> Account(_id)
+  - type                   -> enum["rating", "like"]
+  - createdAt              -> Date    
+  - updatedAt              -> Date 
+
+Ticket
+  -_id                      -> ObjectId
+  - id                      -> String
+  - sender                  -> Account(_id)
+  - title                   -> String
+  - description             -> String
+  - status                  ->  enum["open", "closed"]   
+  - priority                -> enum ["high", "low"]
+  - closedBy                -> Account(_id)
+  - chat                    -[ TicketChat]
+  - createdAt               -> Date    
+  - updatedAt               -> Date  
+
+TicketChat 
+  - id                      -> String  
+  - sender                  -> {
+                                firstName,
+                                lastName
+                                userId  
+                                type
+                              Account(_id)
+                              } 
+  - message                 -> String
+  - viewed                  -> Boolean 
+  - createdAt               -> Date  
+
+FAQ
+  - _id                    -> ObjectId
+  - id                     -> String
+  - title                  -> String
+  - description            -> String
+  - category               -> String
+  - account                -> Account(_id)
+  - target                 -> enum [vendors, shopper, rider, all]
+  - createdAt             -> Date
+  - updatedAt              -> Date
+
+ Review 
+  - _id                     -> ObjectId
+  - id                      -> String
+  - storeId                 -> String
+  - store                   -> Store(_id)
+  - prodId                  -> String
+  - product                 -> Product(_id)
+  - review                  -> String
+  - shopper                 -> Account(_id);
+  - createdAt               -> Date    
+  - updatedAt               -> Date     
+
+Promotion
+  - _id                      -> ObjectId
+  - id                      -> String
+  - name                    -> String
+  - status                  -> enum ["published", "draft"],
+  - duration                -> Number
+  - startDate               -> Date
+  - image                   -> {
+                                    id: string,
+                                    url: string,
+                              }
+  - account                 -> Account(_id)
+  - createdBy               -> {
+
+                             }
+  - createdAt               -> Date 
+  - updatedAt               -> Date
+
+ShippingAddress
+- _id                     -> ObjectId
+- account                 -> Account(_id)
+- userId                  -> String
+- title                   -> String
+- phoneNumber             -> String
+- street                  -> String
+- houseNumber             -> String
+- city                    -> String
+- state                   -> String
+- status                  -> enum["primary", "other"]
+- createdAt               -> Date
+- updateAt                -> Date
+
+
+Order
+    - _id                    -> ObjectId
+    - orderId                -> String
+    - items                 -> [Product] 
+    - type                  -> enum["pickup", "delivery"]
+    - rider                 -> Account(_id)
+    - riderId               -> String
+    - isAvailable           -> enum[true, false]
+    - destinationAddress         -> String
+    - storeAddress          -> String
+    - shopperId             -> String
+    - shopper               -> Account(_id)
+    - status                -> enum["pending", "pickup", "open", "inProcess",         "delivered", "cancelled"]
+    - store                 ->  [ {address}, {Contact} ]
+    - note                  -> String
+    - subTotal              -> Number
+    - vat                   -> Number
+    - total                 -> Number
+    - promoCode             -> [ String ]
+    - paymentType           -> enum ["card", "wallet"],
+    - cardDetails           -> {
+                                  name:           -> String
+                                  cardNumber:         -> String
+                                  expiryDate:     -> Date
+                                  cvv:            -> Number
+                                  cardType:       -> enum ["visa", "mastercard"]
+                              }
+    - qrText                  ->String
+    - qrCode                  -> {
+                          id: String
+                          url: String              
+                          }
+    - storeStatus           -> enum["pending", "pickup", "open", "inProcess",         "delivered", "cancelled"]
+    - createdAt             -> Date
+    - updatedAt             -> date        
+
+TemporalTransaction 
+ - event          -> enum["funding", "checkout", "withdrawal", "refund"],
+ - reference      -> String
+ 
+
+MutedOrder
+  - _id           -> ObjectId
+  - orderId       -> String
+  - order         -> Order(_id)
+  - riderId       -> String
+  - rider         -> Account(_id)
+  - duration      -> Date
+  - createdAt     -> Date
+  - updatedAt     -> Date
+
+Booking:
+  - _id               -> ObjectId
+  - name              -> String
+  - address             -> String
+  - phone               -> String
+  - alternatePhone      -> String
+  - landMark            -> String
+  - location     -> String
+  - note                -> String
+  - images              -> [Object] 
+  - items               -> [Object] 
+  - recipient           -> Object
+  - bookId               -> String
+  - recipient            -> [Object]
+  - muva                 -> Account(_id)
+  - others               ->[Object]
+  - paymentRef           -> String
+  - user                -> ObjectId
+  - status              -> enum ["active", "cancelled", "paid"]
+  - isAvailable           -> Boolean
+
+
+WalletHistory
+  - _id           -> ObjectId
+  - balance       -> Number
+  - amount        -> Number
+  - credit        -> Number
+  - debit         -> Number
+  - description   -> String
+  - transaction   -> [Object]
+  - user          -> Account(_id)
+
+
+ RiderLocation
+  - _id      -> String
+  - river     -> Account(_id)
+  - shopper     -> Account(_id)
+  - location  -> [String]
+  - bookId    -> Booking(_id)
+
+  Payout
+  - _id               -> ObjectId
+  - id                -> String
+  - accountType       -> enum["business", "rider"]
+  - amount            -> Number
+  - status            -> enum["pending", "processing","completed", "issue"]
+   - account          -> Account(_id)
+   - paidBy           -> Object 
+   - paidDate         -> Date
+   - createdAt        -> Date
+   - updateAt         -> Date
+   - store            -> ObjectId
+   - storeName        -> String
+   - storeId          -> String
+   - method           -> String
+   - bankDetails      -> {accountName: String accountNumber: String bankName: String }
+
+Setting
+  - _id                 -> ObjectId
+  - notification        - Array {name: String   type: string    enum:            ["NewUserRegistration",
+          "CriticalSystemError",
+          "OrderRequest",
+          "OrderUpdate",
+          "NewOrder"]}
+  - general             - Object { 
+      email:            -> String
+      phoneNumber:       -> Number
+      legalAddress:      -> String
+      
+  }
+  - userManagement      -> Object {
+        superAdmin:  [String]
+        admin:       [String]
+        service:     [String]
+  }
