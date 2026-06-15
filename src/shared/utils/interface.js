@@ -1,0 +1,2 @@
+const emailModule = require("./mailer");
+exports.registerOTPMailHandler = async (email, otp, expires, title, message, template, grubbyDept, subject) => await emailModule.sendRegistrationOTP(email, otp, expires, title, message, template, grubbyDept, subject);

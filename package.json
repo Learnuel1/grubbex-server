@@ -21,6 +21,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1059.0",
+    "@getbrevo/brevo": "^5.0.4",
     "@googlemaps/google-maps-services-js": "^3.4.2",
     "@sendgrid/mail": "^8.1.6",
     "axios": "^1.13.3",

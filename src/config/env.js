@@ -50,5 +50,6 @@ GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
 GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL,
 RIDER_RADIUS: process.env.RIDER_RADIUS,
+BREVO_KEY: process.env.BREVO_KEY,
 };
 module.exports = config;

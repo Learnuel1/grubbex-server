@@ -1,3 +1,4 @@
+const { BrevoClient } = require("@getbrevo/brevo");
 const config = require("../config/env");
 const {google} = require("googleapis")
 require("dotenv").config();
@@ -32,8 +33,15 @@ const accessToken = res && res.token ? res.token : res;
   },
 }
 }
+const brevo = new BrevoClient({
+  apiKey: config,
+  timeoutInSeconds: 30,
+  maxRetries: 3,
+});
+
 
 
 exports.domainMail = {
   mail: () => config.MAIL_USER,
+ 
 };

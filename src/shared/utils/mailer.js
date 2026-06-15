@@ -4,7 +4,13 @@ const { CONFIG, CONSTANTS } = require("../../config");
 const nodemailer = require("nodemailer");
 const hbs = require("nodemailer-express-handlebars");
 const config = require("../../config/env");
-
+const { mailContentReader } = require("../../utils/validation"); 
+const { BrevoClient } = require("@getbrevo/brevo");
+  const brevo = new BrevoClient({
+     apiKey: config.BREVO_KEY, 
+     timeoutInSeconds: 30,
+      maxRetries: 3,
+  });
 const handlebarsOptions = {
   viewEngine: {
     extName: ".handlebars",
@@ -313,5 +319,23 @@ exports.paymentSuccessMailHandler = async (email,plan, name) => {
   }
 };
 
+// BREVO EMAIL SETUP
+exports.sendRegistrationOTP = async (email, otp, expires, title, message, template, grubbyDept, subject ) => {
+  try {
+    const content = mailContentReader(template);
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: email }],
+        subject: subject,
+        htmlContent: content.replace("{{otp}}", otp).replace("{{expires}}", expires).replace("{{title}}", title).replace("{{message}}", message).replace("{{grubbyDept}}", grubbyDept).replace("{{facebook}}", `${config.FACEBOOK}`).replace("{{x}}", `${config.X}`).replace("{{linkedin}}", `${config.LINKEDIN}`).replace("{{instagram}}", `${config.INSTAGRAM}`).replace("{{unsubscribe}}", `${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${email}`).replace("{{home}}", `${config.FRONTEND_ORIGIN_URL}/home`).replace("{{login}}", `${config.FRONTEND_ORIGIN_URL}/login`).replace("{{contact}}", `${config.FRONTEND_ORIGIN_URL}/contact-us`).replace("{{supportEmail}}", `${config.SUPPORT_EMAIL}`),
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject(brevoMail);
 
+    });
+  } catch (error) {
+    return { error: error };
+  }
+}
 

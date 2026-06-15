@@ -1,5 +1,7 @@
 const config = require("../config/env");
 const QRCode = require('qrcode');
+const fs = require("fs");
+const path = require("path");
 let activeId;
 const connections = [];
 const characters = ["a","b", "c","d", "e", "f", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s","t","u", "v", "w", "x", "y","z"];
@@ -77,6 +79,18 @@ async function generateQRCode(text) {
     throw new Error('Failed to generate QR code: ' + err.message);
   }
 }
+const mailContentReader = (templateName) => {
+  try{
+    const templatePath = path.join(__dirname, "../views", `${templateName}.handlebars`);
+    if (!fs.existsSync(templatePath)) throw new Error(`Template file ${templateName}.handlebars does not exist.`);
+    const content = fs.readFileSync(templatePath, "utf-8");
+    return content;
+    
+  } catch(error){
+    throw new Error( error.message || "Failed to read mail content file");
+  }
+
+}
 module.exports = {
   isValidEmail,
   OPTDigitGen,
@@ -86,4 +100,5 @@ module.exports = {
  connections,
  userIdGenerator,
  generateQRCode,
+ mailContentReader,
 };

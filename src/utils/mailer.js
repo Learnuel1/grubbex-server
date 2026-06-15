@@ -6,6 +6,7 @@ require("dotenv").config();
 const path = require("path");
 const {CONFIG} = require("../config");
 const config = require("../config/env");
+const { mailContentReader } = require("./validation");
 
 const handlebarsOptions = {
   viewEngine: {
