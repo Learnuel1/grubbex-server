@@ -7,7 +7,7 @@ const { getUserAccounts, deleteUser, updateUserInfo, updateNotificationSetting }
 const config = require("../../../config/env");
 const { shortIdGen, generateStrongPassword, isStrongPassword } = require("../../../shared/utils/Generator");
 const { hashSync } = require("bcryptjs");
-const { registrationMailHandler } = require("../../../shared/utils/mailer"); 
+const { registrationMailHandler } = require("../../../shared/utils/interface"); 
 const { adminWalletUpdate } = require("../../../shared/services/wallet.service");
 
 exports.defaultAdminAccount = async () => {
