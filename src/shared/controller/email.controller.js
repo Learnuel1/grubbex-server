@@ -1,7 +1,7 @@
 const logger = require("../../logger");
 const { META } = require("../utils/actions");
-const { APIError } = require("../utils/apiError");
-const { sendEMailHandler } = require("../utils/mailer");
+const { APIError } = require("../utils/apiError"); 
+const { sendEMailHandler } = require("../utils/interface");
 
 exports.sendMail = async (req, res, next) => {
   try{

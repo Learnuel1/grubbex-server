@@ -4,7 +4,7 @@ const { temporalAccExistByToken, temporalAccExist, createAccount, userExist, rem
 const { ERROR_FIELD, META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const jwt = require("jsonwebtoken");
-const { registrationMailHandler, recoveryPasswordMailHandler } = require("../utils/interface");
+const {  recoveryPasswordMailHandler, registrationOTPMailHandler } = require("../utils/interface");
 const logger = require("../../logger"); 
 const shared = require("../")
 const { findInvitation, deleteInviteByToken } = require("../../api/admin/services"); 
@@ -81,7 +81,7 @@ exports.registerUser = async (req, res, next) => {
     }); }
     const title = "Registration Confirmation"
     res.clearCookie('grub_ex');
-    const result = await registrationMailHandler(
+    const result = await registrationOTPMailHandler(
       req.body.email,
       req.body.firstName
     );
