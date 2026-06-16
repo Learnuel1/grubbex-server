@@ -53,246 +53,73 @@ exports.registrationOTPMailHandler = async (email, otp, expires, title, message,
 
 // mail options
 
-//   const registrationOTPMailOptions = (sendTo, subject, otp, expires, title, message, grubbyDept="Grubbex team", template= "otp") => {
-//     return {
-//       from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//       to: sendTo,
-//       subject,
-//       template,
-//       context: { 
-//         title,
-//         body:message,
-//         otp,
-//         grubbyDept,
-//         facebook:`${config.FACEBOOK}`,
-//         x:`${config.X}`,
-//         linkedin:`${config.LINKEDIN}`,
-//         instagram:`${config.INSTAGRAM}`,
-//         unsubscribe:`${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${sendTo}`,
-//         home:`${config.FRONTEND_ORIGIN_URL}/home`,
-//         login:`${config.FRONTEND_ORIGIN_URL}/login`,
-//         contact:`${config.FRONTEND_ORIGIN_URL}/contact-us`,
-//         supportEmail:`${config.SUPPORT_EMAIL}`, 
-//       },
-//     };
-//   };
-
-//   exports.registrationOTPMailHandler = async (email, otp, expires, title, message, template, grubbyDept, subject = "Registration OTP") => {
-//     try {
-//       return new Promise((resolve, reject) => {
-//         const mail = registrationOTPMailOptions(
-//           email,
-//           subject,
-//           otp,
-//           expires,
-//           title,
-//            message,
-//            grubbyDept,
-//           template
-//         );
-//         transporter.sendMail(mail, (err, data) => {
-//           if (err) {
-//             return reject(err);
-//           }
-//           return resolve({ success: true });
-//         });
-//       });
-//     } catch (error) {
-//       return { error: error };
-//     }
-//   };
-
-//   //send invitation mail
-// const invitationMailOptions = (sendTo, subject, uniqueString, title, message,grubbexDept, template) => {
-//   return {
-//     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//     to: sendTo,
-//     subject,
-//     template,
-//     context: { 
-//       link: `${config.FRONTEND_ORIGIN_URL}/invite/?ref=${uniqueString}`,
-//       company: `${CONFIG.APP_NAME}`,
-//       title:  title,
-//       message,
-//       grubbexDept,
-//       website:`${config.FRONTEND_ORIGIN_URL}`,
-//       facebook:`${config.FACEBOOK}`,
-//       x:`${config.X}`,
-//       linkedin:`${config.LINKEDIN}`,
-//       instagram:`${config.INSTAGRAM}`
-//     },
-//   };
-// };
-// exports.invitationMailHandler = async (email, subject, uniqueString, title, message, team, template = "invitation") => {
-//   try {
-//     return new Promise((resolve, reject) => {
-//       const mail = invitationMailOptions(
-//         email,
-//         subject,
-//         uniqueString,
-//         title, message, team,template,
-//       );
-//       transporter.sendMail(mail, (err, data) => {
-//         if (err) {
-//           return reject(err);
-//         }
-//         return resolve({ success: true });
-//       });
-//     });
-//   } catch (error) {
-//     return { error: error };
-//   }
-// };
-
-// // password recovery
-// const passwordMailOptions = (sendTo, subject, uniqueString, title, message,grubbexDept, otp) => {
-//   return {
-//     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//     to: sendTo,
-//     subject,
-//     template: "password_recovery",
-//     context: { 
-//       link: otp? " ": `${config.FRONTEND_ORIGIN_URL}/password-recovery?ref=${uniqueString}`,
-//       company: `${CONFIG.APP_NAME}`,
-//       title,
-//       message,
-//       grubbexDept,
-//       buttonText: otp? otp: "Reset Password",
-//       website:`${config.FRONTEND_ORIGIN_URL}`,
-//       facebook:`${config.FACEBOOK}`,
-//       x:`${config.X}`,
-//       linkedin:`${config.LINKEDIN}`,
-//       instagram:`${config.INSTAGRAM}`
-//     },
-//   };
-// };
-
-// exports.recoveryPasswordMailHandler = async (
-//   email, 
-//   subject, uniqueString, title, message,grubbexDept, otp
-// ) => {
-//   return new Promise((resolve, reject) => {
-//     const mail = passwordMailOptions(
-//       email,
-//       subject, uniqueString, title, message,grubbexDept, otp
-//     );
-//     transporter.sendMail(mail, (err, data) => {
-//       if (err) { 
-//         return reject(err);
-//       }
-//       return resolve({ success: true });
-//     });
-//   });
-// };
-
-
-
-
-
-
-// // verification
-// const verificationdMailOptions = (
-//   sendTo,
-//   subject,
-//   expiryTime,
-//   uniqueString,
-//   username
-// ) => {
-//   return {
-//     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//     to: sendTo,
-//     subject,
-//     template: "verify",
-//     context: {
-//       expiryTime: `${expiryTime} `,
-//       link: `${config.FRONTEND_ORIGIN_URL}/user/verify?id=${uniqueString}`,
-//       username,
-//     },
-//   };
-// }; 
-
-// exports.verificationMailHandler = async (
-//   email,
-//   expiryTime,
-//   uniqueString,
-//   username
-// ) => {
-//   return new Promise((resolve, reject) => {
-//     const mail = verificationdMailOptions(
-//       email,
-//       "Account Verification",
-//       expiryTime,
-//       uniqueString,
-//       username
-//     );
-//     transporter.sendMail(mail, (err, data) => {
-//       if (err) {
-//         return reject(err);
-//       }
-//       return resolve({ success: true });
-//     });
-//   });
-// }; 
-// // GENERAL EMAIL 
-// const sendEmailOptions = (sendTo, subject, message, attachment) => {
-//   return {
-//     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//     to: sendTo,
-//     subject,
-//     // text: message,
-//     html: message,
-//     attachments:attachment,
-//   };
-// };
-// exports.sendEMailHandler = (sendTo, subject, message, attachment=null)=> {
-//   return new Promise((resolve, reject) => {
-//     const mail = sendEmailOptions(
-//       sendTo, subject, message, attachment
-//     );
-//     transporter.sendMail(mail, (err, data) => {
-//       if (err) { 
-//         return reject(err);
-//       }
-//       return resolve({ success: true });
-//     });
-//   });
-// }
-
-// //payment 
-// const paymentCompleteMailOptions = (
-//   sendTo,
-//   subject,
-//   plan,
-//   name
-// ) => {
-//   return {
-//     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//     to: sendTo,
-//     subject,
-//     template: "payment.completed",
-//     context: {
-//       plan,
-//       name,
-//     },
-//   };
-// };
-// exports.paymentSuccessMailHandler = async (email,plan, name) => {
-//   try {
-//     return new Promise((resolve, reject) => {
-//       const mail = paymentCompleteMailOptions(
-//         email,
-//         "Plan Purchase",
-//         plan,
-//         name
-//       );
-//       transporter.sendMail(mail, (err, data) => {
-//         if (err) {
-//           return reject(err);
-//         }
-//         return resolve({ success: true });
-//       });
-//     });
-//   } catch (error) {
-//     return { error: error };
-//   }
-// };
+exports.invitationMailHandler = async (email, subject, uniqueString, title, message, team, template = "invitation") => {
+  try {
+    const content = mailContentReader(template);
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: email }],
+        subject: subject,
+        htmlContent: content.replace("{{link}}", `${config.FRONTEND_ORIGIN_URL}/invite/?ref=${uniqueString}`).replace("{{company}}", `${CONFIG.APP_NAME}`).replace("{{title}}", title).replace("{{message}}", message).replace("{{grubbexDept}}", team).replace("{{website}}", `${config.FRONTEND_ORIGIN_URL}`).replace("{{facebook}}", `${config.FACEBOOK}`).replace("{{x}}", `${config.X}`).replace("{{linkedin}}", `${config.LINKEDIN}`).replace("{{instagram}}", `${config.INSTAGRAM}`),
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject({error:brevoMail});
+    });
+  } catch (error) {
+    return { error: error };
+  }
+};
+exports.recoveryPasswordMailHandler = async (email, subject, uniqueString, title, message,grubbexDept, otp) => {
+  try {
+    const content = mailContentReader("password_recovery"); 
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: email }],
+        subject: subject,
+        htmlContent: content.replace("{{link}}", otp? " ": `${config.FRONTEND_ORIGIN_URL}/password-recovery?ref=${uniqueString}`).replace("{{company}}", `${CONFIG.APP_NAME}`).replace("{{title}}", title).replace("{{message}}", message).replace("{{grubbexDept}}", grubbexDept).replace("{{buttonText}}", otp? otp: "Reset Password").replace("{{website}}", `${config.FRONTEND_ORIGIN_URL}`).replace("{{facebook}}", `${config.FACEBOOK}`).replace("{{x}}", `${config.X}`).replace("{{linkedin}}", `${config.LINKEDIN}`).replace("{{instagram}}", `${config.INSTAGRAM}`),
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject({error:brevoMail});
+    });
+  } catch (error) {
+    return { error: error };
+  }
+};
+exports.verificationMailHandler = async (email, subject="Account Verification", expiryTime, uniqueString, username) => {
+  try {email
+ 
+    const content = mailContentReader("verify");
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: email }],
+        subject: subject,
+        htmlContent: content.replace("{{link}}", `${config.FRONTEND_ORIGIN_URL}/user/verify?id=${uniqueString}`).replace("{{company}}", `${CONFIG.APP_NAME}`).replace("{{expiryTime}}", expiryTime).replace("{{username}}", username),
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject({error:brevoMail});
+    });
+  } catch (error) {
+    return { error: error };
+  }
+};
+exports.sendEMailHandler = async (sendTo, subject, message, attachment=null)=> {
+  try {
+    const content = mailContentReader("general");
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: sendTo }],
+        subject: subject,
+        htmlContent: content.replace("{{message}}", message).replace("{{company}}", `${CONFIG.APP_NAME}`),
+        attachments: attachment? [{ content: attachment.content, name: attachment.name, type: attachment.type }]: null
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject({error:brevoMail});
+    });
+  } catch (error) {
+    return { error: error };
+  }
+}
