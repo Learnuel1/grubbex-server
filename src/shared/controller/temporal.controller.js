@@ -4,10 +4,11 @@ const config =require ("../../config/env");
 const jwt = require("jsonwebtoken");
 const {APIError} =  require("../utils/apiError");
 const { META, ERROR_FIELD } = require("../utils/actions");
-const { registrationOTPMailHandler, sendRegistrationOTP } = require("../utils/mailer");
+ 
 const logger = require("../../logger");
 const { temporalAccExistByToken, createTemporalAccount, temporalAccExist, userExistByMail, send2FA_OTP, createRecoveryTempInfo } = require("../services/interface");
 const { validateRequestData } = require("../middleware/data_validator.middleware");
+const { registerOTPMailHandler } = require("../utils/interface");
 
 exports.createTemporalAccount = async (req, res, next) => {
   try{
@@ -32,7 +33,7 @@ exports.createTemporalAccount = async (req, res, next) => {
     const message = " Please enter the code below on the registration page to complete the process."
     //send OTP TO MAIL
     //registrationOTPMailHandler
-    const result = await sendRegistrationOTP(
+    const result = await registerOTPMailHandler(
       createTemAccount.email,
       otp,
       `${expiryMin} minutes`,

@@ -1,28 +1,57 @@
-// const path = require("path")
-// const { domainMail, mailAuth } = require("./mail.auth");
-// const { CONFIG, CONSTANTS } = require("../../config");
-// const nodemailer = require("nodemailer");
-// const hbs = require("nodemailer-express-handlebars");
-// const config = require("../../config/env");
-// const { mailContentReader } = require("../../utils/validation"); 
+const { BrevoClient } = require("@getbrevo/brevo");
+const config = require("../../../config/env");
+
+const path = require("path")
+const { domainMail, mailAuth } = require("../mail.auth");
+const { CONFIG, CONSTANTS } = require("../../../config");
+const nodemailer = require("nodemailer");
+const hbs = require("nodemailer-express-handlebars");
+const { mailContentReader } = require("../../../utils/validation"); 
  
-// const handlebarsOptions = {
-//   viewEngine: {
-//     extName: ".handlebars",
-//     partialsDir: path.resolve("./src/views"),
-//     defaultLayout: false,
-//   },
-//   viewPath: path.resolve("./src/views"),
-//   extName: ".handlebars",
-// };
-// let transporter = nodemailer.createTransport(
-//   {
-//     ...mailAuth
-//   });
+const handlebarsOptions = {
+  viewEngine: {
+    extName: ".handlebars",
+    partialsDir: path.resolve("../src/views"),
+    defaultLayout: false,
+  },
+  viewPath: path.resolve("../src/views"),
+  extName: ".handlebars",
+};
+let transporter = nodemailer.createTransport(
+  {
+    ...mailAuth
+  });
 
-//   transporter.use("compile", hbs(handlebarsOptions));
+  transporter.use("compile", hbs(handlebarsOptions));
 
-//   // mail options
+
+  const brevo = new BrevoClient({
+     apiKey: config.BREVO_KEY, 
+     timeoutInSeconds: 30,
+      maxRetries: 3,
+  });
+exports.registrationOTPMailHandler = async (email, otp, expires, title, message, template, grubbyDept, subject ) => {
+  try {
+    const content = mailContentReader(template);
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: email }],
+        subject: subject,
+        htmlContent: content.replace("{{otp}}", otp).replace("{{expires}}", expires).replace("{{title}}", title).replace("{{message}}", message).replace("{{grubbyDept}}", grubbyDept).replace("{{facebook}}", `${config.FACEBOOK}`).replace("{{x}}", `${config.X}`).replace("{{linkedin}}", `${config.LINKEDIN}`).replace("{{instagram}}", `${config.INSTAGRAM}`).replace("{{unsubscribe}}", `${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${email}`).replace("{{home}}", `${config.FRONTEND_ORIGIN_URL}/home`).replace("{{login}}", `${config.FRONTEND_ORIGIN_URL}/login`).replace("{{contact}}", `${config.FRONTEND_ORIGIN_URL}/contact-us`).replace("{{supportEmail}}", `${config.SUPPORT_EMAIL}`),
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject({error:brevoMail});
+
+    });
+  } catch (error) {
+    return { error: error };
+  }
+}
+
+// GOOGLE  MAIL
+
+// mail options
 
 //   const registrationOTPMailOptions = (sendTo, subject, otp, expires, title, message, grubbyDept="Grubbex team", template= "otp") => {
 //     return {
@@ -73,52 +102,6 @@
 //     }
 //   };
 
-//   //Registration completed
-//    const registrationMailOptions = (sendTo, subject, username, userType, grubbexDept, title) => {
-//     return {
-//       from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
-//       to: sendTo,
-//       subject,
-//       template: "registration",
-//       context: { 
-//         username, 
-//         title, 
-//         grubbexDept,
-//         facebook:`${config.FACEBOOK}`,
-//         x:`${config.X}`,
-//         linkedin:`${config.LINKEDIN}`,
-//         instagram:`${config.INSTAGRAM}`,
-//         unsubscribe:`${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${sendTo}`,
-//         home:`${config.FRONTEND_ORIGIN_URL}/home`,
-//         login:`${config.FRONTEND_ORIGIN_URL}/login`,
-//         contact:`${config.FRONTEND_ORIGIN_URL}/contact-us`,
-//         supportEmail:`${config.SUPPORT_EMAIL}`, 
-//         downloadLink: `${userType === CONSTANTS.ACCOUNT_TYPE[0] || userType === CONSTANTS.ACCOUNT_TYPE[2] ? "block" : "none"}`
-//       },
-//     };
-//   };
-
-//   exports.registrationMailHandler = async (email, username, userType, grubbexDept, title) => {
-//     try {
-//       return new Promise((resolve, reject) => {
-//         const mail = registrationMailOptions(
-//           email,
-//           "Account Registration",
-//           username,
-//           userType, grubbexDept, title
-//         );
-//         transporter.sendMail(mail, (err, data) => {
-//           if (err) {
-//             return reject(err);
-//           }
-//           return resolve({ success: true });
-//         });
-//       });
-//     } catch (error) {
-//       return { error: error };
-//     }
-//   };
-  
 //   //send invitation mail
 // const invitationMailOptions = (sendTo, subject, uniqueString, title, message,grubbexDept, template) => {
 //   return {
