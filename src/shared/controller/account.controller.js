@@ -4,7 +4,7 @@ const { temporalAccExistByToken, temporalAccExist, createAccount, userExist, rem
 const { ERROR_FIELD, META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const jwt = require("jsonwebtoken");
-const { registrationMailHandler, recoveryPasswordMailHandler } = require("../utils/mailer");
+const { registrationMailHandler, recoveryPasswordMailHandler } = require("../utils/interface");
 const logger = require("../../logger"); 
 const shared = require("../")
 const { findInvitation, deleteInviteByToken } = require("../../api/admin/services"); 

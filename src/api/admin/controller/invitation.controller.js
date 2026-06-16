@@ -9,7 +9,7 @@ const { createTemporalAccount } = require("../../../shared/services/interface");
 const { validateRequestData } = require("../../../shared/middleware/data_validator.middleware");
 const { OTPGen } = require("../../../shared/utils/Generator");
 const { hashSync } = require("bcryptjs");
-const { registrationOTPMailHandler, invitationMailHandler } = require("../../../shared/utils/mailer");
+const { registrationOTPMailHandler, invitationMailerHandler,   } = require("../../../shared/utils/interface");
 const Notification = require("../../../shared/utils/Notification");
 
 exports.sendInvitation = async (req, res, next) => {
@@ -27,7 +27,7 @@ exports.sendInvitation = async (req, res, next) => {
       });
       //send invite mail
       const message = "We're excited to invite you to join Grubbex as an admin, where your expertise can shape the future of our platform and drive its success. Invitation expires after a week."
-    const result = await invitationMailHandler(email, "Invitation", id, "You're invited!", message, "Grubbex Team");
+    const result = await invitationMailerHandler(email, "Invitation", id, "You're invited!", message, "Grubbex Team");
     if (result?.error)
       return next(APIError.badRequest('Invitation mail failed to send'));
     logger.info('Invitation mail sent successfully', {

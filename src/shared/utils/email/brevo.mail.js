@@ -1,28 +1,11 @@
 const { BrevoClient } = require("@getbrevo/brevo");
 const config = require("../../../config/env");
-
-const path = require("path")
+ 
 const { domainMail, mailAuth } = require("../mail.auth");
-const { CONFIG, CONSTANTS } = require("../../../config");
-const nodemailer = require("nodemailer");
-const hbs = require("nodemailer-express-handlebars");
+const { CONFIG, CONSTANTS } = require("../../../config"); 
 const { mailContentReader } = require("../../../utils/validation"); 
  
-const handlebarsOptions = {
-  viewEngine: {
-    extName: ".handlebars",
-    partialsDir: path.resolve("../src/views"),
-    defaultLayout: false,
-  },
-  viewPath: path.resolve("../src/views"),
-  extName: ".handlebars",
-};
-let transporter = nodemailer.createTransport(
-  {
-    ...mailAuth
-  });
-
-  transporter.use("compile", hbs(handlebarsOptions));
+ 
 
 
   const brevo = new BrevoClient({
@@ -48,11 +31,7 @@ exports.registrationOTPMailHandler = async (email, otp, expires, title, message,
     return { error: error };
   }
 }
-
-// GOOGLE  MAIL
-
-// mail options
-
+ 
 exports.invitationMailHandler = async (email, subject, uniqueString, title, message, team, template = "invitation") => {
   try {
     const content = mailContentReader(template);
@@ -70,7 +49,7 @@ exports.invitationMailHandler = async (email, subject, uniqueString, title, mess
     return { error: error };
   }
 };
-exports.recoveryPasswordMailHandler = async (email, subject, uniqueString, title, message,grubbexDept, otp) => {
+exports.recoveryPasswordMailHandler = async (email, subject, uniqueString, title, message,grubbexDept) => {
   try {
     const content = mailContentReader("password_recovery"); 
     return new Promise( async (resolve, reject) => {
