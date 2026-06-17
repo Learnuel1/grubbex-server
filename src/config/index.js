@@ -4,7 +4,7 @@ exports.CONFIG = {
 
 // exports.CORS_WHITELISTS = [`https://grubby-frontend.vercel.app`, `https://grubbex.vercel.app/`, `${process.env.FRONTEND_ORIGIN_URL}`,`http://127.0.0.1:3000`,`localhost:${process.env.PORT || 8001}`,  `http://localhost:3001`, `http://localhost:5173`, `http://localhost:5501`,`http://localhost:4000`];
 // exports.CORS_WHITELISTS =  [`${process.env.FRONTEND_ORIGIN_URL}`];
-exports.CORS_WHITELISTS = [ `${process.env.FRONTEND_ORIGIN_URL}`,`http://localhost:4000`,`http://127.0.0.1:4000`, `http://127.0.0.1:3000`, ];
+exports.CORS_WHITELISTS = [ `${process.env.FRONTEND_ORIGIN_URL}`,`http://localhost:4000`,`http://127.0.0.1:4000`, `http://127.0.0.1:3000`, `https://grubbex-dev.netlify.app`, `https://grubbex.netlify.app`];
 
 exports.CONSTANTS = {
   ACCOUNT_TYPE: ["shopper", "admin","rider","business", "dev"],
