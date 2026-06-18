@@ -28,7 +28,7 @@ exports.productsByStore = async (store) => {
 }
 exports.productsByStoreId = async (storeId) => {
   try{
-    return await ProductModel.find({storeId}).select("-_id -__v -store").exec();
+    return await ProductModel.find({storeId}).select("-_id -__v -store -media.mainImage.id -media.others.id").exec();
   }  catch (error) {
     return {error: error.message}
   }
@@ -36,7 +36,7 @@ exports.productsByStoreId = async (storeId) => {
 
 exports.searchProductInStore = async (query) => {
   try{
-    return await ProductModel.find(query).select("-_id -__v -store").exec();
+    return await ProductModel.find(query).select("-_id -__v -store -media.mainImage.id -media.others.id").exec();
   } catch (error) {
     return {error: error.message};
   }
