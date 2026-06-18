@@ -35,7 +35,7 @@ exports.login = async (req, res, next) => {
 		if (
 			!req.baseUrl.includes('m') &&
 			(exist?.type?.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.rider ||
-				exist.type.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper)
+				exist?.type?.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper)
 		)
 			return next(APIError.unauthorized('Please use mobile app'));
 		if (

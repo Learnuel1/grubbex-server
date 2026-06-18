@@ -21,7 +21,7 @@ exports.create =  async ( details) => {
 }
 exports.productsByStore = async (store) => {
   try{
-    return await ProductModel.find({store}).select("-_id -__v -store -barcode.id -barcode._id").exec();
+    return await ProductModel.find({store}).select("-_id -__v -store -barcode.id -barcode._id -media.mainImage.id -media.others.id").exec();
   }  catch (error) {
     return {error: error.message}
   }

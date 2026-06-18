@@ -31,7 +31,24 @@ exports.registrationOTPMailHandler = async (email, otp, expires, title, message,
     return { error: error };
   }
 }
- 
+exports.registrationMailHandler = async (email, username, subject="Account Registration", template ="registration") => {
+  try {
+    const content = mailContentReader(template);
+    return new Promise( async (resolve, reject) => {
+      const brevoMail = await brevo.transactionalEmails.sendTransacEmail({
+        sender: { name: `${CONFIG.APP_NAME}`, email: `${domainMail.mail()}` },
+        to: [{ email: email }],
+        subject: subject,
+        htmlContent: content.replace("{{username}}", username),
+      });
+      if(brevoMail?.messageId) return resolve({success: true});
+      return reject({error:brevoMail});
+
+    });
+  } catch (error) {
+    return { error: error };
+  }
+}
 exports.invitationMailHandler = async (email, subject, uniqueString, title, message, team, template = "invitation") => {
   try {
     const content = mailContentReader(template);

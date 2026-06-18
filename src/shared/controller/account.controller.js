@@ -4,7 +4,6 @@ const { temporalAccExistByToken, temporalAccExist, createAccount, userExist, rem
 const { ERROR_FIELD, META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const jwt = require("jsonwebtoken");
-const {  recoveryPasswordMailHandler, registrationOTPMailHandler } = require("../utils/interface");
 const logger = require("../../logger"); 
 const shared = require("../")
 const { findInvitation, deleteInviteByToken } = require("../../api/admin/services"); 
@@ -16,6 +15,7 @@ const NaijaStates = require('naija-state-local-government');
 const { validateRequestData } = require("../middleware/data_validator.middleware");
 const Notification = require("../utils/Notification");
 const { deleteFileFromCloudinary, uploadFileToCloudinary, uploadSingleFileToCloudinary } = require("../utils/cloudinary");
+const { registrationOTPMailHandler, registrationMailHandler } = require("../utils/interface");
    const notify = new Notification();
 exports.registerUser = async (req, res, next) => {
   try {  
@@ -81,7 +81,7 @@ exports.registerUser = async (req, res, next) => {
     }); }
     const title = "Registration Confirmation"
     res.clearCookie('grub_ex');
-    const result = await registrationOTPMailHandler(
+    const result = await registrationMailHandler(
       req.body.email,
       req.body.firstName
     );

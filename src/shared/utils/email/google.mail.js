@@ -267,3 +267,47 @@ exports.paymentSuccessMailHandler = async (email,plan, name) => {
     return { error: error };
   }
 };
+   const registrationMailOptions = (sendTo, subject, username, userType, grubbexDept, title) => {
+    return {
+      from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
+      to: sendTo,
+      subject,
+      template: "registration",
+      context: { 
+        username, 
+        title, 
+        grubbexDept,
+        facebook:`${config.FACEBOOK}`,
+        x:`${config.X}`,
+        linkedin:`${config.LINKEDIN}`,
+        instagram:`${config.INSTAGRAM}`,
+        unsubscribe:`${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${sendTo}`,
+        home:`${config.FRONTEND_ORIGIN_URL}/home`,
+        login:`${config.FRONTEND_ORIGIN_URL}/login`,
+        contact:`${config.FRONTEND_ORIGIN_URL}/contact-us`,
+        supportEmail:`${config.SUPPORT_EMAIL}`, 
+        downloadLink: `${userType === CONSTANTS.ACCOUNT_TYPE[0] || userType === CONSTANTS.ACCOUNT_TYPE[2] ? "block" : "none"}`
+      },
+    };
+  };
+  exports.registrationMailHandler = async (email, username, userType, grubbexDept, title) => {
+    try {
+      return new Promise((resolve, reject) => {
+        const mail = registrationMailOptions(
+          email,
+          "Account Registration",
+          username,
+          userType, grubbexDept, title
+        );
+        transporter.sendMail(mail, (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve({ success: true });
+        });
+      });
+    } catch (error) {
+      return { error: error };
+    }
+  };
+  
