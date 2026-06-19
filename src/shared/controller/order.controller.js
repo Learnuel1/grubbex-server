@@ -131,8 +131,8 @@ exports.initializeOrderWithFlutter = async (req, res, next ) => {
 
 exports.initializeOrderWithPayStack = async (req, res, next ) => {
     try{
-        const {orderId} = req.body;
-        let VAT;
+        const {orderId, subTotal, store} = req.body;
+        let VAT = req.body.subTotal * (config.VAT /100);
     // do some checks
     //1. does product in card exist
      let qrText="";  
@@ -153,8 +153,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         } 
          qrText += `prodId:${product.prodId}-`;
          product.media = productExists[0].media;
-         product.name = productExists[0].title;
-         VAT += product?.vat ? product.vat :  config.VAT;
+         product.name = productExists[0].title; 
          items.push(product);
     }
     req.body.items = items;
@@ -171,26 +170,26 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
             if(pricing?.error) return next(APIError.badRequest(pricing.error));
             if(pricing?.deduction && pricing?.deduction > 0){
                 deduction += pricing.discount;
-                total += pricing.price - (pricing.discount/100) *  pricing.price + VAT;
-            } else total = pricing.price + VAT;
+                total += pricing.price - (pricing.discount/100) *  pricing.price;
+            }  
         }
-        if(deduction > 0) {
-            req.body.discount = deduction;
-        }
+        if(deduction > 0) req.body.discount = deduction;
+        
         logger.info(`Promo code applied successfully`, {service: META.ORDER});
     } 
-    if (req.body.total !== total) {
-        return next(APIError.badRequest("Total amount does not match the calculated total"));
-    }
+    if (subTotal + VAT !== total) return next(APIError.badRequest("Total amount does not match the calculated total"));
+    
      qrText += `amount:${req.body.total}-`;
      // DELIVERY FEE
+     const storeInfo = await getStoreAddress(req.body.storeId);
+     if(storeInfo.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest("Store address could not be verified"));
+     let storeAddress = null;
+     const {location } = storeInfo;
+    store[0].location = location ;
+    storeAddress = storeInfo.location
+    req.body.store = store
     if(req.body.type === CONSTANTS.DELIVERY_TYPE_OBJ.delivery) {
         // calculate the distance between the store and the delivery address
-            const storeInfo = await getStoreAddress(req.body.storeId);
-            if(storeInfo.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest("Store address could not be verified"));
-            let storeAddress = null;
-          const {location } = storeInfo;
-           storeAddress = storeInfo.location  ;
             const {destinationAddress}  = req.body ; 
             if (!destinationAddress) return next(APIError.badRequest('Delivery address is required for delivery orders'));
             if (destinationAddress.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest('Delivery location is needed'));
@@ -209,12 +208,22 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
             req.body.destinationAddress.distance = km.distance.text;  
             req.body.destinationAddress.duration = km.duration.text;  
             const distanceValue =Number((km.distance.value /1000).toFixed(1));  
-            logger.info(`Calculated delivery distance successfully `, {service: META.ORDER});
-            req.body.destinationAddress.distanceValue = distanceValue;  
-           // compute delivery cost
-           req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
+            logger.info(`Calculated  ${CONSTANTS.DELIVERY_TYPE_OBJ.delivery}  distance successfully `, {service: META.ORDER});
+            req.body.destinationAddress.distanceValue = distanceValue;
+            // compute delivery cost
+            req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
+            req.body.destinationAddress.location.formattedAddress = destAddressExist.result.formatted_address;  
         }else  if(req.body.type === CONSTANTS.DELIVERY_TYPE_OBJ.pickup){
-
+             const km = await getDistanceKmBetweenAddresses( {lat:location.latitude, lng:location.longitude},{lat:destinationAddressCord.latitude, lng: destinationAddressCord.longitude}, { apiKey: config.GOOGLE_MAPS_API_KEY, mode: CONSTANTS.TRANSPORTATION_MODE.driving });
+            if(km?.error) return next(APIError.badRequest(km.error));
+            req.body.destinationAddress.distance = km.distance.text;  
+            req.body.destinationAddress.duration = km.duration.text;  
+            const distanceValue =Number((km.distance.value /1000).toFixed(1));  
+            logger.info(`Calculated ${CONSTANTS.DELIVERY_TYPE_OBJ.pickup} distance successfully `, {service: META.ORDER});
+            req.body.destinationAddress.distanceValue = distanceValue;
+            // compute delivery cost
+            req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
+            req.body.destinationAddress.location.formattedAddress = destAddressExist.result.formatted_address;  
         }
     // verify card Details
     // const {cardDetails } = req.body;
@@ -245,7 +254,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
              orderId,
              user: req.user,
              
-    }
+    } 
     const userBal  = await walletBalance(req.user);   
     if(userBal?.error) return next(APIError.badRequest(userBal.error));
     if(userBal.balance < req.body.total) return next(APIError.badRequest("Insufficient wallet balance"));
@@ -954,6 +963,8 @@ exports.getOderDistance = async (req, res, next ) =>{
         if(verify?.error) return next(APIError.badRequest(verify.error));
         //check for store
          const storeInfo = await getStoreAddress(storeId);
+         if(!storeInfo) return next(APIError.notFound("Store not found"));
+         if(storeInfo?.error) return next(APIError.badRequest(storeInfo.error));
             if(storeInfo.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest("Store address could not be verified"));
             let storeAddress = null;
           const {location } = storeInfo;

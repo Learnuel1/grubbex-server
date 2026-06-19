@@ -108,6 +108,7 @@ module.exports = {
       store:{storeId:storeKYC[0].store[0].storeId, name:storeKYC[0].store[0].name},
       bankDetails:storeKYC[0].bankDetails[0],
     }
+    delete info.bankDetails.bvn;
     req.body.store = [info ];
     const { destinationAddress } = req.body;
     if( destinationAddress){ 

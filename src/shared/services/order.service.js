@@ -3,7 +3,7 @@ const OrderModel = require("../../models/order.models");
 const TemporalAccountModel = require("../../models/temporal.account.model");
 
 exports.createDraft = async (info) => {
-    try {
+    try { 
        await OrderModel.findOneAndDelete({qrText: info.qrText, status: CONSTANTS.ORDER_STATUS_OBJ.draft, shopperId: info.shopperId});
         return await OrderModel.create({...info});
     } catch (error) {

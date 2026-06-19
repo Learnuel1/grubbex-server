@@ -89,8 +89,21 @@ const OrderSchema = new Schema({
             required: false
         },
         location: { 
-            lat: { type: Number },
-            lng: { type: Number }
+            latitude: { type: Number },
+            longitude: { type: Number },
+            formattedAddress: { type: String }
+        },
+        distanceValue: {
+            type: Number
+        },
+        distance: {
+            type: String
+        },
+        duration: {
+            type: String
+        },
+        deliveryPrice: {
+            type: Number
         }
     },
     store: [{
