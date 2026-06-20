@@ -218,5 +218,6 @@ const OrderSchema = new Schema({
 }
 }, { timestamps: true });
 
+OrderSchema.index({ createdAt: 1 })
  const OrderModel = model('Order', OrderSchema);
 module.exports = OrderModel;

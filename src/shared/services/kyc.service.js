@@ -197,7 +197,7 @@ exports.checkKYC = async (user) => {
 }
 exports.KYC = async (user) => {
   try{
-    return await KYCModel.findOne({user}).select("-_id -__v -createdAt -updatedAt -user -rejection._id").exec();
+    return await KYCModel.findOne({user}).select("-_id -__v -createdAt -updatedAt -user -rejection._id -documents.id -documents.back.id -profile.logo.id").exec();
   }catch(error) {
     return {error};
   }
@@ -222,7 +222,7 @@ exports.KYCSearch = async (search) => {
 }
 
 exports.updateStatus = async (search, info)=> {
-  try{
+  try{ 
     let completed = 0;
     let docFoundIn = "";
      let doc ;
@@ -273,14 +273,14 @@ exports.updateStatus = async (search, info)=> {
   }
       if(profile.length > 0 && user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.user || user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
         profile.forEach((cur) => {
-          if(cur.address.state && cur.address.town && cur.address.landMark) {
+          if(cur?.address?.state && cur?.address?.town && cur?.address?.landMark) {
             completed++; 
           }
         })
       }
       if(profile.length > 0 && user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.business  ){
         profile.forEach((cur) => {
-          if(cur.logo.id && cur.address.state && cur.address.town && cur.address.landMark) {
+          if(cur.logo.id && cur?.address?.state && cur?.address?.town && cur?.address?.landMark) {
             completed++; 
           }
         })

@@ -113,3 +113,10 @@ exports.orderOTP = async (details) => {
     return {error: error.message };
   }
 }
+exports.findUserByCustomId = async (userId) => {
+  try{
+     return await AccountModel.findOne({userId}).exec();
+  }catch(error){
+    throw new Error(error);
+  }
+}

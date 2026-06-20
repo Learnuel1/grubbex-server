@@ -31,7 +31,7 @@ exports.userExistToken = async (refreshToken) => await TemporalModules.findUserB
 exports.userExistById = async (id) => await TemporalModules.findUserById(id);
 exports.saveOrderOTP = async(details) => await TemporalModules.createOrderOTP(details);
 exports.getOrderOTP = async(details) => await TemporalModules.orderOTP(details);
-
+exports.findUserByCustomId = async (userId) => await TemporalModules.findUserByCustomId(userId);
 //ACCOUNT SECTION
 exports.removeAccount = async (userId) => await AccountModules.delete(userId);
 exports.createAccount = async (data) => await AccountModules.registerAccount(data);

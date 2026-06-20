@@ -736,7 +736,7 @@ exports.orderStatusUpdate = async (req, res, next) => {
         const query = {};
         if(!orderId) return next(APIError.badRequest("Order ID is required"));
         if(!status) return next(APIError.badRequest("Order status is required"));
-         if (status === CONSTANTS.ORDER_STATUS_OBJ.draft) return next(APIError.badRequest("You are not allowed to update order status to draft"));
+         if (status === CONSTANTS.ORDER_STATUS_OBJ.draft) return next(APIError.badRequest(`You are not allowed to update order status to ${CONSTANTS.ORDER_STATUS_OBJ.draft}`));
         if(!Object.values(CONSTANTS.ORDER_STATUS_OBJ).includes(status.toLowerCase())) {
             return next(APIError.badRequest("Invalid order status"));
         }

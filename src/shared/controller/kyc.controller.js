@@ -9,6 +9,7 @@ const {
 	cityInfoUpdate,
 	getUserKYCByAccountId,
 	getStoreInfo,
+	findUserByCustomId,
 } = require('../services/interface');
 const { uniqueIdGen, shortIdGen } = require('../utils/Generator');
 const { META } = require('../utils/actions');
@@ -24,7 +25,7 @@ const { flutterwave } = require('../utils/flutterwave.auth');
 const buildRes = require("../utils/seedData");
 const { findStore, updateStoreLocation } = require('../../api/store/service');
 const { hashSync } = require('bcryptjs');
-const { verifyLocation } = require('../services/google.service');
+const { verifyLocation } = require('../services/google.service'); 
 exports.updateProfile = async (req, res, next) => {
 	try { 
 		if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business && req.files.length === 0 )
@@ -395,17 +396,21 @@ exports.updateKYCStatus = async (req, res, next) => {
 		 let statusUpdate = status.toLowerCase() === "reject"? status.concat("ed") : status.concat("d")
 		if (!CONSTANTS.KYC_STATUS.includes(statusUpdate.toLowerCase()))
 			return next(APIError.badRequest('Invalid document status'));
+		const exist = await findUserByCustomId(id);
+		if (!exist) return next(APIError.badRequest('Account does not exist'));
+		if(exist?.error) return next(APIError.badRequest(exist.error));
+		const field = exist.accountType === CONSTANTS.ACCOUNT_TYPE_OBJ.business ? "store.storeId" : "userId";
 		const info = { docId, status:statusUpdate };
 		const search = {
 			$or:[
 				{userId: id},
-				{"store.storeId": id}
+				{field: id}
 			]
 		}
 		const update = await updateUserKYCStatus(search, info);
 		if (!update)
 			return next(APIError.badRequest('Status update failed, try again'));
-		if (update.error) return next(APIError.badRequest(update.error));
+		if (update?.error) return next(APIError.badRequest(update.error));
 		logger.info('KYC status updated successfully', { meta: META.KYC });
 		res
 			.status(200)
