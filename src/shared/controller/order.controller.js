@@ -3,7 +3,7 @@ const config = require("../../config/env");
 const { OTPGen, shortIdGen } = require("../utils/Generator");
 const { hashSync } = require("bcryptjs");
 const { getStoreByProductId, verifyProductPromoCode, getFilteredProducts, removeSoldProductQuantity } = require("../../api/store/service");
-const { saveOrderOTP, getOrderOTP, payStackPayWithCard, createDraftOrder, verifyPayStackTransaction, getOrderByReference, updateCompletedOrder, createTempTransaction, getTemporalTransaction, storeOrders, removeTemporalTransaction, createTransactionHistory, updateAdminWallet, updateWallet, userExistByMail, getWalletBalance, walletBalance, updateOrderStatus, getOrderById, findMutedByUser, getUserKYC, getOrderByIdForVerification, updateOrderVerificationInfo, getOrderByQRData, findOrderForQRCodeGeneration, getStoreInfo, getStoreAddress } = require("../services/interface");
+const { saveOrderOTP, getOrderOTP, payStackPayWithCard, createDraftOrder, verifyPayStackTransaction, getOrderByReference, updateCompletedOrder, createTempTransaction, getTemporalTransaction, storeOrders, removeTemporalTransaction, createTransactionHistory, updateAdminWallet, updateWallet, userExistByMail, getWalletBalance, walletBalance, updateOrderStatus, getOrderById, findMutedByUser, getUserKYC, getOrderByIdForVerification, updateOrderVerificationInfo, getOrderByQRData, findOrderForQRCodeGeneration, getStoreInfo, getStoreAddress, userExistById } = require("../services/interface");
 const { META } = require("../../utils/actions");
 const { APIError } = require("../utils/apiError");
 const logger = require("../../logger"); 
@@ -593,7 +593,7 @@ exports.payStackVerifyTransaction = async (req, res, next ) => {
 }
 exports.getAllOrders = async (req, res, next ) => {
     try{
-         const {search, status, type, page, limit} = req.query;
+         const {search, status, type} = req.query;
         const query = {};
         if(req.userType.toLowerCase()  === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
                  if(status){
@@ -663,10 +663,25 @@ exports.getAllOrders = async (req, res, next ) => {
         if(mutedOrders?.error) return next(APIError.badRequest(mutedOrders.error));
         // get user kyc:
         const kyc = await getUserKYC(req.user);
-        if(!kyc || kyc?.profile) return next(APIError.unauthorized("You are not authorized to perform this action, complete your profile"));
-        if(!kyc.isVerified) return next(APIError.unauthorized("You are not authorized to perform this action, verify your account"));
-        if(kyc?.banned) return next(APIError.unauthorized("You are not authorized to perform this action, contact support"));
-        const {address} = kyc[0].profile;
+        const userInfo = await userExistById(req.user);
+        if(!kyc || !kyc?.profile) return next(APIError.unauthorized("You are not authorized to perform this action, complete your profile"));
+        if(!kyc.isVerified && userInfo.isVerified === false) return next(APIError.unauthorized("You are not authorized to perform this action, verify your account"));
+        if(userInfo.state !== CONSTANTS.ACCOUNT_STATE_OBJ.active) return next(APIError.unauthorized("You are not authorized to perform this action, contact support"));
+        const { locationData } = userInfo;
+        // 2. Pagination params
+             const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+            const skip = (page - 1) * limit;
+         const pipeline = [];
+
+        const riderLat = parseFloat(locationData.lat);
+    const riderLng = parseFloat(locationData.lng);
+    if (isNaN(riderLat) || isNaN(riderLng)) 
+      return next(APIError.badRequest('Invalid coordinates'));
+    
+            
+
+        const {address} = kyc.profile;
         if(status){
             query.$and = [
                 {status: CONSTANTS.ORDER_STATUS_OBJ.ready}, 

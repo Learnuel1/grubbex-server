@@ -659,14 +659,13 @@ exports.updateLocation = async (req, res, next) => {
 	try{
 		const { latitude, longitude, storeId} = req.body
 		if(!latitude) return next(APIError.badRequest("Location latitude is required"))
-		if(!longitude) return next(APIError.badRequest("Location longitude is required"));
-		if(!storeId) return next(APIError.badRequest("Store ID is required"));
-		
+		if(!longitude) return next(APIError.badRequest("Location longitude is required")); 
 		const info = await getUserKYC(req.user); 
 		if(!info) return next(APIError.badRequest("User not found"));
 		let storeExist;
 			//check if store exist
 			if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business){
+				if(!storeId) return next(APIError.badRequest("Store ID is required"));
 				  storeExist = await  findStore({storeId})
 				if( !storeExist || storeExist.length === 0) return next(APIError.badRequest("Store does not exist"));
 				if(storeExist[0].user.toString() !== req.user.toString()) return next(APIError.unauthorized("Operation forbidden"));
@@ -679,6 +678,8 @@ exports.updateLocation = async (req, res, next) => {
 				location: {
 				latitude,
 				longitude,
+				type: "Point",
+				coordinates: [longitude, latitude],
 				formattedAddress: locationInfo.result.formatted_address
 			},
 			user: req.user,
@@ -693,10 +694,12 @@ exports.updateLocation = async (req, res, next) => {
 		details.locationStatus = CONSTANTS.LOCATION_STATUS.set;
 		logger.info("KYC Location updated successfully", {service: META.KYC})
 		// update store location
+		if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business){
 		const store = await updateStoreLocation(storeId, details)
 		if(!store) return next(APIError.badRequest("Store location update failed, try again"));
 		if(store?.error ) return next (APIError.badRequest(store.error));
-		logger.info("Store Location updated successfully", {service: META.KYC})
+		}
+		logger.info("Location updated successfully", {service: META.KYC})
 		res.status(200).json({success: true, msg: "Location updated successfully"});
 	} catch (error) {
 		next (error)

@@ -50,6 +50,8 @@ const StoreSchema = new Schema({
   }],
   address: [],
   location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number] }, // [longitude, latitude]
     placeId: {
       type: String, 
     },
@@ -71,5 +73,6 @@ const StoreSchema = new Schema({
   }
 }, {timestamps: true}
 );
+StoreSchema.index({ location: '2dsphere' });
 const StoreModel = model("Store", StoreSchema);
 module.exports = StoreModel;

@@ -218,6 +218,6 @@ const OrderSchema = new Schema({
 }
 }, { timestamps: true });
 
-OrderSchema.index({ createdAt: 1 })
+OrderSchema.index({ createdAt: 1, store:"2dsphere" })
  const OrderModel = model('Order', OrderSchema);
 module.exports = OrderModel;

@@ -102,10 +102,12 @@ exports.update = async(info) => {
       }
       if(!KYC){
       update = await KYCModel.create({...info,   location: info.location });
+      await StoreModel.findOneAndUpdate({user: info.user}, {location: info.location}).exec();
       }else{
         update = await KYCModel.findOneAndUpdate({user:info.user},{
             location: info.location,   
         },{returnOriginal: false}).exec();
+          await StoreModel.findOneAndUpdate({user: info.user}, {location: info.location}).exec();
       }
       await AccountModel.findOneAndUpdate({_id:info.user}, {locationData}, {returnOriginal: false}).exec();
     }
