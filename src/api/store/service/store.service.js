@@ -1,4 +1,5 @@
 const { CONSTANTS } = require("../../../config");
+const config = require("../../../config/env");
 const StoreCategoryModel = require("../../../models/store.category");
 const StoreModel = require("../../../models/store.model");
 
@@ -117,5 +118,21 @@ exports.updateLocation = async (storeId, info) => {
   return await StoreModel.findOneAndUpdate({storeId}, {location: info.location,locationStatus:info.locationStatus}, {returnOriginal: false})
   }catch(error){ 
    return {error}
+  }
+}
+exports.nearByStore = async (longitude, latitude) => {
+  try{
+    const nearBy = await StoreModel.find({
+      location: {
+        $near: {
+          $geometry: { type: "Point", coordinates:[longitude, latitude] },
+          // $maxDistance: Number(10) *1000
+          $maxDistance: Number(config.RIDER_RADIUS) *1000
+        }
+      }
+    }).select("storeId").lean();
+    return nearBy;
+  } catch (error ){
+    return {error:error.message}
   }
 }

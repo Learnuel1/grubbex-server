@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const config = require("../../config/env");
 const { OTPGen, shortIdGen } = require("../utils/Generator");
 const { hashSync } = require("bcryptjs");
-const { getStoreByProductId, verifyProductPromoCode, getFilteredProducts, removeSoldProductQuantity } = require("../../api/store/service");
+const { getStoreByProductId, verifyProductPromoCode, getFilteredProducts, removeSoldProductQuantity, nearByStore } = require("../../api/store/service");
 const { saveOrderOTP, getOrderOTP, payStackPayWithCard, createDraftOrder, verifyPayStackTransaction, getOrderByReference, updateCompletedOrder, createTempTransaction, getTemporalTransaction, storeOrders, removeTemporalTransaction, createTransactionHistory, updateAdminWallet, updateWallet, userExistByMail, getWalletBalance, walletBalance, updateOrderStatus, getOrderById, findMutedByUser, getUserKYC, getOrderByIdForVerification, updateOrderVerificationInfo, getOrderByQRData, findOrderForQRCodeGeneration, getStoreInfo, getStoreAddress, userExistById } = require("../services/interface");
 const { META } = require("../../utils/actions");
 const { APIError } = require("../utils/apiError");
@@ -595,6 +595,11 @@ exports.getAllOrders = async (req, res, next ) => {
     try{
          const {search, status, type} = req.query;
         const query = {};
+         // 2. Pagination params
+             const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+            const skip = (page - 1) * limit;
+         const pipeline = [];
         if(req.userType.toLowerCase()  === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
                  if(status){
             query.$and = [
@@ -668,54 +673,69 @@ exports.getAllOrders = async (req, res, next ) => {
         if(!kyc.isVerified && userInfo.isVerified === false) return next(APIError.unauthorized("You are not authorized to perform this action, verify your account"));
         if(userInfo.state !== CONSTANTS.ACCOUNT_STATE_OBJ.active) return next(APIError.unauthorized("You are not authorized to perform this action, contact support"));
         const { locationData } = userInfo;
-        // 2. Pagination params
-             const page = Math.max(1, parseInt(req.query.page) || 1);
-            const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
-            const skip = (page - 1) * limit;
-         const pipeline = [];
+       
 
         const riderLat = parseFloat(locationData.lat);
-    const riderLng = parseFloat(locationData.lng);
-    if (isNaN(riderLat) || isNaN(riderLng)) 
-      return next(APIError.badRequest('Invalid coordinates'));
+        const riderLng = parseFloat(locationData.lng);
+        if (isNaN(riderLat) || isNaN(riderLng)) return next(APIError.badRequest('Invalid coordinates'));
     
-            
 
-        const {address} = kyc.profile;
-        if(status){
-            query.$and = [
-                {status: CONSTANTS.ORDER_STATUS_OBJ.ready}, 
-                 {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
-                
-            ];
-        }else if (search){
-            query.$and = [
-                { $or: [
-                    {orderId: new RegExp(search, 'i')}, 
-                ]}, 
-                 {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
-            ];
-        }else {
-            query.$and = [ 
-                {$or: [
-                    {"deliveryAddress.state": new RegExp (address.state, 'i') },
-                    {"deliveryAddress.city":  new RegExp (address.city, 'i') },
-                    {"deliveryAddress.street":  new RegExp (address.street,'i') },
-                    {"deliveryAddress.lga": new RegExp (address.lga,'i') },
-                    {"deliveryAddress.town":  new RegExp ( address.town,'i') },
-                     
-                ]},
-                 {isAvailable: true},
-                 { _id: { $nin: mutedOrders.map(order => order.order) } },
-                {status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
-            ]  
+        const nearByStores = await nearByStore(riderLng, riderLat);
+        if(!nearByStores) return next(APIError.badRequest("No order in yor current location"));
+        if(nearByStore?.error) return next(APIError.badRequest(nearByStore.error));
+        const storeIds = nearByStores.map(s => s.storeId);
+        if(nearByStores.length === 0){
+            return res.status(200).json({
+        success: true,
+        data: [],
+        pagination: { page, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+      });
         }
+        query.$and = [
+            {
+                storeId: {$in: storeIds}},
+                {status: CONSTANTS.ORDER_STATUS_OBJ.pending},
+                {isAvailable: true},
+            {_id: { $nin: mutedOrders.map(order => order.order)}
+            }
+        ]
+       // const {address} = kyc.profile;
+        // if(status){
+        //     query.$and = [
+        //         {status: CONSTANTS.ORDER_STATUS_OBJ.ready}, 
+        //          {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                
+        //     ];
+        // }else if (search){
+        //     query.$and = [
+        //         { $or: [
+        //             {orderId: new RegExp(search, 'i')}, 
+        //         ]}, 
+        //          {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+        //     ];
+        // }else {
+        //     query.$and = [ 
+        //         {$or: [
+        //             {"deliveryAddress.state": new RegExp (address.state, 'i') },
+        //             {"deliveryAddress.city":  new RegExp (address.city, 'i') },
+        //             {"deliveryAddress.street":  new RegExp (address.street,'i') },
+        //             {"deliveryAddress.lga": new RegExp (address.lga,'i') },
+        //             {"deliveryAddress.town":  new RegExp ( address.town,'i') },
+                     
+        //         ]},
+        //          {isAvailable: true},
+        //          { _id: { $nin: mutedOrders.map(order => order.order) } },
+        //         {status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+        //     ]  
+        // }
     }
         // get order
         const orders = await storeOrders(query, page, limit);
         if(!orders) return next(APIError.notFound("No orders found"));
         if(orders?.error) return next(APIError.badRequest(orders.error));
         logger.info("Orders fetched successfully", {service: META.ORDER});
+         const totalPages = Math.ceil(orders.length / limit);
+         
         // get store pending balance
         query.$and = [ 
                 {user: req.user},
@@ -731,13 +751,27 @@ exports.getAllOrders = async (req, res, next ) => {
                     data: orders,
                     count: orders.length,
                     processingBalance,
+                    pagination: {
+                        page,
+                        limit,
+                        total: orders.length,
+                        hasNext: page < totalPage,
+                        hastPrev: page > 1
+                    }
                 });
             }else {
                  return res.status(200).json({
                     success: true,
                     msg: orders.length > 0 ? "Orders retrieved successfully" : "No order yet",
                     data: orders,
-                    count: orders.length
+                    count: orders.length,
+                      pagination: {
+                        page,
+                        limit,
+                        total: orders.length,
+                        hasNext: page < totalPage,
+                        hastPrev: page > 1
+                    }
                 });
             }
     } catch(error ) {
