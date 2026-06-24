@@ -5,9 +5,28 @@ const logger = require("./logger");
 const { CONFIG, CORS_WHITELISTS } = require("./config");
 const { errorHandler } = require("./middlewares/error.middleware");
 const expressWinston = require("express-winston");
+const rateLimit = require('express-rate-limit');
 dotenv.config();
 
-const app = express();
+const app = express();  
+// Create a limiter
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply to all routes
+app.use(limiter);
+
+// Your routes
+app.get('/api/orders', (req, res) => {
+    res.json({ message: 'Orders list' });
+});
+
+app.listen(15000, () => console.log('App running'));
 app.use(
   cors({
     origin: function (origin, cb) {

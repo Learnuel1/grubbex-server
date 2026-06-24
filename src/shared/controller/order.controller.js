@@ -181,6 +181,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         
         logger.info(`Promo code applied successfully`, {service: META.ORDER});
     } 
+    total += VAT * total
     if (subTotal + VAT !== total) return next(APIError.badRequest("Total amount does not match the calculated total"));
     
      qrText += `amount:${req.body.total}-`;
@@ -996,6 +997,7 @@ exports.getOderDistance = async (req, res, next ) =>{
           const {location } = storeInfo;
            storeAddress = storeInfo.location  ;
         const dis = await getDistanceKmBetweenAddresses({lat,lng},{lat:storeAddress.latitude, lng:storeAddress.longitude},{ apiKey: config.GOOGLE_MAPS_API_KEY,mode:CONSTANTS.TRANSPORTATION_MODE.driving})
+       console.log(dis);
         if(dis?.error) return next(APIError.badRequest(dis.error));
          const data = {
             distance:dis.distance.text,
