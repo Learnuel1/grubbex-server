@@ -134,7 +134,7 @@ class Notification extends EventEmitter {
     this.on("emailer", async(payload) => {
       try {
         const {to, subject, name, event} = payload;
-        const temp = await emailTemplateSetting({name: CONSTANTS.EMAIL_TEMPLATES_OBJ.welcomeEmail}); 
+        const temp = await emailTemplateSetting({name: event}); 
           if(!temp || temp.length === 0) return logger.info(`Email template for event '${event}' not found.`, { service: META.MAIL});
            let message = temp.template
            message = message.replace("{CustomerName}", name);

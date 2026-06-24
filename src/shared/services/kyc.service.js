@@ -261,17 +261,20 @@ exports.updateStatus = async (search, info)=> {
       else if(doc?.insurance.docId === info.docId) doc.insurance.status = info.status;
       otherDoc.push(doc);
     }
+  
     const {profile, documents, bankDetails, store, user, logistics, location, rejection} = findKYC;
     const existed = rejection.find(x => x.kyc === docFoundIn);
     const otherRejects = rejection.filter(x => x.kyc !== docFoundIn);
     if(existed){
       if(info.status === CONSTANTS.KYC_STATUS_OBJ.approved) rejection.pop(existed) 
     }else {
-      const reject = {
-        kyc: docFoundIn,
-        name: doc.name,
-      }
-      rejection.push(reject)
+        if(info.status === CONSTANTS.KYC_STATUS_OBJ.rejected){
+          const reject = {
+            kyc: docFoundIn,
+            name: doc.name,
+          }
+          rejection.push(reject)
+        }
   }
       if(profile.length > 0 && user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.user || user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
         profile.forEach((cur) => {

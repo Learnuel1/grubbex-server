@@ -211,9 +211,10 @@ const OrderSchema = new Schema({
         type: String,
         required: false
     },
-    riderCurrentLocation: {
-        lat: { type: Number },
-        lng: { type: Number }
+    riderCurrentLocation: { 
+        formattedAddress: { type: String },
+        latitude: { type: Number },
+        longitude: { type: Number }
     }
 }
 }, { timestamps: true });

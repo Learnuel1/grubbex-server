@@ -3,7 +3,7 @@ const config = require("../../config/env");
 const { OTPGen, shortIdGen } = require("../utils/Generator");
 const { hashSync } = require("bcryptjs");
 const { getStoreByProductId, verifyProductPromoCode, getFilteredProducts, removeSoldProductQuantity, nearByStore } = require("../../api/store/service");
-const { saveOrderOTP, getOrderOTP, payStackPayWithCard, createDraftOrder, verifyPayStackTransaction, getOrderByReference, updateCompletedOrder, createTempTransaction, getTemporalTransaction, storeOrders, removeTemporalTransaction, createTransactionHistory, updateAdminWallet, updateWallet, userExistByMail, getWalletBalance, walletBalance, updateOrderStatus, getOrderById, findMutedByUser, getUserKYC, getOrderByIdForVerification, updateOrderVerificationInfo, getOrderByQRData, findOrderForQRCodeGeneration, getStoreInfo, getStoreAddress, userExistById } = require("../services/interface");
+const { saveOrderOTP, getOrderOTP, payStackPayWithCard, createDraftOrder, verifyPayStackTransaction, getOrderByReference, updateCompletedOrder, createTempTransaction, getTemporalTransaction, storeOrders, removeTemporalTransaction, createTransactionHistory, updateAdminWallet, updateWallet, userExistByMail, getWalletBalance, walletBalance, updateOrderStatus, getOrderById, findMutedByUser, getUserKYC, getOrderByIdForVerification, updateOrderVerificationInfo, getOrderByQRData, findOrderForQRCodeGeneration, getStoreInfo, getStoreAddress, userExistById, acceptOrRejectOrder, getRiderOrder } = require("../services/interface");
 const { META } = require("../../utils/actions");
 const { APIError } = require("../utils/apiError");
 const logger = require("../../logger"); 
@@ -18,9 +18,13 @@ const crypto = require('crypto');
 const { uploadBase64ToCloudinary, deleteFileFromCloudinary } = require("../utils/cloudinary");
 const { ERROR_FIELD } = require("../utils/actions");
 const qrcodeService = require('../../services/qrcode.service');
+
 const { updateOrderQRCodeInfo } = require("../services/order.service");
 const path = require("path"); 
 const { getDistanceKmBetweenAddresses, verifyLocation, getGeocodeAddress } = require("../services/google.service");
+const Notification = require("../utils/Notification");
+
+const notification  = new Notification()
 exports.initializeOrderWithFlutter = async (req, res, next ) => {
     try{
         const {orderId} = req.body;
@@ -678,11 +682,11 @@ exports.getAllOrders = async (req, res, next ) => {
         const riderLat = parseFloat(locationData.lat);
         const riderLng = parseFloat(locationData.lng);
         if (isNaN(riderLat) || isNaN(riderLng)) return next(APIError.badRequest('Invalid coordinates'));
-    
 
         const nearByStores = await nearByStore(riderLng, riderLat);
+       
         if(!nearByStores) return next(APIError.badRequest("No order in yor current location"));
-        if(nearByStore?.error) return next(APIError.badRequest(nearByStore.error));
+        if(nearByStores?.error) return next(APIError.badRequest(nearByStores.error));
         const storeIds = nearByStores.map(s => s.storeId);
         if(nearByStores.length === 0){
             return res.status(200).json({
@@ -694,44 +698,17 @@ exports.getAllOrders = async (req, res, next ) => {
         query.$and = [
             {
                 storeId: {$in: storeIds}},
-                {status: CONSTANTS.ORDER_STATUS_OBJ.pending},
+                // {status: CONSTANTS.ORDER_STATUS_OBJ.pending},
                 {isAvailable: true},
-            {_id: { $nin: mutedOrders.map(order => order.order)}
-            }
+           // {_id: { $nin: mutedOrders.map(order => order.order)}},
+             {storeStatus: CONSTANTS.ORDER_STATUS_OBJ.ready}
         ]
-       // const {address} = kyc.profile;
-        // if(status){
-        //     query.$and = [
-        //         {status: CONSTANTS.ORDER_STATUS_OBJ.ready}, 
-        //          {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
-                
-        //     ];
-        // }else if (search){
-        //     query.$and = [
-        //         { $or: [
-        //             {orderId: new RegExp(search, 'i')}, 
-        //         ]}, 
-        //          {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
-        //     ];
-        // }else {
-        //     query.$and = [ 
-        //         {$or: [
-        //             {"deliveryAddress.state": new RegExp (address.state, 'i') },
-        //             {"deliveryAddress.city":  new RegExp (address.city, 'i') },
-        //             {"deliveryAddress.street":  new RegExp (address.street,'i') },
-        //             {"deliveryAddress.lga": new RegExp (address.lga,'i') },
-        //             {"deliveryAddress.town":  new RegExp ( address.town,'i') },
-                     
-        //         ]},
-        //          {isAvailable: true},
-        //          { _id: { $nin: mutedOrders.map(order => order.order) } },
-        //         {status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
-        //     ]  
-        // }
+        
     }
+   
         // get order
         const orders = await storeOrders(query, page, limit);
-        if(!orders) return next(APIError.notFound("No orders found"));
+        if(!orders ) return next(APIError.notFound("No orders found"));
         if(orders?.error) return next(APIError.badRequest(orders.error));
         logger.info("Orders fetched successfully", {service: META.ORDER});
          const totalPages = Math.ceil(orders.length / limit);
@@ -755,7 +732,7 @@ exports.getAllOrders = async (req, res, next ) => {
                         page,
                         limit,
                         total: orders.length,
-                        hasNext: page < totalPage,
+                        hasNext: page < totalPages,
                         hastPrev: page > 1
                     }
                 });
@@ -769,7 +746,7 @@ exports.getAllOrders = async (req, res, next ) => {
                         page,
                         limit,
                         total: orders.length,
-                        hasNext: page < totalPage,
+                        hasNext: page < totalPages,
                         hastPrev: page > 1
                     }
                 });
@@ -1032,5 +1009,135 @@ exports.getOderDistance = async (req, res, next ) =>{
            res.status(200).json({success: true, msg: "Calculated Delivery cost", data})
     } catch (error) {
         next (error)
+    }
+}
+exports.acceptOrder = async (req, res, next) => {
+    try{
+        const {orderId, status} = req.body;
+        const rider = {}
+        if(!orderId) return next(APIError.badRequest("Order ID is required"));
+        if(!status) return next(APIError.badRequest("Status is required"));
+        if(status.toLowerCase() !== "accept" && status.toLowerCase() !== "reject") return next(APIError.badRequest("Invalid order status"));
+        // get user location data
+        const userInfo = await userExistById(req.user);
+        const kyc = await getUserKYC(req.user); 
+        if(!userInfo.verified) return next(APIError.unauthorized("completed onboarding and get verified"));
+        const {location } = kyc
+        const {locationData } = userInfo; 
+        if(locationData || location?.lat !== 0){
+                rider.riderCurrentLocation ={
+                    latitude: locationData.lat,
+                    longitude: locationData.lng,
+                    formattedAddress: locationData.others.formattedAddress,
+                }
+            rider.isAvailable = status.toLowerCase() == "accept"? false: true;
+            rider.riderId = userInfo.riderId;
+            rider.rider = userInfo._id,
+            rider.status= status.toLowerCase() == "accept"? CONSTANTS.ORDER_STATUS_OBJ.accepted: CONSTANTS.ORDER_STATUS_OBJ.pending,
+            rider.operation = status.toLowerCase()
+        }else {
+            rider.riderCurrentLocation = {
+                ...location,
+                
+            }
+            rider.isAvailable = status.toLowerCase() == "accept"? false: true;
+            rider.riderId = userInfo.riderId;
+            rider.rider = userInfo._id
+            rider.status= status.toLowerCase() == CONSTANTS.ORDER_STATUS_OBJ.accept ? CONSTANTS.ORDER_STATUS_OBJ.accept: CONSTANTS.ORDER_STATUS_OBJ.pending,
+            rider.operation = status.toLowerCase().concat("ed")
+        }
+        const data = await acceptOrRejectOrder(rider, orderId)
+        if(!data) return next(APIError.badRequest("Order acceptance could not completed, try again"));
+        if(data?.error) return next (APIError.badRequest(data.error));
+        
+        // notify
+        const info = {
+            title:"Order Acceptance",
+            account: userInfo._id,
+            category: NOTIFICATION_TYPE_OBJ.order,
+            userId: userInfo.userId,
+            info: `Your order has been accept by a rider`,
+            userId: req.userId
+        }
+        notification.emit("notify", info); 
+        // SEND NOTIFICATION MAIL
+        logger.info("Notification created successfully", {service: META.ORDER})
+        const payload = {
+           to: userInfo.email,
+           subject: "Order Acceptance by Rider",
+           name: `${userInfo.firstName}`,
+           event: CONSTANTS.EMAIL_TEMPLATES_OBJ.orderEmail
+        }
+        notification.emit("emailer", payload);
+
+        res.status(200).json({status: "success",msg: `Order ${status}ed successfully`})
+    } catch (error) {
+        next(error);
+    }
+}
+exports.getAcceptedOrders = async (req, res, next ) => {
+    try{
+        if (req.userType?.toLowerCase() !== CONSTANTS.ACCOUNT_ROLE_OBJ.rider) {
+            return next(APIError.forbidden("You are not authorized to view accepted orders"));
+        }
+        let query;
+        const { search } = req.query;
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const skip = (page - 1) * limit;
+        if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
+
+             query = {
+                rider: req.user,
+                status: CONSTANTS.ORDER_STATUS_OBJ.accepted,
+                riderId: req.userId
+            };
+        }else if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
+               query = {
+                shopper: req.user,
+            };
+        }
+
+        if (search) {
+            query.orderId = new RegExp(search, 'i');
+        }
+        const {orders, total} = await getRiderOrder(query);
+       if(!orders) {
+        return res.status(200).json({
+            success: true,
+            msg: "No accepted orders yet",
+            data: [],
+            count: 0,
+            total,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+            },
+        });
+       }
+        if(orders?.error) return next(APIError.badRequest(orders.error));
+        const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+
+        return res.status(200).json({
+            success: true,
+            msg: orders.length > 0 ? "Accepted orders retrieved successfully" : "No accepted orders yet",
+            data: orders,
+            count: orders.length,
+            total,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1,
+            },
+        });
+    } catch (error) {
+        next(error);
     }
 }

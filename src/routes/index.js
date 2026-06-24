@@ -3,8 +3,7 @@ const Router = express.Router();
 const MobileRouter = express.Router();
 const AuthModule = require("./auth.route");
 const UserModule = require("./user.route"); 
-const ItemModule = require("./item.route");
-const BookingModule = require("./booking.route");
+const ItemModule = require("./item.route"); 
 const PaymentModule = require("./payment.route");
 const KYCModule = require("./business.kyc.route");
 const BusinessModule = require("./business.route");
@@ -24,8 +23,7 @@ const QRModule = require("./qrcode.routes");
 
 Router.use("/user", UserModule.userRoute);
 Router.use("/auth", AuthModule.authRoute); 
-Router.use("/item", ItemModule.itemRoute);
-Router.use("/book", BookingModule.bookRoute);
+Router.use("/item", ItemModule.itemRoute); 
 Router.use("/payment", PaymentModule.paymentRoute); 
 Router.use("/business", BusinessModule.BusinessRoute);
 Router.use("/admin", AdminModule.AdminRoutes);
@@ -40,8 +38,7 @@ Router.use("/payout", PayoutModule.PayoutRouter);
 
 MobileRouter.use("/user", UserModule.userRoute);
 MobileRouter.use("/auth", AuthModule.authRoute); 
-MobileRouter.use("/item", ItemModule.itemRoute);
-MobileRouter.use("/book", BookingModule.bookRoute);
+MobileRouter.use("/item", ItemModule.itemRoute); 
 MobileRouter.use("/payment", PaymentModule.paymentRoute)
 MobileRouter.use("/rider", RiderModule.RiderRoute);
 MobileRouter.use("/business", BusinessModule.BusinessRoute)

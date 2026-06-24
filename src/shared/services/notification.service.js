@@ -1,7 +1,9 @@
-const NotificationModel = require("../../models/notification.model")
+const NotificationModel = require("../../models/notification.model");
+const { shortIdGen } = require("../utils/Generator");
 
 exports.create = async (info) =>{
   try {
+    if(!info.id) info.id =shortIdGen(); 
       return await NotificationModel.create({...info});
   } catch (error) {
     return {error};

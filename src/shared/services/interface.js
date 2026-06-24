@@ -127,6 +127,8 @@ exports.updateOrderVerificationInfo = async (info) => await OrderModule.updateOr
 exports.getOrderByQRData = async (info) => await OrderModule.findOrderByQRInfo(info);
 exports.findOrderForQRCodeGeneration = async (orderId, info) => await OrderModule.findOrderForQRCodeGeneration(orderId, info);
 exports.updateOrderQRCodeInfo = async (orderId, info) => await OrderModule.updateOrderQRCodeInfo(orderId, info);
+exports.acceptOrRejectOrder = async (info, orderId) => await OrderModule.acceptOrRejectOrder(info, orderId);
+exports.getRiderOrder = async (query) => await OrderModule.riderOrder(query);
 
 // WALLET SECTION
 exports.updateAdminWallet = async (info) => await WalletModule.adminWalletUpdate(info);

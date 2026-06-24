@@ -117,3 +117,36 @@ exports.updateOrderQRCodeInfo = async (orderId, info) => {
          return { error: error.message || "Failed to update order QR code info" };
     }
 }
+exports.acceptOrRejectOrder = async (info, orderId) => {
+    try{
+        const order = await OrderModel.findOne({orderId});
+        if(!order) return {error: "Order does not exist"};
+        if(order.isAvailable === false && info.operation === "accept") return {error: "Order is no more available"};
+        order.riderCurrentLocation = info.riderCurrentLocation;
+        order.isAvailable = info.isAvailable;
+        order.riderId = info.riderId;
+        order.rider = info.rider;
+        order.status =info.status
+        order.save();
+        return order;
+    } catch (error) {
+        return {error: error.message}
+    }
+}
+
+exports.riderOrder = async (query) => {
+    try{
+        console.log(query)
+         const total = await OrderModel.countDocuments(query);
+        const orders = await OrderModel.find(query)
+            .populate([{ model: "Account", path: "destinationAddress.account", select: "firstName lastName email picture -_id" }])
+            .select("-__v -_id -user -createdAt -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean();
+            return {orders, total}
+    } catch (error){
+        return {error:error.message}
+    }
+}
