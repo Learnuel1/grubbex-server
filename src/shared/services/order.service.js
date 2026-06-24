@@ -136,7 +136,6 @@ exports.acceptOrRejectOrder = async (info, orderId) => {
 
 exports.riderOrder = async (query) => {
     try{
-        console.log(query)
          const total = await OrderModel.countDocuments(query);
         const orders = await OrderModel.find(query)
             .populate([{ model: "Account", path: "destinationAddress.account", select: "firstName lastName email picture -_id" }])
