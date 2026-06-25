@@ -240,7 +240,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
       cardPayload = {
             currency: 'NGN',
-            amount: Math.round(req.body.total).toFixed(2),
+            amount: Math.ceil(req.body.total).toFixed(2),
             email: req.email, 
            phone_number: phoneNumber,
            paymentEventType:CONSTANTS.TRANSACTION_TYPE.checkout,
