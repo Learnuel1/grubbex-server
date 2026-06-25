@@ -243,6 +243,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
             amount: Math.ceil(req.body.total).toFixed(2),
             email: req.email, 
            phone_number: phoneNumber,
+            callback_url: `${config.PAYSTACK_CALL_BACK_URL}`,
            paymentEventType:CONSTANTS.TRANSACTION_TYPE.checkout,
            paymentType: CONSTANTS.PAYMENT_TYPE_OBJ.card,
            orderId,
