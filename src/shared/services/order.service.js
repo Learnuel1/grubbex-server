@@ -22,7 +22,7 @@ exports.orderByReference = (reference) => {
 }
 exports.updateOrderDetails = async (info, reference) => {
     try{
-        return await OrderModel.findOneAndUpdate({reference}, {...info, $push:{
+        return await OrderModel.findOneAndUpdate({reference}, {...info}, {$push:{
             payment: info.payment
         }});
     } catch (error) {

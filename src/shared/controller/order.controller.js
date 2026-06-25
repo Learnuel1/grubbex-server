@@ -183,7 +183,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
     } 
   
     if (subTotal + VAT !== total) return next(APIError.badRequest("Total amount does not match the calculated total"));
-    
+     req.body.total = Math.ceil(req.body.total)
      qrText += `amount:${Math.round(req.body.total)}-`;
      // DELIVERY FEE
      const storeInfo = await getStoreAddress(req.body.storeId);
@@ -237,10 +237,11 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
        
         const phoneNumber = `${userInfo.countryCode}${userInfo.phoneNumber.slice(1)}`;
         let cardPayload = {}
+       
         if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
       cardPayload = {
             currency: 'NGN',
-            amount: Math.ceil(req.body.total).toFixed(2),
+            amount: req.body.total.toFixed(2),
             email: req.email, 
            phone_number: phoneNumber,
             callback_url: `${config.PAYSTACK_CALL_BACK_URL}`,
@@ -414,8 +415,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
                 amount: order.total,
                 status: CONSTANTS.ORDER_PAYMENT_STATUS.completed,
                 date: new Date(),
-            }
-            console.log(updateInfo.payment) 
+            } 
             const updateOrder = await updateCompletedOrder(updateInfo, reference);
             if(!updateOrder) return  logger.error('Completed order update failed', {service: META.PRODUCT});
             if(updateOrder?.error) return logger.error(updateOrder.error, {service: META.PAYMENT});
@@ -1009,7 +1009,6 @@ exports.getOderDistance = async (req, res, next ) =>{
           const {location } = storeInfo;
            storeAddress = storeInfo.location  ;
         const dis = await getDistanceKmBetweenAddresses({lat,lng},{lat:storeAddress.latitude, lng:storeAddress.longitude},{ apiKey: config.GOOGLE_MAPS_API_KEY,mode:CONSTANTS.TRANSPORTATION_MODE.driving})
-       console.log(dis);
         if(dis?.error) return next(APIError.badRequest(dis.error));
          const data = {
             distance:dis.distance.text,
