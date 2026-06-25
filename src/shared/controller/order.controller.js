@@ -181,10 +181,10 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         
         logger.info(`Promo code applied successfully`, {service: META.ORDER});
     } 
-    total += VAT * total
+  
     if (subTotal + VAT !== total) return next(APIError.badRequest("Total amount does not match the calculated total"));
     
-     qrText += `amount:${req.body.total}-`;
+     qrText += `amount:${Math.round(req.body.total)}-`;
      // DELIVERY FEE
      const storeInfo = await getStoreAddress(req.body.storeId);
      if(storeInfo.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest("Store address could not be verified"));
@@ -240,7 +240,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
       cardPayload = {
             currency: 'NGN',
-            amount: req.body.total.toFixed(2),
+            amount: Math.round(req.body.total).toFixed(2),
             email: req.email, 
            phone_number: phoneNumber,
            paymentEventType:CONSTANTS.TRANSACTION_TYPE.checkout,
@@ -377,7 +377,6 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             // create order QRCODE
              const  width = 300, logoSize = 80 
         const logoPath = path.join(__dirname, "../../assets/img/GrubbexLogo.png"); 
-        console.log(logoPath);
             const text = `${order.orderId}-${order.qrText}`;
              const qrCode = await qrcodeService.generateQRCodeWithLogo(text, logoPath, {
                   width,
