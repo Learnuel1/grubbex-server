@@ -1,5 +1,5 @@
 {
-  "name": "grubber-ex-backend",
+  "name": "grubber-server",
   "version": "1.0.0",
   "description": "This is the backend API Server for the GrubberEx User, driver, business and Admin dashboards.",
   "main": "server.js",
@@ -13,8 +13,8 @@
     "dev": "nodemon server.js",
     "start-prod": "node ./prod_build/main.js",
     "build:prod": "webpack --config ./webpack.prod.js --mode production",
-    "pm2": "pm2 start ../ecosystem.config.js --name grubbex-backend && pm2 reload grubbex-backend && pm2 logs grubbex-backend",
-    "pm2-stop": "pm2 stop grubbex-backend && pm2 delete all"
+    "pm2": "pm2 start ../ecosystem.config.js --name grubbex-server && pm2 reload grubbex-server && pm2 logs grubbex-server",
+    "pm2-stop": "pm2 stop grubbex-server && pm2 delete all"
   },
   "keywords": [],
   "author": "",
