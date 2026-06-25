@@ -181,9 +181,10 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         
         logger.info(`Promo code applied successfully`, {service: META.ORDER});
     } 
+  
     if (subTotal + VAT !== total) return next(APIError.badRequest("Total amount does not match the calculated total"));
     
-     qrText += `amount:${req.body.total}-`;
+     qrText += `amount:${Math.round(req.body.total)}-`;
      // DELIVERY FEE
      const storeInfo = await getStoreAddress(req.body.storeId);
      if(storeInfo.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest("Store address could not be verified"));
@@ -239,7 +240,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
       cardPayload = {
             currency: 'NGN',
-            amount: req.body.total.toFixed(2),
+            amount: Math.ceil(req.body.total).toFixed(2),
             email: req.email, 
            phone_number: phoneNumber,
            paymentEventType:CONSTANTS.TRANSACTION_TYPE.checkout,
@@ -376,7 +377,6 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             // create order QRCODE
              const  width = 300, logoSize = 80 
         const logoPath = path.join(__dirname, "../../assets/img/GrubbexLogo.png"); 
-        console.log(logoPath);
             const text = `${order.orderId}-${order.qrText}`;
              const qrCode = await qrcodeService.generateQRCodeWithLogo(text, logoPath, {
                   width,
@@ -609,7 +609,7 @@ exports.getAllOrders = async (req, res, next ) => {
             query.$and = [
                 {status: status},
                 {shopper: req.user},
-                 {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                // {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
                 
             ];
         }else if (search){
@@ -618,12 +618,12 @@ exports.getAllOrders = async (req, res, next ) => {
                     {orderId: new RegExp(search, 'i')}, 
                 ]},
                 {shopper: req.user},
-                 {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                // {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
             ];
         }else {
             query.$and = [
                 {shopper: req.user},
-                {status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                //{status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
             ]  
         }
         }else if (req.userType.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.business){
@@ -996,6 +996,7 @@ exports.getOderDistance = async (req, res, next ) =>{
           const {location } = storeInfo;
            storeAddress = storeInfo.location  ;
         const dis = await getDistanceKmBetweenAddresses({lat,lng},{lat:storeAddress.latitude, lng:storeAddress.longitude},{ apiKey: config.GOOGLE_MAPS_API_KEY,mode:CONSTANTS.TRANSPORTATION_MODE.driving})
+       console.log(dis);
         if(dis?.error) return next(APIError.badRequest(dis.error));
          const data = {
             distance:dis.distance.text,

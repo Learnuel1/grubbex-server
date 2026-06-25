@@ -80,7 +80,7 @@ exports.getDistanceKmBetweenAddresses = async (addrA, addrB, options = {}) => {
   ) {
     return res.data.rows[0].elements[0];
   }
-  return { error: 'Distance could not be calculated, try again' };
+  return { error: 'Distance could not be calculated, try again',  };
 } catch (error) {
     return {error: error.message }
 }

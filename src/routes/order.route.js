@@ -16,4 +16,4 @@ routes.use("/shopper", notAllowedRoles([CONSTANTS.ACCOUNT_TYPE_OBJ.admin, CONSTA
 OrderRouter.use("/", userRequired, checkRouteUsed, routes);
 module.exports = {
     OrderRouter 
-}
+} 
