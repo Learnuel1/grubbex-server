@@ -264,5 +264,10 @@ exports.CONSTANTS = {
       name: "monthly",
       numberOfDays: 30
     }
+   },
+   ORDER_PAYMENT_STATUS: {
+    pending: "pending",
+    processing: "processing",
+    completed: "completed",
    }
 };  
