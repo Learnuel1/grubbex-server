@@ -22,12 +22,7 @@ const limiter = rateLimit({
 // Apply to all routes
 app.use(limiter);
 
-// Your routes
-app.get('/api/orders', (req, res) => {
-    res.json({ message: 'Orders list' });
-});
-
-app.listen(15000, () => console.log('App running'));
+ 
 app.use(
   cors({
     origin: function (origin, cb) {

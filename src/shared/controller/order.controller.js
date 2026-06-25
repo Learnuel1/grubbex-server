@@ -609,7 +609,7 @@ exports.getAllOrders = async (req, res, next ) => {
             query.$and = [
                 {status: status},
                 {shopper: req.user},
-                 {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                // {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
                 
             ];
         }else if (search){
@@ -618,12 +618,12 @@ exports.getAllOrders = async (req, res, next ) => {
                     {orderId: new RegExp(search, 'i')}, 
                 ]},
                 {shopper: req.user},
-                 {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                // {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
             ];
         }else {
             query.$and = [
                 {shopper: req.user},
-                {status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+                //{status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
             ]  
         }
         }else if (req.userType.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.business){
