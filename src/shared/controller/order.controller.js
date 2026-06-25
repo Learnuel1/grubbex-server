@@ -289,10 +289,16 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
         return next(APIError.badRequest(createOrderOTP.error));
     logger.info("Order OTP created successfully", {service: META.ORDER});
     const tempTrans = await  createTempTransaction({id:qrText,reference:req.body.reference, event: CONSTANTS.TRANSACTION_TYPE.checkout}) ;
-    if(!tempTrans) return next(APIError.badRequest("Order Transaction Failed. try again"));
+    if(!tempTrans) return next(APIError.badRequest("Order Transaction Failed. try again"));;
     if(tempTrans?.error) return next(APIError.badRequest(tempTrans.error));
      logger.info("Temporal Order Transaction created successfully", {service: META.PAYMENT});
         // logger.info("OTP required for payment", {service: META.PAYMENT});
+        const paymentInfo = {
+            amount: req.body.total,
+            status: CONSTANTS.ORDER_PAYMENT_STATUS.pending,
+            date: new Date(),
+        }
+        req.body.payment = [paymentInfo];
             const temporalOrder = await createDraftOrder(req.body);
         if(!temporalOrder) return next(APIError.badRequest("Failed to create order, try again"));
         if(temporalOrder?.error) return next(APIError.badRequest(temporalOrder.error));
@@ -404,6 +410,12 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
                 }, 
                 qrText:`${order.orderId}-${order.qrText}`,
             }
+            updateInfo.payment = {
+                amount: order.total,
+                status: CONSTANTS.ORDER_PAYMENT_STATUS.completed,
+                date: new Date(),
+            }
+            console.log(updateInfo.payment) 
             const updateOrder = await updateCompletedOrder(updateInfo, reference);
             if(!updateOrder) return  logger.error('Completed order update failed', {service: META.PRODUCT});
             if(updateOrder?.error) return logger.error(updateOrder.error, {service: META.PAYMENT});

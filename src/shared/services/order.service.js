@@ -5,7 +5,9 @@ const TemporalAccountModel = require("../../models/temporal.account.model");
 exports.createDraft = async (info) => {
     try { 
        await OrderModel.findOneAndDelete({qrText: info.qrText, status: CONSTANTS.ORDER_STATUS_OBJ.draft, shopperId: info.shopperId});
-        return await OrderModel.create({...info});
+        return await OrderModel.create({...info, $set:{
+            payment: info.payment
+        }});
     } catch (error) {
         return { error: error.message || "Failed to create order" };
     }
@@ -20,7 +22,9 @@ exports.orderByReference = (reference) => {
 }
 exports.updateOrderDetails = async (info, reference) => {
     try{
-        return await OrderModel.findOneAndUpdate({reference}, {...info});
+        return await OrderModel.findOneAndUpdate({reference}, {...info, $push:{
+            payment: info.payment
+        }});
     } catch (error) {
         return {error};
     }
@@ -31,7 +35,7 @@ exports.allOrders = async (query, page =1, limit= 14) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
-        }]).select("-__v -_id -user -createdAt -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType").sort({ createdAt: -1 }).limit(limit).lean();
+        }]).select("-__v -_id -user -createdAt -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id").sort({ createdAt: -1 }).limit(limit).lean();
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }

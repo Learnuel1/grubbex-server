@@ -215,8 +215,26 @@ const OrderSchema = new Schema({
         formattedAddress: { type: String },
         latitude: { type: Number },
         longitude: { type: Number }
+    }, 
+},
+payment: [ {
+        amount: {
+            type: Number,
+            default: 0,
+            
+        },
+        status: {
+            type: String,
+            enum: Array.from(Object.values(CONSTANTS.ORDER_PAYMENT_STATUS)),
+            default: CONSTANTS.ORDER_PAYMENT_STATUS.pending
+        },
+        date: {
+            type: Date,
+            required: true,
+            default: new Date(),
+        }
     }
-}
+    ]
 }, { timestamps: true });
 
 OrderSchema.index({ createdAt: 1, store:"2dsphere" })
