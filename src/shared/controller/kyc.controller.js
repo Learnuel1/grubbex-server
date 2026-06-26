@@ -483,9 +483,9 @@ exports.updateLogistics = async (req, res, next ) => {
 			}
 		};  
 	if(req?.files?.vehicleRegistration?.length >0) {
-		if(info?.logistics[0]?.vehicleRegistration  && req.body.vehicleType.toLowerCase() ===info?.logistics[0]?.vehicleType.toLowerCase()){
+		if(info?.logistics[0]?.vehicleRegistration  && req.body?.vehicleType.toLowerCase() ===info?.logistics[0]?.vehicleType.toLowerCase()){
 			// delete existing image
-			const upload = await deleteFileFromCloudinary(info.logistics[0].vehicleRegistration.id);
+			const upload = await deleteFileFromCloudinary(info.logistics[0].vehicleRegistration?.id);
 			if (upload?.error) return next(APIError.badRequest(upload.message));
 			logger.info('Existing vehicle registration deleted successfully', {
 				service: META.CLOUDINARY,
@@ -537,7 +537,7 @@ exports.updateLogistics = async (req, res, next ) => {
 		} 
 		if (Object.keys(newInfo).length > 7) return next(APIError.badRequest("Logistics has more fields than required"));
 		infoToUpdate.push(newInfo)
-	details.logistics =infoToUpdate;
+		details.logistics =infoToUpdate;
 		const save = await KYCUpdate(details);
 		if(!save) return next(APIError.badRequest("Vehicle registration failed, try again"));
 		if(save?.error) return next (APIError.badRequest(save.error));

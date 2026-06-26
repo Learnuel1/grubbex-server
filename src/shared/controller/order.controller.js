@@ -549,7 +549,8 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             if(delTempRef?.error) return next(APIError.badRequest(delTempRef.error));
             logger.info("Temporal transaction deleted successfully", {service: META.PAYMENT});
             // send order confirmation mail
-
+            // const email = await OrderConfirmationMailer(metadata.customer.email, order);
+            // if(email?.error) logger.info("Order CoNfirmation email fail to send", {service:META.ORDER})
          }
         else if(transType.event === CONSTANTS.TRANSACTION_TYPE.funding && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.funding && info.metadata.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
               const userBal = await walletBalance(info.metadata.user);
