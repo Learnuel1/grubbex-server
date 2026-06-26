@@ -591,17 +591,15 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
 
 exports.payStackVerifyTransaction = async (req, res, next ) => {
     try{
-        const {reference} = req.query;
+        const reference = req.query.reference;
         if(!reference) return next(APIError.badRequest("Reference is required"));
-        const verifyTransaction = await verifyPayStackTransaction({reference});
+        const verifyTransaction = await verifyPayStackTransaction(reference);
         if(verifyTransaction?.error) return next(APIError.badRequest(verifyTransaction.error));
-        if(verifyTransaction?.status !== true || verifyTransaction?.data.status !== "success") {
-            return next(APIError.badRequest(verifyTransaction.message));
-        }
-        if (verifyTransaction.data.status === "success"
-            && verifyTransaction.status === true) {
+        if(verifyTransaction?.status !== "success")  return next(APIError.badRequest(verifyTransaction.message));
+        
+        if (verifyTransaction.status === "success") {
             logger.info("Payment verified successfully", {service: META.PAYSTACK_SERVICE})
-            return res.status(200).json({success: true, msg: "Payment Verified Successfully", data: { reference: verifyTransaction.data.reference, amount: verifyTransaction.data.amount}})
+            return res.status(200).json({success: true, msg: "Payment Verified Successfully", data: { reference: verifyTransaction.reference, amount: verifyTransaction.amount}})
         }
 
     } catch (error) {

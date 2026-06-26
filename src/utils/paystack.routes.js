@@ -1,6 +1,6 @@
 exports.PAYSTACK_ROUTES = {
    initialize_transaction: '/transaction/initialize',
-   verify_transaction: '/transaction/verify/:reference', 
+   verify_transaction: '/transaction/verify/', 
    transactions: '/transaction',
    transaction_by_id: '/transaction/:id',
 }
