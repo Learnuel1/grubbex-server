@@ -183,7 +183,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
     } 
   
     if (subTotal + VAT !== total) return next(APIError.badRequest("Total amount does not match the calculated total"));
-    
+     req.body.total = Math.ceil(req.body.total)
      qrText += `amount:${Math.round(req.body.total)}-`;
      // DELIVERY FEE
      const storeInfo = await getStoreAddress(req.body.storeId);
@@ -237,10 +237,11 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
        
         const phoneNumber = `${userInfo.countryCode}${userInfo.phoneNumber.slice(1)}`;
         let cardPayload = {}
+       
         if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
       cardPayload = {
             currency: 'NGN',
-            amount: Math.ceil(req.body.total).toFixed(2),
+            amount: req.body.total.toFixed(2),
             email: req.email, 
            phone_number: phoneNumber,
             callback_url: `${config.PAYSTACK_CALL_BACK_URL}`,
@@ -414,8 +415,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
                 amount: order.total,
                 status: CONSTANTS.ORDER_PAYMENT_STATUS.completed,
                 date: new Date(),
-            }
-            console.log(updateInfo.payment) 
+            } 
             const updateOrder = await updateCompletedOrder(updateInfo, reference);
             if(!updateOrder) return  logger.error('Completed order update failed', {service: META.PRODUCT});
             if(updateOrder?.error) return logger.error(updateOrder.error, {service: META.PAYMENT});
@@ -549,7 +549,8 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             if(delTempRef?.error) return next(APIError.badRequest(delTempRef.error));
             logger.info("Temporal transaction deleted successfully", {service: META.PAYMENT});
             // send order confirmation mail
-
+            // const email = await OrderConfirmationMailer(metadata.customer.email, order);
+            // if(email?.error) logger.info("Order CoNfirmation email fail to send", {service:META.ORDER})
          }
         else if(transType.event === CONSTANTS.TRANSACTION_TYPE.funding && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.funding && info.metadata.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
               const userBal = await walletBalance(info.metadata.user);
@@ -591,17 +592,15 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
 
 exports.payStackVerifyTransaction = async (req, res, next ) => {
     try{
-        const {reference} = req.query;
+        const reference = req.query.reference;
         if(!reference) return next(APIError.badRequest("Reference is required"));
-        const verifyTransaction = await verifyPayStackTransaction({reference});
+        const verifyTransaction = await verifyPayStackTransaction(reference);
         if(verifyTransaction?.error) return next(APIError.badRequest(verifyTransaction.error));
-        if(verifyTransaction?.status !== true || verifyTransaction?.data.status !== "success") {
-            return next(APIError.badRequest(verifyTransaction.message));
-        }
-        if (verifyTransaction.data.status === "success"
-            && verifyTransaction.status === true) {
+        if(verifyTransaction?.status !== "success")  return next(APIError.badRequest(verifyTransaction.message));
+        
+        if (verifyTransaction.status === "success") {
             logger.info("Payment verified successfully", {service: META.PAYSTACK_SERVICE})
-            return res.status(200).json({success: true, msg: "Payment Verified Successfully", data: { reference: verifyTransaction.data.reference, amount: verifyTransaction.data.amount}})
+            return res.status(200).json({success: true, msg: "Payment Verified Successfully", data: { reference: verifyTransaction.reference, amount: verifyTransaction.amount}})
         }
 
     } catch (error) {
@@ -1009,7 +1008,6 @@ exports.getOderDistance = async (req, res, next ) =>{
           const {location } = storeInfo;
            storeAddress = storeInfo.location  ;
         const dis = await getDistanceKmBetweenAddresses({lat,lng},{lat:storeAddress.latitude, lng:storeAddress.longitude},{ apiKey: config.GOOGLE_MAPS_API_KEY,mode:CONSTANTS.TRANSPORTATION_MODE.driving})
-       console.log(dis);
         if(dis?.error) return next(APIError.badRequest(dis.error));
          const data = {
             distance:dis.distance.text,

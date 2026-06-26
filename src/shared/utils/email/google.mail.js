@@ -311,3 +311,50 @@ exports.paymentSuccessMailHandler = async (email,plan, name) => {
     }
   };
   
+
+
+
+const OrderConfirmationOptions = async (to, orderData) => {
+  return {
+  from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
+      to,
+      subject:`Order Confirmation #${orderData.orderId}`,
+      template: "order_confirmation",
+      context:{ 
+    logoUrl: 'https://res.cloudinary.com/dz7cidtxp/image/upload/v1716239004/grubby_assest/zmwqhd6bqztfrsllblwb.png',
+    homeUrl:`${config.FRONTEND_ORIGIN_URL}/home`,
+    customerName: orderData.customerName,
+    orderId: orderData.orderId,
+    orderDate: new Date(orderData.createdAt).toLocaleDateString('en-GB'),
+    items: orderData.items.map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: (item.price / 100).toFixed(2), // if stored in kobo
+    })),
+    totalAmount: (orderData.total / 100).toFixed(2),
+    paymentReference: orderData.paymentReference,
+    paymentMethod: orderData.paymentMethod,
+    unsubscribeUrl: `${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${to}`,
+    privacyUrl: `${process.env.BASE_URL}/privacy`,
+  }
+  }
+}
+exports.OrderConfirmationMailer = async (to, orderData) => {
+   try {
+      return new Promise((resolve, reject) => {
+        const mail = sendOrderConfirmation(
+          email,
+          orderData
+          
+        );
+        transporter.sendMail(mail, (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve({ success: true });
+        });
+      });
+    } catch (error) {
+      return { error: error };
+    }
+}

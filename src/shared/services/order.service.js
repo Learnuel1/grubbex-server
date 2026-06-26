@@ -3,11 +3,12 @@ const OrderModel = require("../../models/order.models");
 const TemporalAccountModel = require("../../models/temporal.account.model");
 
 exports.createDraft = async (info) => {
-    try { 
+    try {  
        await OrderModel.findOneAndDelete({qrText: info.qrText, status: CONSTANTS.ORDER_STATUS_OBJ.draft, shopperId: info.shopperId});
-        return await OrderModel.create({...info, $set:{
+        const createOrder = await OrderModel.create({...info, $set:{
             payment: info.payment
         }});
+        return createOrder;
     } catch (error) {
         return { error: error.message || "Failed to create order" };
     }
@@ -22,9 +23,10 @@ exports.orderByReference = (reference) => {
 }
 exports.updateOrderDetails = async (info, reference) => {
     try{
-        return await OrderModel.findOneAndUpdate({reference}, {...info, $push:{
+        const {payment,...rest} = info
+        return await OrderModel.findOneAndUpdate({reference},{ $set:{...rest}, $push:{
             payment: info.payment
-        }});
+    }}, {new:true});
     } catch (error) {
         return {error};
     }
@@ -35,7 +37,7 @@ exports.allOrders = async (query, page =1, limit= 14) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
-        }]).select("-__v -_id -user -createdAt -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id").sort({ createdAt: -1 }).limit(limit).lean();
+        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id").sort({ createdAt: -1 }).limit(limit).lean();
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }
@@ -66,7 +68,7 @@ exports.orderById = async (orderId ) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email  picture -_id"
-        }]).select("-__v -_id -user -createdAt -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType").sort({ createdAt: -1 });
+        }]).select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType").sort({ createdAt: -1 });
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }
@@ -143,7 +145,7 @@ exports.riderOrder = async (query) => {
          const total = await OrderModel.countDocuments(query);
         const orders = await OrderModel.find(query)
             .populate([{ model: "Account", path: "destinationAddress.account", select: "firstName lastName email picture -_id" }])
-            .select("-__v -_id -user -createdAt -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType")
+            .select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
