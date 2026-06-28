@@ -433,7 +433,6 @@ exports.updateUser = async (req, res, next) => {
     for (const key in req.body) {
       details[key] = req.body[key];
     }
-    console.log(details)
     if (details.length === 0) return next(APIError.badRequest('No data sent for update'));
     if(details?.phoneNumber){
       if(!isPhoneNumberValid(details.phoneNumber)) return next (APIError.badRequest("Phone number is not valid"));
