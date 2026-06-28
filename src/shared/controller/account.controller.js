@@ -10,12 +10,12 @@ const { findInvitation, deleteInviteByToken } = require("../../api/admin/service
 const { recoverInfoByRef, removePasswordRecoveryInfo, updateUserPass, deleteUser, getProfile, passwordRecovery, getAccountsForChat, updateAccountContact, updateUserInfo, getUserById, checkPhoneNumberExist } = require("../../services");
 const { isStrongPassword, isValidEmail, isPhoneNumberValid, OTPGen, shortIdGen } = require("../utils/Generator");
 const { v4: uuidv4 } = require('uuid');
-const { hashSync } = require("bcryptjs");
+const { compareSync, hashSync } = require("bcryptjs");
 const NaijaStates = require('naija-state-local-government');
 const { validateRequestData } = require("../middleware/data_validator.middleware");
 const Notification = require("../utils/Notification");
 const { deleteFileFromCloudinary, uploadFileToCloudinary, uploadSingleFileToCloudinary } = require("../utils/cloudinary");
-const { registrationOTPMailHandler, registrationMailHandler } = require("../utils/interface");
+const { registrationOTPMailHandler, registrationMailHandler, recoveryPasswordMailHandler } = require("../utils/interface");
    const notify = new Notification();
 exports.registerUser = async (req, res, next) => {
   try {  
@@ -429,10 +429,11 @@ exports.updateUser = async (req, res, next) => {
   try {
     if (!req.userId) return next(APIError.unauthenticated());
     const details = {};
+    if(req.body?.password) delete req.body.password;
     for (const key in req.body) {
       details[key] = req.body[key];
     }
-     
+    
     if (details.length === 0) return next(APIError.badRequest('No data sent for update'));
     if(details.phoneNumber){
       const numberExist = await checkPhoneNumberExist(details.phoneNumber);
@@ -538,4 +539,32 @@ exports.updateUserContact = async (req, res, next ) => {
     next (error);
   }
 }
- 
+
+exports.updatePassword = async (req, res, next) => {
+  try {
+    const {currentPassword, newPassword } = req.body;
+    if(!currentPassword ) return next (APIError.badRequest("Current Password is required"));
+    if(!newPassword ) return next (APIError.badRequest("New Password is required"));
+    if(!isStrongPassword(newPassword)) return next(APIError.badRequest("New Password is weak"));
+    if(currentPassword === newPassword) return next(APIError.badRequest("new password can't be same as current password"))
+    const info = await getUserById(req.user);
+    if(info.refreshToken.length ===0) return next(APIError.unauthenticated())
+    if(!info) return next(APIError.notFound("Account doe not exist"));
+    if(info?.error) return next(APIError.badRequest(info.error));
+    // verify current password
+    if(!compareSync(currentPassword, info.password)) return next(APIError.badRequest("Current password is incorrect"));
+    logger.info("Current password confirmed successfully", {service: META.ACCOUNT})
+    const hashedPassword = hashSync(newPassword, 10);
+    const updated = await updateUserPass(req.user, hashedPassword)
+    if (!updated) return next(APIError.badRequest("Password update failed, try again"));
+    if (updated?.error) return next(APIError.badRequest(updated.message));
+    logger.info('Password updated successfully', {  service: META.ACCOUNT });
+
+    res.clearCookie('grub_ex');
+			res
+				.status(200)
+				.json({ success: true, msg: 'You have successfully change your password' });
+  } catch (error) {
+    next (error);
+  }
+}

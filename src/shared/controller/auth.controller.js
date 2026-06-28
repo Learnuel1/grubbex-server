@@ -493,7 +493,7 @@ exports.resetLogin = async (req, res, next) => {
 		if (reset.error) return next(APIError.customError(reset.error, 400));
 		await logOutUser(req.userId);
 		logger.info('Login reset successful', { meta: 'auth-service' });
-		res.clearCookie('jwt');
+		res.clearCookie('grub_ex');
 		res.status(200).json({ success: true, msg: 'Password reset successful' });
 	} catch (error) {
 		next(error);
@@ -521,7 +521,7 @@ exports.logoutAll = async (req, res, next) => {
 			logger.info('Logged out all sessions successfully', {
 				meta: 'auth-service',
 			});
-			res.clearCookie('jwt');
+			res.clearCookie('grub_ex');
 			res
 				.status(200)
 				.json({ success: true, msg: 'You have successfully logged out' });
@@ -538,7 +538,7 @@ exports.logoutAll = async (req, res, next) => {
 			logger.info('Logged out all sessions successfully', {
 				meta: 'auth-service',
 			});
-			res.clearCookie('jwt');
+			res.clearCookie('grub_ex');
 			res
 				.status(200)
 				.json({ success: true, msg: 'You have successfully logged out' });

@@ -200,16 +200,7 @@ exports.updateToken = async (id, refreshToken, token) => {
     return {error};
   }
 };
-exports.updatePassword = async (id, password) => {
-  try {
-    return await AccountModel.findByIdAndUpdate({_id:id}, {password});
-  } catch (error) {
-    if (error instanceof mongoose.Error.CastError && error.kind === 'ObjectId') {
-      return  {error:'Invalid account ID format'} ;
-   }
-    return {error};
-  }
-};
+
 exports.userAccounts = async (search) => {
   try {
     return await AccountModel.find(search).select("-_id -password -refreshToken -__v");
@@ -270,9 +261,10 @@ exports.deleteRecoveryInfo = async (id) =>{
     return {error};
   }
 };
-exports.resetPassword = async (user, password) =>{
-  try { 
-    return await AccountModel.findOneAndUpdate({_id:user}, {password});
+ 
+exports.updatePassword = async (id, password) => {
+  try {
+    return await AccountModel.findByIdAndUpdate({_id:id}, {password, refreshToken:[]});
   } catch (error) {
     if (error instanceof mongoose.Error.CastError && error.kind === 'ObjectId') {
       return  {error:'Invalid account ID format'} ;

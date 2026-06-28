@@ -1,5 +1,5 @@
 const express = require('express');
-const { userRequired, tokenRequired } = require('../middlewares/auth.middleware');
+const { userRequired, tokenRequired, checkRouteUsed } = require('../middlewares/auth.middleware');
 const shared  = require('../shared');
 const Controller = require("../controllers");
 const { notifyRouter } = require('./notification.route');
@@ -27,6 +27,7 @@ userRoute.get("/category_preference", userRequired,   Controller.PreferenceCtrl.
 userRoute.use("/notification", userRequired, notifyRouter)
 userRoute.use("/store", userRequired, userStoreRouter)
 userRoute.use("/ticket", userRequired, TicketRouter)
+userRoute.patch("/update_password", userRequired, checkRouteUsed, shared.Controllers.AccController.updatePassword); 
 // userRoute.patch("/update", userRequired, checkRouteUsed, allowedRoles([CONSTANTS.ACCOUNT_TYPE_OBJ.shopper]), shared.Controllers.AccController.updateUser); 
 module.exports = {
   userRoute,
