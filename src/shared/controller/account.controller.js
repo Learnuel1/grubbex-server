@@ -433,11 +433,13 @@ exports.updateUser = async (req, res, next) => {
     for (const key in req.body) {
       details[key] = req.body[key];
     }
-    
+    console.log(details)
     if (details.length === 0) return next(APIError.badRequest('No data sent for update'));
-    if(details.phoneNumber){
+    if(details?.phoneNumber){
+      if(!isPhoneNumberValid(details.phoneNumber)) return next (APIError.badRequest("Phone number is not valid"));
       const numberExist = await checkPhoneNumberExist(details.phoneNumber);
-      if(numberExist && numberExist._id.toString() !== req.user.toString()) return next(APIError.badRequest("Phone number is not available"))
+      if(numberExist && numberExist._id.toString() !== req.user.toString()) return next(APIError.badRequest("Phone number is not available"));
+      logger.info("Phone number verified", {service: META.ACCOUNT});
     }
     // get user profile
     const info = await getUserById(req.user);
@@ -445,7 +447,7 @@ exports.updateUser = async (req, res, next) => {
     if(info?.error) return next(APIError.badRequest(info.error));
     const {picture} = info;
     if(req.file){
-      if(picture && picture.hasOwnProperty("id")) {
+      if(picture.id) {
           const exist = await deleteFileFromCloudinary(picture.id);
           if (exist?.error) return next(APIError.badRequest(exist.message));
           logger.info(`Deleted existing profile picture successfully`, {service: META.CLOUDINARY,});
