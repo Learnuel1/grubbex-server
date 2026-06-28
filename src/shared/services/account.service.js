@@ -34,6 +34,7 @@ exports.registerAccount = async (details) => {
 
 exports.delete = async (userId) => {
   try{
+    console.log(userId)
       const exist = await AccountModel.findOne({userId}).exec();
       if(!exist) throw new Error("Account does not exist")
       return await AccountModel.deleteOne({userId});

@@ -1,6 +1,6 @@
 const { CONSTANTS, CONFIG } = require("../../config");
 const config = require("../../config/env");
-const { temporalAccExistByToken, temporalAccExist, createAccount, userExist, removeAccount, mFA_status_update, userExistByMail, getCityInfo, getTownInfo, createRecoveryTempInfo } = require("../services/interface");
+const { temporalAccExistByToken, temporalAccExist, createAccount, userExist, removeAccount, mFA_status_update, userExistByMail, getCityInfo, getTownInfo, createRecoveryTempInfo, getRiderOrder } = require("../services/interface");
 const { ERROR_FIELD, META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const jwt = require("jsonwebtoken");
@@ -162,12 +162,38 @@ exports.registerMobileUser = async (req, res, next) => {
 };
 exports.deleteAccount = async (req, res, next) => {
   try {
-    const { userId } = req.query; 
-    if (!userId)
-      return next(APIError.badRequest("Account ID is required to perform delete"));
-    const account = await removeAccount(userId);
-    if (!account) return next(APIError.notFound("No Account found", 404));
-    if (account.error) return next(APIError.badRequest(account.error));
+    const { action } = req.query; 
+    let  query = { };
+    if (!action)
+      return next(APIError.badRequest("Command to delete account is required"));
+    if(action !== "deletemyaccount")  return next(APIError.badRequest("Invalid Command to delete account, try again"));
+    if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
+      const account = await removeAccount(userId);
+      consol.log(account)
+      if (!account) return next(APIError.notFound("No Account found", 404));
+      if (account.error) return next(APIError.badRequest(account.error));
+         query = {
+                      shopper: req.user,
+                  };
+               const activeOrder = await getRiderOrder(query);
+        if(activeOrder && activeOrder.length >0) return next(APIError.badRequest("You have an active order"));
+    } else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
+      // check if there is action order
+      query = {
+                      rider: req.user,
+                      status: CONSTANTS.ORDER_STATUS_OBJ.accepted,
+                      riderId: req.userId
+                  };
+        const activeOrder = await getRiderOrder(query);
+        if(activeOrder && activeOrder.length >0) return next(APIError.badRequest("You have an active order"));
+      // delete kyc
+
+      // delete account
+
+      // delete wallet
+    } else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business) {
+      // check if there is active order
+    }
     logger.info("Deleted account successfully", { service:META.ACCOUNT});
     res
       .status(200)

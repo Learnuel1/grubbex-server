@@ -70,6 +70,10 @@ const StoreSchema = new Schema({
     required: true,
     enum: Array.from(Object.values(CONSTANTS.LOCATION_STATUS)),
     default: CONSTANTS.LOCATION_STATUS.unset,
+  },
+  description: {
+    type: String,
+    trim: true,
   }
 }, {timestamps: true}
 );

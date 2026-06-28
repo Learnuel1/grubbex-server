@@ -1,5 +1,6 @@
 const { CONSTANTS } = require("../../../config");
 const config = require("../../../config/env");
+const { KYCModel } = require("../../../models/kyc.model");
 const StoreCategoryModel = require("../../../models/store.category");
 const StoreModel = require("../../../models/store.model");
 
@@ -82,10 +83,14 @@ exports.findNearby = async (location, radiusKm = 15, limit = 50) => {
     const query = {
       'location.latitude': { $gte: latitude - latDiff, $lte: latitude + latDiff },
       'location.longitude': { $gte: longitude - lngDiff, $lte: longitude + lngDiff },
-      locationStatus: CONSTANTS.LOCATION_STATUS.set,
+     // locationStatus: CONSTANTS.LOCATION_STATUS.set,
     };
 
-    const stores = await StoreModel.find(query).select("-__v");
+    const stores = await KYCModel.find(query).populate([{
+      path: "user",
+      select: "likes status rating -_id"
+    }]).select("-__v -_id -store._id -category._id -locationStatus -updatedAt -likers -viewers -user -reviews -profile.logo.id -profile.banner.id -bankDetails -documents -rejection -insurance -store.category._id -logistics");
+    // const stores = await StoreModel.find(query).select("-__v -_id -store._id -category._id -locationStatus -updatedAt -likers -viewers -user -reviews");
     const nearby = stores
       .map((store) => {
         const storeLatitude = Number(store.location?.latitude);
