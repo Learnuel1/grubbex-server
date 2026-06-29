@@ -7,3 +7,4 @@ exports.passwordRecoveryMailHandler = async (email, subject, uniqueString, title
 exports.recoveryPasswordMailHandler = async (email, uniqueString, subject, title, message, grubbexDept, template = "password.recovery") => await Mailer[config.EMAIL_SERVICE].recoveryPasswordMailHandler(email, uniqueString, subject, title, message, grubbexDept);
 exports.sendEMailHandler = async (sendTo, subject, message, attachment = null) => await Mailer[config.EMAIL_SERVICE].sendEMailHandler(sendTo, subject, message, attachment);
 exports.registrationMailHandler = async (email, username ) => await Mailer[config.EMAIL_SERVICE].registrationMailHandler(email, username );
+exports.DeleteAccountMailHandler = async (email, data) => await Mailer[config.EMAIL_SERVICE].DeleteAccountMailHandler(email, data);

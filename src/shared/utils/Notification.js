@@ -4,9 +4,9 @@ const logger = require("../../logger");
 const { META } = require("../../utils/actions");
 const { createUserNotification, adminAccounts, userExistByMail } = require("../services/interface");
 const { shortIdGen } = require("./Generator");
-const {EventEmitter} = require("events");
-const { sendEMailHandler } = require("./mailer");
+const {EventEmitter} = require("events"); 
 const { getNotificationSetting, emailTemplateSetting } = require("../../services");
+const { sendEMailHandler, DeleteAccountMailHandler } = require("./interface");
 
 class Notification extends EventEmitter {
   constructor() {
@@ -150,8 +150,22 @@ class Notification extends EventEmitter {
       logger.error( error.message, { service: META.MAIL});
   }
     })
-  }
+    this.on("deleteAccount", async(payload) => {
+      try {
+        const {email, event, ...data} = payload; 
+            const send = await DeleteAccountMailHandler(
+              email, 
+              data
+            );
+            if (send.error) return logger.error(`'${event} Email notification failed to send, try again.'`, { service: META.MAIL});
+            logger.info(`'${event} Email sent successfully'`, { service: META.MAIL});
 
+  } catch (error) {
+      logger.error( error.message, { service: META.MAIL});
+  }
+    })
+  }
+  
 }
 
 module.exports = Notification;

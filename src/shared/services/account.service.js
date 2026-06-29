@@ -1,6 +1,7 @@
 const { CONSTANTS } = require("../../config");
 const AccountModel = require("../../models/account.model");
 const { KYCModel } = require("../../models/kyc.model");
+const OrderModel = require("../../models/order.models");
 const { WalletModel } = require("../../models/wallet.model");
 const { findTemAccount } = require("./temporal.service");
 
@@ -32,14 +33,47 @@ exports.registerAccount = async (details) => {
   }
 }
 
-exports.delete = async (userId) => {
+exports.delete = async (userId, userType) => {
   try{
-    console.log(userId)
+    const data = {};
+    if( userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
       const exist = await AccountModel.findOne({userId}).exec();
       if(!exist) throw new Error("Account does not exist")
+        data.email = exist.email;
+      data.userName = exist.firstName;
+      const orders = await OrderModel.countDocuments({shopperId:userId});
+      data.orderCount = orders;
       return await AccountModel.deleteOne({userId});
+     await OrderModel.delete({shopperId:userId});
+      return data;
+    } else if  (userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
+      const exist = await AccountModel.findOne({userId}).exec();
+       data.email = exist.email;
+      data.userName = exist.firstName;
+       const orders = await OrderModel.countDocuments({rider:userId});
+      data.orderCount = orders;
+      await KYCModel.deleteOne({userId});
+     await AccountModel.deleteOne({userId});
+     await OrderModel.delete({shopperId:userId});
+     return data;
+    } else if  (userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business){
+      const exist = await AccountModel.findOne({userId}).exec();
+       data.email = exist.email;
+      data.userName = exist.firstName;
+      const kyc = await KYCModel.find({userId});
+      if(kyc && kyc.length > 0){
+        const {store} = kyc;
+        await StoreModel.deleteOne({storeId: store.storeId});
+      }
+      const orders = await OrderModel.countDocuments({rider:userId});
+      data.orderCount = orders;
+      await KYCModel.deleteOne({userId});
+     await AccountModel.deleteOne({userId});
+     await OrderModel.delete({shopperId:userId});
+     return data;
+    }
   }catch(error) {
-    throw {error};
+    return {error: error.message};
   }
 }
 

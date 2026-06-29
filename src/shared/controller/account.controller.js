@@ -168,24 +168,26 @@ exports.deleteAccount = async (req, res, next) => {
       return next(APIError.badRequest("Command to delete account is required"));
     if(action !== "deletemyaccount")  return next(APIError.badRequest("Invalid Command to delete account, try again"));
     if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
-      const account = await removeAccount(userId);
-      consol.log(account)
-      if (!account) return next(APIError.notFound("No Account found", 404));
-      if (account.error) return next(APIError.badRequest(account.error));
-         query = {
-                      shopper: req.user,
-                  };
-               const activeOrder = await getRiderOrder(query);
-        if(activeOrder && activeOrder.length >0) return next(APIError.badRequest("You have an active order"));
+     
+      query = { shopper: req.user };
+      const {orders, total} = await getRiderOrder(query);
+        if(orders && orders.length >0) return next(APIError.badRequest("You have an active order"));
+          const account = await removeAccount(req.userId, req.userType);
+         console.log(account)
+         if (!account) return next(APIError.notFound("No Account found", 404));
+        if (account?.error) return next(APIError.badRequest(account.error));
+        logger.info("Account Deleted Successfully", {service: META.ACCOUNT});
+        account.event = "Account Deletion";
+        notify.emit('deleteAccount', account);
     } else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
       // check if there is action order
       query = {
-                      rider: req.user,
-                      status: CONSTANTS.ORDER_STATUS_OBJ.accepted,
-                      riderId: req.userId
+              rider: req.user,
+              status: CONSTANTS.ORDER_STATUS_OBJ.accepted,
+              riderId: req.userId
                   };
-        const activeOrder = await getRiderOrder(query);
-        if(activeOrder && activeOrder.length >0) return next(APIError.badRequest("You have an active order"));
+        const {orders, total}  = await getRiderOrder(query);
+        if(orders && orders.length >0) return next(APIError.badRequest("You have an active order"));
       // delete kyc
 
       // delete account

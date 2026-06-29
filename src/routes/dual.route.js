@@ -42,5 +42,20 @@ Router.get("/payment/success", async (req, res, next) => {
     next(error)
   }
 });
+Router.get("/privacy_policy", async (req, res, next) => {
+  try {
+  
+      logger.info("Privacy policy retrieved", {service:META.SETTING})
+      res.render( path.join(__dirname, "../views",'privacy_policy'), {
+        email: config.MAIL_USER,
+        phoneNumber: config.ADMIN_NUMBER,
+        address: config.COMPANY_ADDRESS,
+        layout: false
+      });
+      
+  } catch (error) {
+    next(error)
+  }
+});
 
 module.exports = Router;

@@ -52,5 +52,7 @@ GOOGLE_REDIRECT_URL: process.env.GOOGLE_REDIRECT_URL,
 RIDER_RADIUS: process.env.RIDER_RADIUS,
 BREVO_KEY: process.env.BREVO_KEY,
 EMAIL_SERVICE: process.env.EMAIL_SERVICE,
+GRUBBEX_LOGO: process.env.GRUBBEX_LOGO,
+BASE_URL: process.env.BASE_URL,
 };
 module.exports = config;

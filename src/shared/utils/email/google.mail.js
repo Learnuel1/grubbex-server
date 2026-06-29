@@ -321,7 +321,7 @@ const OrderConfirmationOptions = async (to, orderData) => {
       subject:`Order Confirmation #${orderData.orderId}`,
       template: "order_confirmation",
       context:{ 
-    logoUrl: 'https://res.cloudinary.com/dz7cidtxp/image/upload/v1716239004/grubby_assest/zmwqhd6bqztfrsllblwb.png',
+    logoUrl: config.GRUBBEX_LOGO,
     homeUrl:`${config.FRONTEND_ORIGIN_URL}/home`,
     customerName: orderData.customerName,
     orderId: orderData.orderId,
@@ -345,6 +345,45 @@ exports.OrderConfirmationMailer = async (to, orderData) => {
         const mail = sendOrderConfirmation(
           email,
           orderData
+          
+        );
+        transporter.sendMail(mail, (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve({ success: true });
+        });
+      });
+    } catch (error) {
+      return { error: error };
+    }
+}
+const DeleteAccountMailOptions = (to, data) => {
+ return {
+     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
+      to,
+      subject:`Deleting of Account`,
+      template: "delete_account",
+      context:{ 
+    logoUrl: config.GRUBBEX_LOGO || 'https://yourdomain.com/images/logo.png',
+    homeUrl: config.FRONTEND_ORIGIN_URL,
+    privacyUrl: `${config.BASE_URL}:${config.SERVER_PORT}/api/v1/privacy_policy`,
+    userName: data.userName || 'User',
+    userEmail: data.Email || to,
+    deletionDate: data.deletionDate || new Date().toLocaleDateString('en-GB', { 
+      day: 'numeric', month: 'long', year: 'numeric' 
+    }),
+    orderCount: data.orderCount || null,
+      }
+ }
+}
+
+exports.DeleteAccountMailHandler = async (to, data) => {
+   try {
+      return new Promise((resolve, reject) => {
+        const mail = DeleteAccountMailOptions(
+          to,
+          data
           
         );
         transporter.sendMail(mail, (err, data) => {
