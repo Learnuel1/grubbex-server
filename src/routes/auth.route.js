@@ -16,8 +16,8 @@ authRoute.post('/verify-2fa', tokenRequired , checkRouteUsed, shared.Controllers
 authRoute.post('/logout', userRequired, checkRouteUsed, shared.Controllers.AuthController.logout);
 authRoute.post('/refreshtoken', shared.Controllers.AuthController.handleRefreshToken);
 authRoute.post('/logout/all', shared.Controllers.AuthController.logoutAll);
-authRoute.patch('/reset-password', userRequired, shared.Controllers.AuthController.resetLogin);
-authRoute.delete('/account', userRequired, shared.Controllers.AccController.deleteAccount);
+authRoute.patch('/reset-password', userRequired, checkRouteUsed, shared.Controllers.AuthController.resetLogin);
+authRoute.delete('/account', userRequired, checkRouteUsed, shared.Controllers.AccController.deleteAccount);
 
 authRoute.post('/check', userRequired, shared.Controllers.AuthController.checkUser);
 authRoute.post('/confirm_password', userRequired, shared.Controllers.AuthController.confirmPassword);

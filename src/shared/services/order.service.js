@@ -140,7 +140,7 @@ exports.acceptOrRejectOrder = async (info, orderId) => {
     }
 }
 
-exports.riderOrder = async (query) => {
+exports.riderOrder = async (query, skip= 10, limit =10) => {
     try{
          const total = await OrderModel.countDocuments(query);
         const orders = await OrderModel.find(query)

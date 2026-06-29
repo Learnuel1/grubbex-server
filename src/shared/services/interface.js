@@ -33,7 +33,7 @@ exports.saveOrderOTP = async(details) => await TemporalModules.createOrderOTP(de
 exports.getOrderOTP = async(details) => await TemporalModules.orderOTP(details);
 exports.findUserByCustomId = async (userId) => await TemporalModules.findUserByCustomId(userId);
 //ACCOUNT SECTION
-exports.removeAccount = async (userId) => await AccountModules.delete(userId);
+exports.removeAccount = async (userId, userType) => await AccountModules.delete(userId, userType);
 exports.createAccount = async (data) => await AccountModules.registerAccount(data);
 exports.adminAccounts = async (search) => await AccountModules.admins(search);
 
@@ -128,7 +128,7 @@ exports.getOrderByQRData = async (info) => await OrderModule.findOrderByQRInfo(i
 exports.findOrderForQRCodeGeneration = async (orderId, info) => await OrderModule.findOrderForQRCodeGeneration(orderId, info);
 exports.updateOrderQRCodeInfo = async (orderId, info) => await OrderModule.updateOrderQRCodeInfo(orderId, info);
 exports.acceptOrRejectOrder = async (info, orderId) => await OrderModule.acceptOrRejectOrder(info, orderId);
-exports.getRiderOrder = async (query) => await OrderModule.riderOrder(query);
+exports.getRiderOrder = async (query, skip, limit) => await OrderModule.riderOrder(query, skip, limit);
 
 // WALLET SECTION
 exports.updateAdminWallet = async (info) => await WalletModule.adminWalletUpdate(info);
