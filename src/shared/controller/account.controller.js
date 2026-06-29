@@ -164,6 +164,8 @@ exports.deleteAccount = async (req, res, next) => {
   try {
     const { action } = req.query; 
     let  query = { };
+    let account ;
+     account.event = "Account Deletion";
     if (!action)
       return next(APIError.badRequest("Command to delete account is required"));
     if(action !== "deletemyaccount")  return next(APIError.badRequest("Invalid Command to delete account, try again"));
@@ -172,13 +174,11 @@ exports.deleteAccount = async (req, res, next) => {
       query = { shopper: req.user };
       const {orders, total} = await getRiderOrder(query);
         if(orders && orders.length >0) return next(APIError.badRequest("You have an active order"));
-          const account = await removeAccount(req.userId, req.userType);
-         console.log(account)
+        account = await removeAccount(req.userId, req.userType);
          if (!account) return next(APIError.notFound("No Account found", 404));
         if (account?.error) return next(APIError.badRequest(account.error));
-        logger.info("Account Deleted Successfully", {service: META.ACCOUNT});
-        account.event = "Account Deletion";
-        notify.emit('deleteAccount', account);
+        logger.info("Account Deleted Successfully", {service: META.ACCOUNT}); 
+      
     } else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
       // check if there is action order
       query = {
@@ -188,14 +188,20 @@ exports.deleteAccount = async (req, res, next) => {
                   };
         const {orders, total}  = await getRiderOrder(query);
         if(orders && orders.length >0) return next(APIError.badRequest("You have an active order"));
-      // delete kyc
-
-      // delete account
-
-      // delete wallet
+        account = await removeAccount(req.userId, req.userType);
+         if (!account) return next(APIError.notFound("No Account found"));
+        if (account?.error) return next(APIError.badRequest(account.error));
+        logger.info("Account Deleted Successfully", {service: META.ACCOUNT});
+        
     } else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business) {
-      // check if there is active order
+       
+       account = await removeAccount(req.userId, req.userType);
+         if (!account) return next(APIError.notFound("No Account found"));
+        if (account?.error) return next(APIError.badRequest(account.error));
+        logger.info("Account Deleted Successfully", {service: META.ACCOUNT});
     }
+     account.event = "Account Deletion";
+      notify.emit('deleteAccount', account);
     logger.info("Deleted account successfully", { service:META.ACCOUNT});
     res
       .status(200)
