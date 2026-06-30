@@ -49,7 +49,8 @@ exports.getItemById = async (id) => ItemModule.itemById(id);
 exports.getItemsByCategory = async (category) => ItemModule.itemsByCategory(category);
 exports.removeItem = async (id) => ItemModule.remove(id);
 
-// Booking Section
+// Booking Section // not in use
+//==============================
 exports.createBooking = async (info) => BookingModule.booking(info)
 exports.cancelBooking = async (info) => BookingModule.cancel(info)
 exports.getBookings = async (user, bookId ) => BookingModule.bookings(user, bookId)
@@ -62,7 +63,7 @@ exports.getMuvaBookings = async (muva, status) => BookingModule.muvaBookings(muv
 exports.updateLocation = async (details) => BookingModule.location(details);
 exports.muvaLocation = async (details) => BookingModule.locate(details);
 exports.muvaDelivered = async(details) => BookingModule.completed(details);
-
+//==================================================
 // Temporal Reference Section
 // exports.generateTempRef = async (details) => TempRefModule.create(details);
 // exports.getTempReference = async (reference) => TempRefModule.findByReference(reference);

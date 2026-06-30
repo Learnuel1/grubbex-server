@@ -45,7 +45,7 @@ exports.findUser = async (info) => {
 }
 exports.findUserByEmail = async (email) => {
   try{
-     return await AccountModel.findOne({email}).exec();
+     return await AccountModel.findOne({email}).select("-picture.id -likers -raters -reviews").exec();
     
   }catch(error){
     return [error];
@@ -53,7 +53,7 @@ exports.findUserByEmail = async (email) => {
 }
 exports.findUserByToken = async (refreshToken) => {
   try{
-     return await AccountModel.findOne({refreshToken}).exec();
+     return await AccountModel.findOne({refreshToken}).select("-picture.id -likers -raters -reviews").exec();
   }catch(error){
     throw new Error(error);
   }
@@ -67,7 +67,7 @@ exports.findByRole = async (type) => {
 }
 exports.findUserById = async (id) => {
   try{
-     return await AccountModel.findOne({_id:id}).exec();
+     return await AccountModel.findOne({_id:id}).select("-picture.id -likers -raters -reviews").exec();
   }catch(error){
     throw new Error(error);
   }

@@ -200,6 +200,7 @@ exports.deleteAccount = async (req, res, next) => {
         if (account?.error) return next(APIError.badRequest(account.error));
         logger.info("Account Deleted Successfully", {service: META.ACCOUNT});
     }
+     else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.admin) return next(APIError.badRequest("Contact admin to delete the account"));
      account.event = "Account Deletion";
       notify.emit('deleteAccount', account);
     logger.info("Deleted account successfully", { service:META.ACCOUNT});
@@ -213,8 +214,8 @@ exports.deleteAccount = async (req, res, next) => {
  
 exports.forgotPassword = async (req, res, next) => {
   try {
-    if (!req.query.username && !req.query.email && !req.query.phoneNumber)
-      next(APIError.badRequest('Username or email or phone number is required'));
+    if (!req.query.email && !req.query.phoneNumber)
+      next(APIError.badRequest('Email or phone number is required'));
     let details;
     const data = {};
     for (const key in req.query) {
@@ -228,12 +229,12 @@ exports.forgotPassword = async (req, res, next) => {
     }
       const useExist = await userExist(data);
       if (!useExist) {
-        logger.info('Forgot Password Account not Found', { meta: META.ACCOUNT });
+        logger.info('Recovery Account not Found', { service: META.ACCOUNT });
         return next(APIError.notFound(ERROR_FIELD.ACCOUNT_NOT_FOUND));
       }
        
       if (useExist?.error) return next(APIError.badRequest(useExist?.error));
-      logger.info('Forgot Password Account Found', { meta: META.ACCOUNT });
+      logger.info('Forgot Password Account Found', { service: META.ACCOUNT });
       details =sharedUtils.buildRes.removeAuth(useExist.toObject());
       details.userId = useExist._id;
       return res
@@ -280,46 +281,46 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
-exports.forgotPassword = async (req, res, next) => {
-  try {
-    if (!req.query.username && !req.query.email)
-      next(APIError.badRequest('Username or email is required'));
-    let details;
-    const data = {};
-    for (const key in req.query) {
-      data[key] = req.query[key];
-    }
-    if (data.email) {
-      if (!isValidEmail(data.email))
-        return next(APIError.customError(ERROR_FIELD.INVALID_EMAIL, 400));
-    }
-    if (data.username) {
-      const useExist = await checkUsername(data.username);
-      if (!useExist)
-        return next(APIError.customError(ERROR_FIELD.ACCOUNT_NOT_FOUND, 404));
-      if (useExist.error) return next(APIError.customError(useExist.error));
-      logger.info('Forgot Password', { meta: 'account-service' });
-      details = buildResponse.buildUser(useExist.toObject());
-      details.userId = useExist._id;
-      return res
-        .status(200)
-        .json({ success: true, msg: 'Found', user: details });
-    } else if (data.email) {
-      const useExist = await checkEmail(data.email);
-      if (!useExist)
-        return next(APIError.customError(ERROR_FIELD.ACCOUNT_NOT_FOUND, 404));
-      if (useExist.error) return next(APIError.customError(useExist.error));
-      logger.info('Forgot Password', { service: META.ACCOUNT });
-      details = buildResponse.buildUser(useExist.toObject());
-      details.userId = useExist._id;
-      return res
-        .status(200)
-        .json({ success: true, msg: 'found', user: details });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
+// exports.forgotPassword = async (req, res, next) => {
+//   try {
+//     if (!req.query.username && !req.query.email)
+//       next(APIError.badRequest('Username or email is required'));
+//     let details;
+//     const data = {};
+//     for (const key in req.query) {
+//       data[key] = req.query[key];
+//     }
+//     if (data.email) {
+//       if (!isValidEmail(data.email))
+//         return next(APIError.customError(ERROR_FIELD.INVALID_EMAIL, 400));
+//     }
+//     if (data.username) {
+//       const useExist = await checkUsername(data.username);
+//       if (!useExist)
+//         return next(APIError.customError(ERROR_FIELD.ACCOUNT_NOT_FOUND, 404));
+//       if (useExist.error) return next(APIError.customError(useExist.error));
+//       logger.info('Forgot Password', { meta: 'account-service' });
+//       details = buildResponse.buildUser(useExist.toObject());
+//       details.userId = useExist._id;
+//       return res
+//         .status(200)
+//         .json({ success: true, msg: 'Found', user: details });
+//     } else if (data.email) {
+//       const useExist = await checkEmail(data.email);
+//       if (!useExist)
+//         return next(APIError.customError(ERROR_FIELD.ACCOUNT_NOT_FOUND, 404));
+//       if (useExist.error) return next(APIError.customError(useExist.error));
+//       logger.info('Forgot Password', { service: META.ACCOUNT });
+//       details = buildResponse.buildUser(useExist.toObject());
+//       details.userId = useExist._id;
+//       return res
+//         .status(200)
+//         .json({ success: true, msg: 'found', user: details });
+//     }
+//   } catch (error) {
+//     next(error);
+//   }
+// };
 
 
 exports.sendRecoverMail = async (req, res, next) => {

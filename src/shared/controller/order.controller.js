@@ -191,17 +191,18 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
      let storeAddress = null;
      const {location } = storeInfo;
     store[0].location = location ;
-    storeAddress = storeInfo.location
-    req.body.store = store
+    storeAddress = storeInfo.location;
+    req.body.store = store;
+
+    const {destinationAddress}  = req.body ; 
+    if (!destinationAddress) return next(APIError.badRequest('Delivery address is required for delivery orders'));
     if(req.body.type === CONSTANTS.DELIVERY_TYPE_OBJ.delivery) {
+        if (destinationAddress.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest('Delivery location is needed'));
+        const destinationAddressCord = {
+            latitude:destinationAddress.location.latitude,
+            longitude: destinationAddress.location.longitude
+        }
         // calculate the distance between the store and the delivery address
-            const {destinationAddress}  = req.body ; 
-            if (!destinationAddress) return next(APIError.badRequest('Delivery address is required for delivery orders'));
-            if (destinationAddress.location.hasOwnProperty("latitude") === false) return next(APIError.badRequest('Delivery location is needed'));
-            const destinationAddressCord = {
-                latitude:destinationAddress.location.latitude,
-                longitude: destinationAddress.location.longitude
-            }
             const destAddressExist = await verifyLocation(destinationAddressCord);
             if (!destAddressExist.ok) {
                 logger.info('Delivery location could not be verified', {service: META.ORDER});
@@ -219,6 +220,16 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
             req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
             req.body.destinationAddress.location.formattedAddress = destAddressExist.result.formatted_address;  
         }else  if(req.body.type === CONSTANTS.DELIVERY_TYPE_OBJ.pickup){
+             const destinationAddressCord = {
+            latitude:destinationAddress.location.latitude,
+            longitude: destinationAddress.location.longitude
+        }
+              
+             const destAddressExist = await verifyLocation(destinationAddressCord);
+            if (!destAddressExist.ok) {
+                logger.info('Self Pickup location could not be verified', {service: META.ORDER});
+                return next(APIError.badRequest(destAddressExist?.error || 'Self Pickup location could not be verified'));
+            }
              const km = await getDistanceKmBetweenAddresses( {lat:location.latitude, lng:location.longitude},{lat:destinationAddressCord.latitude, lng: destinationAddressCord.longitude}, { apiKey: config.GOOGLE_MAPS_API_KEY, mode: CONSTANTS.TRANSPORTATION_MODE.driving });
             if(km?.error) return next(APIError.badRequest(km.error));
             req.body.destinationAddress.distance = km.distance.text;  
@@ -227,14 +238,11 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
             logger.info(`Calculated ${CONSTANTS.DELIVERY_TYPE_OBJ.pickup} distance successfully `, {service: META.ORDER});
             req.body.destinationAddress.distanceValue = distanceValue;
             // compute delivery cost
-            req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
+            // req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
             req.body.destinationAddress.location.formattedAddress = destAddressExist.result.formatted_address;  
-        }
-    // verify card Details
-    // const {cardDetails } = req.body;
+        } 
     const userInfo = await getAccountByGrubbexId(req.userId);
-        // const ref = paymentReference();
-       
+        
         const phoneNumber = `${userInfo.countryCode}${userInfo.phoneNumber.slice(1)}`;
         let cardPayload = {}
        
@@ -251,6 +259,7 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
            user: req.user,
            
   }
+
 } else if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet){
         cardPayload = {
                 amount: req.body.total.toFixed(2),
@@ -372,7 +381,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
         logger.info("Order found successfully", {service: META.PAYMENT});
         if(order.total !== (info.amount /100)) return next(APIError.badRequest(`"Order:${order.orderId} with reference{ ${reference} total does not match the payment amount"`));
         logger.info("Order total verified successfully", {service: META.PAYMENT});
-           
+        const grubbexCommission = order.subTotal * (config.STORE_ORDER_COMMISSION_PERCENTAGE/100);
            const {items} = order;
             // update the store product quantity
             for(const item of items) {
@@ -403,6 +412,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           id: qrCodeUpload.public_id,
           url: qrCodeUpload.secure_url,
         }
+        console.log(order)
         // update order info
          const updateInfo = {
                 status:     CONSTANTS.ORDER_STATUS_OBJ.pending,
@@ -410,12 +420,21 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
                     ...qrCodeObj,
                 }, 
                 qrText:`${order.orderId}-${order.qrText}`,
+                subTotal: order.subTotal = order.subTotal - grubbexCommission,
+                total: order.total + grubbexCommission,
             }
             updateInfo.payment = {
                 amount: order.total,
                 status: CONSTANTS.ORDER_PAYMENT_STATUS.completed,
                 date: new Date(),
             } 
+            if(order.type === CONSTANTS.ORDER_TYPE_OBJ.pickup){
+                const pickUpCharge = order.subTotal * (config.STORE_PICKUP_CHARGE_PERCENTAGE /100);
+                updateInfo.subTotal -=  pickUpCharge;
+                updateInfo.total +=  pickUpCharge;
+            }
+            order.total = updateInfo.total;
+            order.subTotal = updateInfo.subTotal;
             const updateOrder = await updateCompletedOrder(updateInfo, reference);
             if(!updateOrder) return  logger.error('Completed order update failed', {service: META.PRODUCT});
             if(updateOrder?.error) return logger.error(updateOrder.error, {service: META.PAYMENT});
