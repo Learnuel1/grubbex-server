@@ -12,6 +12,8 @@ const { FAQRouter } = require("./faq.route");
 const { adminProductRoute } = require("./admin.product.route");
 const {PromotionRoute} = require("./promotion.route");
 const SettingsModule = require("./setting.route");
+const { PayoutRouter } = require("./payout.route");
+ 
 routes.use("/store", StoreModule.StoreCategoryRoute);
 routes.use("/invitation", InviteModule.invitationRoute );
 routes.use("/account", AccountModule.accountRoute);
@@ -22,6 +24,7 @@ routes.use("/faq", FAQRouter)
 routes.use("/product", adminProductRoute)
 routes.use("/promotion",PromotionRoute)
 routes.use("/setting", SettingsModule.SettingRouter);
+routes.use("/payout", PayoutRouter);
 AdminRoutes.use("/", adminRequired, routes);
 module.exports = {
   AdminRoutes

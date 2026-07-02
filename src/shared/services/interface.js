@@ -117,6 +117,12 @@ exports.removeTemporalTransaction = async (query) => await PayStackModule.delete
 // ORDER SECTION
 exports.createDraftOrder = async (info) => await OrderModule.createDraft(info);
 exports.verifyPayStackTransaction = async (reference) => await PayStackModule.verifyTransaction(reference);
+exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout') => await PayStackModule.initiateTransfer(recipientCode, amount, reason = 'Payout')
+exports.createRecipient = async (name, accountNumber, bankCode) => await PayStackModule.createRecipient(name, accountNumber, bankCode)
+exports.finalizeTransfer = async (transferCode, otp) => await PayStackModule.finalizeTransfer(transferCode, otp)
+exports.getTransferStatus = async (transferCode) => await PayStackModule.getTransferStatus(transferCode)
+
+
 exports.getOrderByReference = async (reference) => await OrderModule.orderByReference(reference);
 exports.updateCompletedOrder = async (info, reference) => await OrderModule.updateOrderDetails(info, reference)
 exports.storeOrders = async (query, page, limit) => await OrderModule.allOrders(query, page, limit);

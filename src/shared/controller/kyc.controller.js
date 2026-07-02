@@ -287,6 +287,7 @@ exports.bankDetails = async (req, res, next) => {
          accountNumber: verify.data.account_number, 
          accountName: verify.data.account_name,
 		 bvn: req.body?.bvn ? hashSync(req.body.bvn, 10) : null,
+		 bankCode,
          }; 
       const save = await KYCUpdate(details);
       if (save?.error) return next(APIError.badRequest(save.error));

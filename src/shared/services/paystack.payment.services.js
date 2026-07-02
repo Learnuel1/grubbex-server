@@ -81,3 +81,109 @@ exports.deleteTemporalTransaction = async (query) => {
         return {error}
     }
 }
+
+ exports.createRecipient = async (name, accountNumber, bankCode) => {
+  try {
+    const response = await axios.post(
+      'https://api.paystack.co/transferrecipient',
+      {
+        type: 'nuban',
+        name: name,
+        account_number: accountNumber,
+        bank_code: bankCode,
+        currency: 'NGN'
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.data.status) { 
+      return response.data.data.recipient_code;
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    return {error: error.response?.data || error.message};
+  }
+}
+exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout')  =>{
+  try {
+    const response = await axios.post(
+      'https://api.paystack.co/transfer',
+      {
+        source: 'balance',             // fund from your balance
+        amount: amount * 100,          // amount in kobo (e.g., 5000 = ₦50.00)
+        recipient: recipientCode,
+        reason: reason
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.data.status) {
+    
+      return {
+        transferCode: response.data.data.transfer_code,
+        otpRequired: response.data.data.otp_required, // true if OTP is needed
+        // other fields...
+      };
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    return {error: error.response?.data || error.message};
+    throw error;
+  }
+}
+exports.finalizeTransfer = async (transferCode, otp) => {
+  try {
+    const response = await axios.post(
+      'https://api.paystack.co/transfer/finalize_transfer',
+      {
+        transfer_code: transferCode,
+        otp: otp
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.data.status) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    return {error: error.response?.data || error.message};
+  }
+}
+exports.getTransferStatus =async (transferCode) => {
+  try {
+    const response = await axios.get(
+      `https://api.paystack.co/transfer/${transferCode}`,
+      {
+        headers: { Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}` }
+      }
+    );
+
+    if (response.data.status) { 
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    console.error('Error fetching transfer status:', error.response?.data || error.message);
+    throw error;
+  }
+}

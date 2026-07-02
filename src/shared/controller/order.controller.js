@@ -258,9 +258,9 @@ exports.initializeOrderWithPayStack = async (req, res, next ) => {
            orderId,
            user: req.user,
            
-  }
+            }
 
-} else if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet){
+        } else if(req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet){
         cardPayload = {
                 amount: req.body.total.toFixed(2),
                 email: req.email, 
@@ -360,7 +360,6 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
     if (hash == req.headers['x-paystack-signature']) {
     // Retrieve the request's body
     const {data:info, event} = req.body;
-    // Do something with event  
     if(event === "charge.success" && info.status === "success"){
         logger.info("Payment successful", {service: META.PAYSTACK_SERVICE});
         const reference = info.reference;
@@ -481,7 +480,12 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             if(!delTempRef) return next(APIError.badRequest("Failed to delete temporal transaction"));
             if(delTempRef?.error) return next(APIError.badRequest(delTempRef.error));
             logger.info("Temporal transaction deleted successfully", {service: META.PAYMENT});
-            // send order confirmation mail
+            // send order confirmation mail 
+            const notice = {
+                event: "Order Payment",
+                order,
+            }
+            notification.emit("orderPayment", notice)
 
          } else if(transType.event === CONSTANTS.TRANSACTION_TYPE.checkout && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.checkout && info.metadata.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet){
             const order = await  getOrderByReference(reference);
@@ -568,8 +572,11 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             if(delTempRef?.error) return next(APIError.badRequest(delTempRef.error));
             logger.info("Temporal transaction deleted successfully", {service: META.PAYMENT});
             // send order confirmation mail
-            // const email = await OrderConfirmationMailer(metadata.customer.email, order);
-            // if(email?.error) logger.info("Order CoNfirmation email fail to send", {service:META.ORDER})
+            const notice = {
+                event: "Order Payment",
+                order,
+            }
+            notify.emit("orderPayment", notice)
          }
         else if(transType.event === CONSTANTS.TRANSACTION_TYPE.funding && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.funding && info.metadata.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card){
               const userBal = await walletBalance(info.metadata.user);
@@ -599,7 +606,11 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             if(delTempRef?.error) return next(APIError.badRequest(delTempRef.error));
             logger.info("Temporal transaction deleted successfully", {service: META.PAYMENT});
             // send email
-
+            const notice = {
+                event: "Account Funding",
+               
+            }
+            notification.emit("orderPayment", notice)
         }
     }
     }

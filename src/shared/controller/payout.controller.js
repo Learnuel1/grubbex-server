@@ -1,6 +1,6 @@
 const { CONSTANTS } = require("../../config");
 const logger = require("../../logger");
-const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts } = require("../services/interface");
+const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts, createRecipient, initiateTransfer } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const Notification = require("../utils/Notification");
@@ -125,5 +125,35 @@ exports.getTopPayouts = async (req, res, next) => {
         res.status(200).json({ msg: "Top payouts retrieved successfully", data: formattedPayouts });
     } catch (error ) {
         next(error);
+    }
+}
+exports.initializeTransfer = async (req, res, next ) => {
+      try {
+        const { accountName, accountNumber, bankCode , amount} = req.body;
+    // 1. Create recipient
+    const recipientCode = await createRecipient(accountName, accountNumber, bankCode);
+    // 2. Initiate transfer (₦1,000)
+    const initResult = await initiateTransfer(recipientCode, 1000, 'Payout');
+    if(initResult.otpRequired) //send option
+    return res.status(200).json({success: true, msg: "Transfer Initialized", data: initResult})
+  } catch (error) {
+next (error)
+  }
+}
+exports.finalizeTransfer = async (req, res, next ) => {
+    try{
+        const {opt, transferCode} = req.body;
+         // 3. If OTP is required, finalize with OTP (you'll need to obtain it manually)
+    if (initResult.otpRequired) {
+      // In real app, you'd wait for user to input OTP
+      const otp = '123456'; // get from user
+      await finalizeTransfer(initResult.transferCode, otp);
+    }
+
+    // 4. Check final status
+    const finalStatus = await getTransferStatus(initResult.transferCode);
+    res.status(200).json( {success: true, finalStatus});
+    } catch (error) {
+        next (error)
     }
 }
