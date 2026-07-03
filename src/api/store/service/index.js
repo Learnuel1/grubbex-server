@@ -12,6 +12,7 @@ exports.searchUserStore = async (query) => await StoreModule.search(query);
 exports.getStoreByOwner = async (owner) => await StoreModule.storeByOwner(owner);
 exports.findNearbyStores = async (location, radiusKm, limit) => await StoreModule.findNearby(location, radiusKm, limit);
 exports.nearByStore = async (longitude, latitude) => await StoreModule.nearByStore(longitude, latitude)
+exports.getAllStore = async (query, limit, skip) => await StoreModule.allStore(query, limit = 10, skip =0)
 
 // CREATE STORE CATEGORY SECTION
 exports.createStoreCategory = async (info) => categoryModule.create(info)

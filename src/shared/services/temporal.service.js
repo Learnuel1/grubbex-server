@@ -69,7 +69,7 @@ exports.findUserById = async (id) => {
   try{
      return await AccountModel.findOne({_id:id}).select("-picture.id -likers -raters -reviews").exec();
   }catch(error){
-    throw new Error(error);
+    return {error: error.message}
   }
 }
  

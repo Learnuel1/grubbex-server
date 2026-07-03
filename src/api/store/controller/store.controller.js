@@ -3,7 +3,7 @@
 const {  KYCUpdate } = require("../../../shared/services/interface");
 const { META } = require("../../../shared/utils/actions");
 const { APIError } = require("../../../shared/utils/apiError");
-const { updateStore, removeStore, addNewStore, searchUserStore, getShopperFilteredProducts, findNearbyStores } = require("../service");
+const { updateStore, removeStore, addNewStore, searchUserStore, getShopperFilteredProducts, findNearbyStores, getAllStore } = require("../service");
 const { CONSTANTS } = require("../../../config"); 
 const { getCategoryPreference, getShopperLikedProducts, getShopperLikedStore } = require("../../../services");
 const { reqResponse } = require("../../../shared/utils/seedData");
@@ -154,6 +154,25 @@ exports.getNearbyStores = async (req, res, next) => {
 
     logger.info(`Found ${stores.length} nearby stores`, { service: META.STORE });
     res.status(200).json({ success: true, msg: "Stores found", data: stores, count: stores.length });
+  } catch (error) {
+    next(error);
+  }
+}
+exports.getStores = async (req, res, next ) => {
+  try{
+    const { limit, skip, search } = req.query;
+    let query;
+    
+    if(search) {
+      query = { 
+      name: new RegExp(search, 'i')
+    }
+  } else query = {};
+  const stores = await getAllStore(query, limit, skip)
+  if (!stores) return next(APIError.badRequest("Store retrieval failed, try again"));
+  if(stores?.error) return next(APIError.badRequest(stores.error));
+  logger.info("Stores retrieved successfully", {service: META.STORE});
+  res.status(200).json({success: true, msg: "Found", data: stores})
   } catch (error) {
     next(error);
   }

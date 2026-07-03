@@ -141,3 +141,15 @@ exports.nearByStore = async (longitude, latitude) => {
     return {error:error.message}
   }
 }
+exports.allStore = async (query ={}, limit, skip) => {
+  try {
+    console.log(query)
+      const stores = await KYCModel.find(...query).populate([{
+      path: "user",
+      select: "likes status rating -_id"
+    }]).select("-__v -_id -store._id -category._id -locationStatus -updatedAt -likers -viewers -user -reviews -profile.logo.id -profile.banner.id -bankDetails -documents -rejection -insurance -store.category._id -logistics").skip(skip).limit(limit)
+    return stores || [];
+  } catch (error) {
+    return {error: error.message}
+  }
+}

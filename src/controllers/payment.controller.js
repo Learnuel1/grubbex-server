@@ -94,11 +94,7 @@ exports.paymentCompleted = async (req, res, next) =>{
     // remove 10% from the amount for the company
     if(!completed) next(APIError.customError("Payment Failed", 400))
     if(completed.error) next(APIError.customError(completed.error, 400))
-    // const balance = payload.data.amount - ((payload.data.amount/100) * payload.data.amount)
-    // const updateMuva= await fundWallet(payload.customer.muvaId, balance.toFixed(2));
-    // if(!updateMuva) next(APIError.customError("Muva account balance update Failed", 400))
-    // if(updateMuva.error) next(APIError.customError(updateMuva.error, 400))
-    // logger.info("Muva account balance updated successfully", {service:META.PAYMENT});
+    
     
     //update booking status
     const info = {
