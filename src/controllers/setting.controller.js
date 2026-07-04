@@ -83,7 +83,7 @@ exports.getEmailTemplates = async (req, res, next) => {
         const { name} = req.query;
         const query = name ? {name} : {};
         const templates = await emailTemplateSetting(query);
-        if(!templates) return next(APIError.badRequest("Failed to retrieve template"));
+        if(!templates) return next(APIError.notFound("No Email template"));
         if(templates?.error) return next(APIError.badRequest(templates.error));
         logger.info("Retrieved email templated successfully", {service: META.SETTING})
         res.status(200).json({status: "success", msg: "Found", data:templates})
