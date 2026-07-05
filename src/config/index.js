@@ -198,8 +198,8 @@ exports.CONSTANTS = {
     },
     payoutDuration: {
        weekly:"weekly",
-        biWeekly: "biWeekly",
-        monthly: "monthly",
+       biWeekly: "biweekly",
+      monthly: "monthly",
     }
   },
   ADMIN: {
@@ -257,8 +257,8 @@ exports.CONSTANTS = {
       name: "weekly",
       numberOfDays: 7
     },
-    biWeekly: {
-      name: "biWeekly",
+    biweekly: {
+      name: "biweekly",
       numberOfDays: 14
     },
     monthly: {
