@@ -1183,3 +1183,52 @@ exports.getAcceptedOrders = async (req, res, next ) => {
         next(error);
     }
 }
+exports.trackOrder = async (req, res, next ) => {
+    try{
+        const {orderId } = req.params;
+        if(!orderId) return next(APIError.badRequest("Order ID is required"));
+        const orderExist = await getOrderByIdForVerification(orderId);
+        if (!orderExist || orderExist.length === 0) return next(APIError.notFound("Order not Found"));
+        if(orderExist?.error) return next(APIError.badRequest(orderExist.error));
+    //    if(orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.pickup) return next(APIError.badRequest("Order have not been Picked up"));
+        const {riderCurrentLocation, destinationAddress } = orderExist;
+        
+        return res.status(200).json({success: true, destinationAddress, riderCurrentLocation, });
+    } catch(error){
+        next (error)
+    }
+}
+exports.getStoreOrderByAdmin = async (req,res, next ) => {
+    try{
+        const {storeId} = req.params;
+        let query, page =1, limit=10;
+        if(!storeId) return next(APIError.badRequest("Store ID is required"));
+         // get order
+         query = { 
+                storeId: storeId,
+                 status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }
+         };
+        const orders = await storeOrders(query,page, limit);
+        if(!orders ) return next(APIError.notFound("No orders found"));
+        if(orders?.error) return next(APIError.badRequest(orders.error));
+        logger.info("Orders fetched successfully", {service: META.ORDER});
+         const totalPages = Math.ceil(orders.length / limit);
+       
+        return res.status(200).json({
+                    success: true,
+                    msg: orders.length > 0 ? "Orders retrieved successfully" : "No order yet",
+                    data: orders,
+                    count: orders.length,
+                      pagination: {
+                        page,
+                        limit,
+                        total: orders.length,
+                        hasNext: page < totalPages,
+                        hastPrev: page > 1
+                    }
+                })
+    } catch(error ) {
+        next(error)
+    }
+    
+}

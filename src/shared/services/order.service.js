@@ -79,7 +79,7 @@ exports.orderByIdForAuth = async (orderId ) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
-        }]).sort({ createdAt: -1 });
+        }]).select("-destinationAddress.account.picture.id").sort({ createdAt: -1 });
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }
