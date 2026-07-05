@@ -60,9 +60,8 @@ exports.updateSettingNotification = async (info) => {
         }
     }else if( target === CONSTANTS.SETTING_FIELDS_OBJ.TYPE.payoutDuration) {
             find = findSection.find(x => x.name === info.name);
-            findOthers = findSection.filter(x => x.name !== info.name);
+            findOthers = [];
             if(find) if(find.name === info.name) throw new Error(`${find.name} payout duration already set`);
-
             findOthers.push(info);
         }
              return await SettingModel.findByIdAndUpdate({_id:data[0]._id}, {$set:{[target]: findOthers}})
