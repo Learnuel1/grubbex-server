@@ -7,12 +7,14 @@ const Notification = require("../shared/utils/Notification");
 
 exports.updateNotification = async (req, res, next ) => {
     try{
-        const {name, type } = req.body;
+        const {name, type, status } = req.body;
         if(!name) return next(APIError.badRequest("Notification name is required"));
         if(!type) return next(APIError.badRequest("Notification means is required"));
+        if(!status) return next(APIError.badRequest("Notification status is required"));
+        if(status.toLowerCase() !== "on" && status.toLowerCase() !== "off") return next(APIError.badRequest("Invalid notification status"));
         if(!Array.from(Object.values(CONSTANTS.SETTING_FIELDS_OBJ.NOTIFICATION)).includes(name)) return next(APIError.badRequest("Invalid notification filed"));
 
-         const info = { name, type, createdBy:req.body.createdBy, target: CONSTANTS.SETTING_FIELDS_OBJ.TYPE.notification};
+         const info = { name, type,status,  createdBy:req.body.createdBy, target: CONSTANTS.SETTING_FIELDS_OBJ.TYPE.notification};
 
          const update = await updateNotificationSetting(info);
          if(!update) return next(APIError.badRequest("Notification setting failed, try again"))

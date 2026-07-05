@@ -8,18 +8,30 @@ exports.updateSettingNotification = async (info) => {
         delete info.target; 
         const findSection = data[0]?.[target]; 
         if(!findSection){ 
-            const save = await SettingModel.create({...data});
-            save[target].push(info);
-           return save.save();
+            if(info?.status ){
+                if(info.status?.toLowerCase() ==="on" ){
+
+                    const save = await SettingModel.create({...data});
+                    save[target].push(info);
+                    return save.save();
+                }else return {error: "Invalid notification status"}
+            } else  {
+                const save = await SettingModel.create({...data});
+                save[target].push(info);
+                return save.save();
+            }
         }else{
             let find, findOthers;
             if(target === CONSTANTS.SETTING_FIELDS_OBJ.TYPE.notification){
               find = findSection.find(x => x.name === info.name);
               findOthers = findSection.filter(x => x.name !== info.name); 
             if(find){
-                if(find.type === info.type) throw new Error("Notification already set")
+                if(find.type === info.type && find.status?.toLowerCase() === info.status?.toLowerCase() ) throw new Error("Notification already set");
+            if(info.status.toLowerCase() === "on"){
                 find.type = info.type;
-            findOthers.push(find); 
+                find.status = info.status;
+                findOthers.push(find); 
+            } 
             data[0].target = findOthers 
             } else {
                 findOthers.push(info) 
