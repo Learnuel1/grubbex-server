@@ -187,6 +187,7 @@ exports.CONSTANTS = {
       onCriticalSystemError: "CriticalSystemError",
       onOrderRequest: "OrderRequest",
       onOrderUpdate: "OrderUpdate",
+      onOrderStatusUpdate: "OrderStatusUpdate",
       onNewOrder: "NewOrder"
     },
     TYPE: {
