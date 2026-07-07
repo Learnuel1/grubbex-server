@@ -245,7 +245,7 @@ async function validateCustomerWithBVN(customerCode, bvn, accountNumber, bankCod
 }
 
 // 2. Resolve BVN (get details)
-async function resolveBVN(bvn) {
+exports.resolveBVN = async (bvn) => {
   try {
     const response = await paystackClient.get(`/bvn/resolve?bvn=${bvn}`);
     
@@ -255,13 +255,12 @@ async function resolveBVN(bvn) {
       throw new Error(response.data.message);
     }
   } catch (error) {
-    console.error('BVN resolution failed:', error.response?.data || error.message);
-    throw error;
+  return {error: error.response?.data || error.message};
   }
 }
 
 // 3. Match BVN to account
-async function matchBVN(bvn, accountNumber, bankCode) {
+exports.matchBVN = async(bvn, accountNumber, bankCode) => {
   try {
     const response = await paystackClient.get(
       `/bvn/match?bvn=${bvn}&account_number=${accountNumber}&bank_code=${bankCode}`
@@ -273,7 +272,6 @@ async function matchBVN(bvn, accountNumber, bankCode) {
       throw new Error(response.data.message);
     }
   } catch (error) {
-    console.error('BVN match failed:', error.response?.data || error.message);
-    throw error;
+  return {error: error.response?.data || error.message};
   }
 }

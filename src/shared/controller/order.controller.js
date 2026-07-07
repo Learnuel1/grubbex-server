@@ -1756,3 +1756,75 @@ exports.getStoreOrderByAdmin = async (req, res, next) => {
     next(error);
   }
 };
+
+
+exports.getAccountOrders = async (req, res, next) => {
+  try {
+    const { search, status, type, userId, riderId } = req.query;
+    const query = {};
+    if(!userId && !riderId) return next(APIError.badRequest("Targeted user ID is required (riderId/userId)"));
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
+    const pipeline = [];
+    if (userId) {
+      if (status) {
+        query.$and = [
+          { status: status },
+          { shopperId: UserId },
+        ];
+      } else if (search) {
+        query.$and = [
+          { shopperId: userId},
+          // {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+        ];
+      } else {
+        query.$and = [
+          { shopperId: userId },
+          //{status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+        ];
+      }
+    } else if(riderId) {
+         if (status) {
+        query.$and = [
+          { status: status },
+          { riderId: riderId },
+        ];
+      } else if (search) {
+        query.$and = [
+          { riderId: riderId},
+          // {status: {$nin: [CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+        ];
+      } else {
+        query.$and = [
+          { riderId: riderId },
+          //{status: {$nin: [...CONSTANTS.ORDER_STATUS_OBJ.draft] }}
+        ];
+      }
+    }
+     
+    // get order
+    const orders = await storeOrders(query, page, limit);
+    if (!orders) return next(APIError.notFound("No orders found"));
+    if (orders?.error) return next(APIError.badRequest(orders.error));
+    logger.info("Orders fetched successfully", { service: META.ORDER });
+    const totalPages = Math.ceil(orders.length / limit); 
+    
+      return res.status(200).json({
+        success: true,
+        msg:
+          orders.length > 0 ? "Orders retrieved successfully" : "No order yet",
+        data: orders,
+        count: orders.length,
+        pagination: {
+          page,
+          limit,
+          total: orders.length,
+          hasNext: page < totalPages,
+          hastPrev: page > 1,
+        },
+      });
+  } catch (error) {
+    next(error);
+  }
+};
