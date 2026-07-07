@@ -3,34 +3,54 @@ const AccountModel = require("../../models/account.model");
 const { KYCModel } = require("../../models/kyc.model");
 const OrderModel = require("../../models/order.models");
 const StoreModel = require("../../models/store.model");
+const SettingModel = require("../../models/setting.model");
 const { WalletModel } = require("../../models/wallet.model");
 const { findTemAccount } = require("./temporal.service");
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
+
 exports.registerAccount = async (details) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try{
-    const data = await AccountModel.create({...details});
-    await findTemAccount(details.email);
+    const [data] = await AccountModel.create([{...details}], { session });
+    const tempAccount = await findTemAccount(details.email, session);
+    if(tempAccount?.error) throw new Error(tempAccount.error);
+
     if(details.type === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
-      details.user = data._id;
-      details.onBoarded = true;
-      const kyc =  await KYCModel.create({...details});
-      if(!kyc) return {error: "Failed to create KYC"};
-      if(kyc?.error) return {error: kyc.error};
-      const wallet =  await WalletModel.create({user:data._id});
-    if(!wallet) return {error: "Failed to create wallet"};
-    if(wallet?.error) return {error: wallet.error};
+      const kycDetails = {
+        ...details,
+        user: data._id,
+        onBoarded: true,
+      };
+      const [kyc] =  await KYCModel.create([kycDetails], { session });
+      if(!kyc) throw new Error("Failed to create KYC");
+      if(kyc?.error) throw new Error(kyc.error);
+     
+
+      const [wallet] =  await WalletModel.create([{user:data._id}], { session });
+      if(!wallet) throw new Error("Failed to create wallet");
+      if(wallet?.error) throw new Error(wallet.error);
     }
     if(details.type === CONSTANTS.ACCOUNT_ROLE_OBJ.super || details.type === CONSTANTS.ACCOUNT_ROLE_OBJ.rider || details.type === CONSTANTS.ACCOUNT_ROLE_OBJ.business){
-    const wallet =  await WalletModel.create({user:data._id});
-    if(!wallet) return {error: "Failed to create wallet"};
-    if(wallet?.error) return {error: wallet.error};
+      const payoutSetting = await SettingModel.findOne({});
+      const payoutDuration = payoutSetting?.payoutDuration || [];
+      const defaultPayoutDuration = payoutDuration[0]?.numberOfDays || 7;
+      const payoutDueDate = new Date(Date.now() + defaultPayoutDuration * 24 * 60 * 60 * 1000);
+      const [wallet] =  await WalletModel.create([{user:data._id, payoutDueDate}], { session });
+      if(!wallet) throw new Error("Failed to create wallet");
+      if(wallet?.error) throw new Error(wallet.error);
     }
+    await session.commitTransaction();
     return data;
   }catch(error){
+    await session.abortTransaction();
     if(error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       return { error:`An account with same ${field} already exist`}}
-    return {error};
+    return {error: error.message || error};
+  } finally {
+    session.endSession();
   }
 }
 

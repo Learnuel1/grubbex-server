@@ -13,6 +13,7 @@ const { adminProductRoute } = require("./admin.product.route");
 const {PromotionRoute} = require("./promotion.route");
 const SettingsModule = require("./setting.route");
 const { PayoutRouter } = require("./payout.route");
+const AdminOrderRouter = require("./admin.order.route");
  
 routes.use("/store", StoreModule.StoreCategoryRoute);
 routes.use("/invitation", InviteModule.invitationRoute );
@@ -25,6 +26,8 @@ routes.use("/product", adminProductRoute)
 routes.use("/promotion",PromotionRoute)
 routes.use("/setting", SettingsModule.SettingRouter);
 routes.use("/payout", PayoutRouter);
+routes.use("/order", AdminOrderRouter);
+
 AdminRoutes.use("/", adminRequired, routes);
 module.exports = {
   AdminRoutes

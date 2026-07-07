@@ -1,5 +1,5 @@
 const { PAYSTACK_SECRETE_KEY } = require("../config/env");
-
+const axios = require('axios');
 const options = (url = '/transaction/initialize', method = 'POST', params= null) => {
   if(params === null){
     return  { 
@@ -26,6 +26,18 @@ const options = (url = '/transaction/initialize', method = 'POST', params= null)
     }
     }
 } 
+
+ 
+
+const paystackClient = axios.create({
+  baseURL: 'https://api.paystack.co',
+  headers: {
+    Authorization: `Bearer ${PAYSTACK_SECRETE_KEY}`,
+    'Content-Type': 'application/json',
+  },
+});
+ 
 module.exports = {
   options, 
+  paystackClient,
 };

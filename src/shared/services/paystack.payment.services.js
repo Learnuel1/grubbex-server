@@ -1,5 +1,5 @@
 const https = require('https');
-const { options } = require('../../utils/paystack.auth');
+const { options, paystackClient } = require('../../utils/paystack.auth');
 const { PAYSTACK_ROUTES, PAYSTACK_METHOD } = require('../../utils/paystack.routes');
 const TemporalTransactionModel = require('../../models/temporal.transaction');
 const { default: axios } = require('axios');
@@ -184,6 +184,96 @@ exports.getTransferStatus =async (transferCode) => {
     }
   } catch (error) {
     console.error('Error fetching transfer status:', error.response?.data || error.message);
+    throw error;
+  }
+}
+exports.payStackBankList = async (currency = "NGN") => {
+  try {
+      const response = await paystackClient.get(`/bank?currency=${currency}`)
+      if (response.data.status) {
+      const banks = response.data.data;
+     const simplified = banks.map(({id, code, name }) => ({id, code, name }));
+      return simplified;  
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    return {error: error.message}
+  }
+}
+exports.getAllTransfers = async (perPage = 50, page = 1) => {
+  try {
+    const response = await paystackClient.get('/transfer', {
+      params: { perPage, page }
+    });
+    
+    if (response.data.status) {
+      return response.data.data; // Array of transfer records
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    return {error: error.response?.data || error.message};
+  }
+} 
+
+// 1. Validate a customer (full KYC)
+async function validateCustomerWithBVN(customerCode, bvn, accountNumber, bankCode) {
+  try {
+    const response = await paystackClient.post(
+      `/customer/${customerCode}/identification`,
+      {
+        country: 'NG',
+        type: 'bvn',
+        bvn: bvn,
+        bank_account_number: accountNumber,
+        bank_code: bankCode
+      }
+    );
+
+    if (response.data.status) {
+      console.log('Verification initiated:', response.data.message);
+      // Wait for webhook callback
+      return response.data;
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    console.error('BVN validation failed:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+// 2. Resolve BVN (get details)
+async function resolveBVN(bvn) {
+  try {
+    const response = await paystackClient.get(`/bvn/resolve?bvn=${bvn}`);
+    
+    if (response.data.status) {
+      return response.data.data;
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    console.error('BVN resolution failed:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+// 3. Match BVN to account
+async function matchBVN(bvn, accountNumber, bankCode) {
+  try {
+    const response = await paystackClient.get(
+      `/bvn/match?bvn=${bvn}&account_number=${accountNumber}&bank_code=${bankCode}`
+    );
+    
+    if (response.data.status) {
+      return response.data.data; // { matched: true/false, account_name: ... }
+    } else {
+      throw new Error(response.data.message);
+    }
+  } catch (error) {
+    console.error('BVN match failed:', error.response?.data || error.message);
     throw error;
   }
 }

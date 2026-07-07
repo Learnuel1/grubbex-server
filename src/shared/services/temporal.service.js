@@ -15,9 +15,11 @@ exports.registerTempAccount = async (details) => {
   }
 };
 
-exports.findTemAccount = async (email) => {
+exports.findTemAccount = async (email, session = null) => {
   try{
-    return await TemporalAccountModel.findOneAndDelete({email});
+    const query = TemporalAccountModel.findOneAndDelete({email});
+    if(session) query.session(session);
+    return await query;
   }catch(error){
     return {error};
   }
