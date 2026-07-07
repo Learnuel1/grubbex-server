@@ -12,7 +12,7 @@ const request = require('request');
 const resBuilder = require("../utils/responseBuilder");
 const { CONSTANTS } = require("../config");
 const { flutterwave } = require("../shared/utils/flutterwave.auth");
-const { payStackBankList } = require("../shared/services/paystack.payment.services");
+const { payStackBankList, resolveBankAccount, resolveBVN } = require("../shared/services/paystack.payment.services");
 exports.verify =  async (req, res, next) => {
   try{
 
@@ -156,37 +156,37 @@ exports.walletBalance = async (req, res, next) => {
     next(error);
   }
 }
-exports.verifyBankInfo = async (req, res, next) => {
-  try{
-    const { bankcode, account, bvn} = req.query
-    if(!account) return next(APIError.badRequest("Account number is required"));
-    if(!bankcode) return next(APIError.badRequest("Account bank is required"));
-    // if(!bvn) return next(APIError.badRequest("BVN is required"));
-    // if(bvn.length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)"));
-const details = {
-  account_number: account.toString(),
-  account_bank: bankcode.toString()
-};
-const verify = await flutterwave.Misc.verify_Account(details)
-  if(verify.status === "error") return next(APIError.badRequest(verify.message));
-    logger.info("Account number verified successfully", {service:META.FULTTER_WAVE_SERVICE});
-    //verify BVN
-    if(bvn && bvn.trim() !==""){
-      if(bvn.length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)"));
-      const names = verify.data.account_name.split(" ");
-      const initBVN = await flutterwave.Misc.bvn({bvn, firstname: names[0], lastname: names[1] })
-      if(initBVN?.error_id) return next(APIError.badRequest(`BVN:${initBVN.message}, try again`));
-      if(initBVN.status === "error") return next(APIError.badRequest(`${initBVN.message}, try again`));
-      logger.info("BVN initialized successfully", {service:META.FLUTTER_WAVE_SERVICE}); 
-      const verifyBVN = await flutterwave.Misc.verifybvn({ reference: initBVN.data.reference})
-      if(!verifyBVN || verifyBVN.status === "error") return next(APIError.badRequest(verifyBVN?.message || 'BVN verification failed'));
-      logger.info("BVN verified successfully", {service:META.FLUTTER_WAVE_SERVICE});
-    }
-    res.status(200).json({success: true, msg: "Account number is valid", bank:verify.data});
-  }catch(error){
-    next(error);
-  }
-}
+// exports.verifyBankInfo = async (req, res, next) => {
+//   try{
+//     const { bankcode, account, bvn} = req.query
+//     if(!account) return next(APIError.badRequest("Account number is required"));
+//     if(!bankcode) return next(APIError.badRequest("Account bank is required"));
+//     // if(!bvn) return next(APIError.badRequest("BVN is required"));
+//     // if(bvn.length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)"));
+// const details = {
+//   account_number: account.toString(),
+//   account_bank: bankcode.toString()
+// };
+// const verify = await flutterwave.Misc.verify_Account(details)
+//   if(verify.status === "error") return next(APIError.badRequest(verify.message));
+//     logger.info("Account number verified successfully", {service:META.FULTTER_WAVE_SERVICE});
+//     //verify BVN
+//     if(bvn && bvn.trim() !==""){
+//       if(bvn.length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)"));
+//       const names = verify.data.account_name.split(" ");
+//       const initBVN = await flutterwave.Misc.bvn({bvn, firstname: names[0], lastname: names[1] })
+//       if(initBVN?.error_id) return next(APIError.badRequest(`BVN:${initBVN.message}, try again`));
+//       if(initBVN.status === "error") return next(APIError.badRequest(`${initBVN.message}, try again`));
+//       logger.info("BVN initialized successfully", {service:META.FLUTTER_WAVE_SERVICE}); 
+//       const verifyBVN = await flutterwave.Misc.verifybvn({ reference: initBVN.data.reference})
+//       if(!verifyBVN || verifyBVN.status === "error") return next(APIError.badRequest(verifyBVN?.message || 'BVN verification failed'));
+//       logger.info("BVN verified successfully", {service:META.FLUTTER_WAVE_SERVICE});
+//     }
+//     res.status(200).json({success: true, msg: "Account number is valid", bank:verify.data});
+//   }catch(error){
+//     next(error);
+//   }
+// }
 
 exports.getBanks = async (req, res, next) => {
   try{
@@ -201,6 +201,31 @@ if(!data) return next(APIError.badRequest("Bank list failed, try again"));
 if(data?.error) return next(APIError.badRequest(data.error));
 const build = resBuilder.commonResponse("Found", data, "banks" );
   res.status(200).json(build );
+  }catch(error){
+    next(error);
+  }
+}
+
+exports.verifyBankInfo = async (req, res, next) => {
+  try{
+    const { bankcode, account, bvn} = req.query
+    if(!account) return next(APIError.badRequest("Account number is required"));
+    if(!bankcode) return next(APIError.badRequest("Account bank is required"));
+    const details = {};
+  const resolve = await resolveBankAccount(account.toString(), bankcode.toString());
+  if(resolve?.error) return next (APIError.badRequest(resolve.error));
+  if(!resolve) return next (APIError.badRequest("Bank Account Verification failed, try again")); 
+    logger.info("Account number verified successfully", {service:META.PAYSTACK_SERVICE});
+    //verify BVN
+    details.accountName = resolve.account_name;
+    if(bvn && bvn.trim() !==""){
+      if(bvn.trim().length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)")); 
+      const verifyBVN = await resolveBVN(bvn);
+      if(!verifyBVN) return next(APIError.badRequest("BVN verification failed, try again"));
+      if(verifyBVN?.error) return next(APIError.badRequest(verifyBVN.error));
+      logger.info("BVN verified successfully", {service:META.PAYSTACK_SERVICE});
+    }
+    res.status(200).json({success: true, msg: "Account number is valid", bank:{...details}});
   }catch(error){
     next(error);
   }

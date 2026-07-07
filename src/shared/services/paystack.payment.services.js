@@ -45,16 +45,12 @@ exports.verifyTransaction = async (reference) => {
         try{
              if (!reference) return next(APIError.badRequest('Missing transaction reference'));
             
-                const response = await axios.get(
-                  `https://api.paystack.co/transaction/verify/${reference}`,
-                  {
-                    headers: { Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}` },
-                  }
-                );  
+                const response = await paystackClient.get(
+                  `/transaction/verify/${reference}`);  
                 const transaction = response.data.data;
                 if (response.data.status && transaction.status === 'success') return transaction;
                 
-                return {error: res.data || 'Payment verification failed.'};
+                return {error: response.data || 'Payment verification failed.'};
         } catch(error) {
             return {error:error.message }
         }
@@ -84,21 +80,15 @@ exports.deleteTemporalTransaction = async (query) => {
 
  exports.createRecipient = async (name, accountNumber, bankCode) => {
   try {
-    const response = await axios.post(
-      'https://api.paystack.co/transferrecipient',
+    const response = await paystackClient.post(
+      '/transferrecipient',
       {
         type: 'nuban',
         name: name,
         account_number: accountNumber,
         bank_code: bankCode,
         currency: 'NGN'
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
+      } 
     );
 
     if (response.data.status) { 
@@ -112,21 +102,15 @@ exports.deleteTemporalTransaction = async (query) => {
 }
 exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout')  =>{
   try {
-    const response = await axios.post(
-      'https://api.paystack.co/transfer',
+    const response = await paystackClient.post(
+      '/transfer',
       {
         source: 'balance',             // fund from your balance
         amount: amount * 100,          // amount in kobo (e.g., 5000 = ₦50.00)
         recipient: recipientCode,
         reason: reason
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}`,
-          'Content-Type': 'application/json'
-        }
       }
-    );
+      );
 
     if (response.data.status) {
     
@@ -140,24 +124,17 @@ exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout')  =>{
     }
   } catch (error) {
     return {error: error.response?.data || error.message};
-    throw error;
   }
 }
 exports.finalizeTransfer = async (transferCode, otp) => {
   try {
-    const response = await axios.post(
-      'https://api.paystack.co/transfer/finalize_transfer',
+    const response = await paystackClient.post(
+      '/transfer/finalize_transfer',
       {
         transfer_code: transferCode,
         otp: otp
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}`,
-          'Content-Type': 'application/json'
-        }
       }
-    );
+      );
 
     if (response.data.status) {
       return response.data.data;
@@ -170,12 +147,8 @@ exports.finalizeTransfer = async (transferCode, otp) => {
 }
 exports.getTransferStatus =async (transferCode) => {
   try {
-    const response = await axios.get(
-      `https://api.paystack.co/transfer/${transferCode}`,
-      {
-        headers: { Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}` }
-      }
-    );
+    const response = await paystackClient.get(
+      `/transfer/${transferCode}` );
 
     if (response.data.status) { 
       return response.data.data;
@@ -232,15 +205,13 @@ async function validateCustomerWithBVN(customerCode, bvn, accountNumber, bankCod
     );
 
     if (response.data.status) {
-      console.log('Verification initiated:', response.data.message);
       // Wait for webhook callback
       return response.data;
     } else {
       throw new Error(response.data.message);
     }
   } catch (error) {
-    console.error('BVN validation failed:', error.response?.data || error.message);
-    throw error;
+    return {error: error.response?.data || error.message}
   }
 }
 
@@ -248,7 +219,6 @@ async function validateCustomerWithBVN(customerCode, bvn, accountNumber, bankCod
 exports.resolveBVN = async (bvn) => {
   try {
     const response = await paystackClient.get(`/bvn/resolve?bvn=${bvn}`);
-    
     if (response.data.status) {
       return response.data.data;
     } else {
@@ -273,5 +243,21 @@ exports.matchBVN = async(bvn, accountNumber, bankCode) => {
     }
   } catch (error) {
   return {error: error.response?.data || error.message};
+  }
+}
+exports.resolveBankAccount = async (account_number, bank_code) => {
+  try{
+    const resolveResponse = await paystackClient.get('/bank/resolve', {
+      params: {
+        account_number, 
+        bank_code,
+        currency: 'NGN'
+      },
+    });
+        if (!resolveResponse.data.status) throw new Error(resolveResponse.data.message);
+      const accountName = resolveResponse.data.data.account_name;
+    return resolveResponse.data.data;
+  } catch (error) {
+    return {error: error.message };
   }
 }

@@ -955,7 +955,15 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           };
           notification.emit("orderPayment", notice);
         }
-      }
+      } else if (event.event === 'customeridentification.success') {
+    // Verification passed – update your database, mark KYC complete, etc.
+    console.log('✅ Customer verified:', event.data);
+    // event.data.customer_code, event.data.identification (contains BVN, etc.)
+} else if (event.event === 'customeridentification.failed') {
+      logger.info("BVN Verification failed", {service: META.PAYSTACK_SERVICE})
+    // Verification failed – notify user, log reason
+    console.log('❌ Verification failed:', event.data);
+  }
     }
   } catch (error) {
     next(error);

@@ -1,11 +1,11 @@
 const Flutterwave = require('flutterwave-node-v3');
 const config = require('../config/env');
 
-// const flutterwave = new Flutterwave({
-//   publicKey: FLUTTER_PUBLIC_KEY,
-//   secretKey: FLUTTER_SECRET_KEY,
-//   encryptionKey: FLUTTER_ENCRY_KEY,
-// });
+const flutterwave = new Flutterwave(
+ config.FLUTTER_PUBLIC_KEY,
+config.FLUTTER_SECRET_KEY,
+  // encryptionKey: config.FLUTTER_ENCRY_KEY,
+);
 let options = {
   'method': 'GET',
   'url': 'https://api.flutterwave.com/v3/banks/NG',
@@ -15,5 +15,6 @@ let options = {
 };
 module.exports = {
   flutterOptions:options,
+  flutterwave,
 }
 
