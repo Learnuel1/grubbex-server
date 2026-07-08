@@ -1,6 +1,8 @@
 const { CONSTANTS } = require("../../config");
+const TemporalTransactionModel = require("../../models/temporal.transaction");
 const { WalletHistoryModel } = require("../../models/wallet.history.model");
 const { WalletModel } = require("../../models/wallet.model");
+const mongoose = require('mongoose');
 
 exports.adminWalletUpdate = async (info) => {
     try {
@@ -23,9 +25,42 @@ exports.walletUpdate = async (info) => {
     }
 }
 exports.newTransactionHistory = async (info) => {
+    const session = await mongoose.startSession();
+   session.startTransaction()
     try {
-        return await WalletHistoryModel.create(info);
+        const {reference} = info;
+        const history = await WalletHistoryModel.create([info], { session });
+
+    // 2. Delete the temporary transaction
+    if(reference){
+    const deleted = await TemporalTransactionModel.findOneAndDelete(
+      { reference },
+      { session }
+    );
+    if (!deleted)  throw new Error("Temporal Transaction reference was not found");
+ }
+    await session.commitTransaction();
+    session.endSession();
+        //  await WalletHistoryModel.create(info);
+        //  return await TemporalTransactionModel.findOneAndDelete({reference})
     } catch (error) {
+        await session.abortTransaction();
+         session.endSession();
+        return { error: error.message || "Failed to create transaction history" };
+    }
+}
+exports.adminTransactionHistory = async (info) => {
+    const session = await mongoose.startSession();
+   session.startTransaction()
+    try {
+        const {reference} = info;
+        const history = await WalletHistoryModel.create([info], { session });
+
+    await session.commitTransaction();
+    session.endSession(); 
+    } catch (error) {
+        await session.abortTransaction();
+         session.endSession();
         return { error: error.message || "Failed to create transaction history" };
     }
 }

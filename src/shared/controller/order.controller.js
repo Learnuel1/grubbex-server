@@ -451,6 +451,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         id: qrText,
         reference: req.body.reference,
         event: CONSTANTS.TRANSACTION_TYPE.checkout,
+        type: CONSTANTS.TRANSACTION_TYPE.debit
       });
       if (!tempTrans)
         return next(APIError.badRequest("Order Transaction Failed. try again"));
@@ -531,7 +532,8 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
     if (hash == req.headers["x-paystack-signature"]) {
       // Retrieve the request's body
       const { data: info, event } = req.body;
-      if (event === "charge.success" && info.status === "success") {
+      console.log(info)
+      if (event === "charge.success" && info.status === "success" && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.checkout) {
         logger.info("Payment successful", { service: META.PAYSTACK_SERVICE });
         const reference = info.reference;
         const transType = await getTemporalTransaction({ reference });
@@ -676,7 +678,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             if (adminBal?.error)
               return next(APIError.badRequest(adminBal.error));
             const walletInfoUpdate = await updateWallet({
-              balance: adminBal.balance + order.total,
+              balance:admin.balance + order.total,
               user: admin._id,
             });
             if (!walletInfoUpdate)
@@ -693,19 +695,28 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           if (wallet?.error) return next(APIError.badRequest(wallet.error));
           // update transaction history
           const details = {
-            balance: wallet.balance,
+            balanceBefore: wallet.balance,
             user: info.metadata.user,
+            initiatedBy: info.metadata.user,
             amount: info.amount / 100,
-            credit: info.amount / 100,
+            // credit: info.amount / 100,
             description: `Payment for order ${order.orderId}`,
-            type: CONSTANTS.TRANSACTION_TYPE.checkout,
-            transaction: [
-              {
-                reference: info.reference,
-              },
-              { description: "Payment for order" },
-            ],
+            type: info.metadata.paymentEventType,
+             reference: info.reference,
+             currency: info.metadata.currency,
+             status: info.status,
+             order: order._id,
+             orderId: info.metadata.orderId,
+             ipAddress:info.ip_address,
           };
+          if(transType.type === CONSTANTS.TRANSACTION_TYPE.credit){ 
+            details.credit = info.amount/100;
+            details.balanceAfter= wallet.balance + details.credit;
+          }
+          if(transType.type === CONSTANTS.TRANSACTION_TYPE.debit) {
+            details.debit = info.amount/100;
+             details.balanceAfter= wallet.balance - details.debit;
+            }
 
           const createHistory = await createTransactionHistory(details);
           if (!createHistory)
@@ -714,25 +725,39 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             );
           if (createHistory?.error)
             return next(APIError.badRequest(createHistory.error));
-          logger.info("Transaction history created successfully", {
+          logger.info("Transaction history created and temporal transaction deleted successfully", {
             service: META.PAYMENT,
           });
-          const delTempRef = await removeTemporalTransaction({ reference });
-          if (!delTempRef)
+          details.user = admin._id;
+          details.balanceBefore = adminBal.balance;
+          details.balanceAfter =  adminBal.balance + order.total
+          details.credit = order.total;
+            const createAdminHistory = await createTransactionHistory(details);
+          if (!createHistory)
             return next(
-              APIError.badRequest("Failed to delete temporal transaction"),
+              APIError.badRequest("Failed to create admin transaction history"),
             );
-          if (delTempRef?.error)
-            return next(APIError.badRequest(delTempRef.error));
-          logger.info("Temporal transaction deleted successfully", {
-            service: META.PAYMENT,
-          });
+          if (createAdminHistory?.error)
+            return next(APIError.badRequest(createAdminHistory.error));
+          // const delTempRef = await removeTemporalTransaction({ reference });
+          // if (!delTempRef)
+          //   return next(
+          //     APIError.badRequest("Failed to delete temporal transaction"),
+          //   );
+          // if (delTempRef?.error)
+          //   return next(APIError.badRequest(delTempRef.error));
+          // logger.info("Temporal transaction deleted successfully", {
+          //   service: META.PAYMENT,
+          // });
           // send order confirmation mail
           const notice = {
             event: "Order Payment",
             order,
           };
           notification.emit("orderPayment", notice);
+
+
+
         } else if (
           transType.event === CONSTANTS.TRANSACTION_TYPE.checkout &&
           info.metadata.paymentEventType ===
@@ -878,18 +903,8 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             return next(APIError.badRequest(createHistory.error));
           logger.info("Transaction history created successfully", {
             service: META.PAYMENT,
-          });
-
-          const delTempRef = await removeTemporalTransaction({ reference });
-          if (!delTempRef)
-            return next(
-              APIError.badRequest("Failed to delete temporal transaction"),
-            );
-          if (delTempRef?.error)
-            return next(APIError.badRequest(delTempRef.error));
-          logger.info("Temporal transaction deleted successfully", {
-            service: META.PAYMENT,
-          });
+          }); 
+          
           // send order confirmation mail
           const notice = {
             event: "Order Payment",
@@ -1617,7 +1632,7 @@ exports.acceptOrder = async (req, res, next) => {
     const info = {
       title: "Order Acceptance",
       account: userInfo._id,
-      category: NOTIFICATION_TYPE_OBJ.order,
+      category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
       userId: userInfo.userId,
       info: `Your order has been accept by a rider`,
       userId: req.userId,

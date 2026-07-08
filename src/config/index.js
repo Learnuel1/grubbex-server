@@ -164,7 +164,11 @@ exports.CONSTANTS = {
     funding: "funding",
     withdrawal: "withdrawal",
     checkout: "checkout",
-    refund: 'refund'
+    refund: 'refund',
+    credit: 'credit',
+    debit: 'debit',
+    transfer: 'transfer',
+    deposit: 'deposit'
   },
   LOCATION_STATUS: {
     set: "set",
@@ -270,5 +274,8 @@ exports.CONSTANTS = {
     pending: "pending",
     processing: "processing",
     completed: "completed",
+    success: 'success',
+    failed: 'failed',
+    reversed: 'reversed'
    }
 };  

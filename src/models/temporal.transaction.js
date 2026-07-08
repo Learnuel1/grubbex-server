@@ -15,6 +15,11 @@ const TemporalTransactionSchema = new Schema({
         enum: Array.from(Object.values(CONSTANTS.TRANSACTION_TYPE)),
         required: true,
     },
+    type: {
+        type: String,
+        required: true,
+        enum: Array.from(Object.values(CONSTANTS.TRANSACTION_TYPE)),
+    },
     id: {
         type: String,
         trim: true,

@@ -12,7 +12,7 @@ const request = require('request');
 const resBuilder = require("../utils/responseBuilder");
 const { CONSTANTS } = require("../config");
 const { flutterwave } = require("../shared/utils/flutterwave.auth");
-const { payStackBankList, resolveBankAccount, resolveBVN } = require("../shared/services/paystack.payment.services");
+const { payStackBankList, resolveBankAccount, resolveBVN, getTransferStatus } = require("../shared/services/paystack.payment.services");
 exports.verify =  async (req, res, next) => {
   try{
 
@@ -228,5 +228,18 @@ exports.verifyBankInfo = async (req, res, next) => {
     res.status(200).json({success: true, msg: "Account number is valid", bank:{...details}});
   }catch(error){
     next(error);
+  }
+}
+exports.transactionStatus = async (req, res, next) => {
+  try {
+    const {transferCode } = req.query;
+    if(!transferCode) return next(APIError.badRequest( "Transaction code is required"));
+    const verify = await getTransferStatus(transferCode);
+    if(!verify) return next(APIError.badRequest("Transaction verification  Failed"));
+    if(verify?.error) return next(APIError.badRequest(verify.error));
+    logger.info("Transaction Verified successfully", {servic: META.PASYSTACK_SERVICE});
+    res.status(200).json({success: true, msg: "Transaction verified successfully"});
+  } catch (error) {
+    next (error );
   }
 }

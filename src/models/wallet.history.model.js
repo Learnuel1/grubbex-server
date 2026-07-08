@@ -1,24 +1,22 @@
 const mongoose = require('mongoose');
+const { CONSTANTS } = require('../config');
 const { Schema, model } = mongoose;
 
 const WalletHistorySchema = new Schema({
-  // --- Transaction Core ---
   reference: {
     type: String,
     required: true,
     unique: true,
-    index: true,
     trim: true,
   },
   user: {
     type: Schema.Types.ObjectId,
     ref: 'Account',
     required: true,
-    index: true,
   },
   type: {
     type: String,
-    enum: ['credit', 'debit', 'refund', 'payout', 'transfer', 'deposit'],
+    enum: Array.from(Object.values(CONSTANTS.TRANSACTION_TYPE)),
     required: true,
   },
   credit: {
@@ -35,12 +33,12 @@ debit: {
     type: String,
     default: 'NGN',
     uppercase: true,
-    enum: ['NGN', 'USD', 'GHS'],
+    enum: ['NGN'],
   },
   status: {
     type: String,
-    enum: ['pending', 'success', 'failed', 'reversed', 'processing'],
-    default: 'pending',
+    enum: Array.from(Object.values(CONSTANTS.ORDER_PAYMENT_STATUS)),
+    default: CONSTANTS.ORDER_PAYMENT_STATUS.pending,
     index: true,
   },
 
@@ -60,9 +58,12 @@ debit: {
     trim: true,
     maxlength: 255,
   },
-  orderId: {
+  order: {
     type: Schema.Types.ObjectId,
     ref: 'Order',
+  },
+  orderId: {
+    type: String, 
     index: true,
   },
   transferRecipient: {
@@ -87,6 +88,7 @@ debit: {
 
 // --- Indexes for Performance ---
 WalletHistorySchema.index({ user: 1, createdAt: -1 });
+WalletHistorySchema.index({ orderId: 1, createdAt: -1 });
 WalletHistorySchema.index({ status: 1, createdAt: -1 });
 WalletHistorySchema.index({ reference: 1 }, { unique: true });
  
