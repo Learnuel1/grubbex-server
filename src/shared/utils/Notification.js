@@ -167,12 +167,13 @@ class Notification extends EventEmitter {
     })
     this.on("orderPayment", async(payload) => {
       try {
-        const {email, event, ...data} = payload; 
+        const {email, event, customerName, ...data} = payload;
+        data.order.customerName = customerName;
             const send = await OrderConfirmationMailer(
               email, 
-              data
+              data.order
             );
-            if (send.error) return logger.error(`'${event} Email notification failed to send, try again.'`, { service: META.MAIL});
+            if (send?.error) return logger.error(`'${event} Email notification failed to send, try again.'`, { service: META.MAIL});
             logger.info(`'${event} Email sent successfully'`, { service: META.MAIL});
 
   } catch (error) {

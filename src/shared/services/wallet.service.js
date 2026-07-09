@@ -25,24 +25,24 @@ exports.walletUpdate = async (info) => {
     }
 }
 exports.newTransactionHistory = async (info) => {
+   
     const session = await mongoose.startSession();
    session.startTransaction()
     try {
         const {reference} = info;
         const history = await WalletHistoryModel.create([info], { session });
-
+       
     // 2. Delete the temporary transaction
     if(reference){
     const deleted = await TemporalTransactionModel.findOneAndDelete(
       { reference },
       { session }
-    );
+    ); 
     if (!deleted)  throw new Error("Temporal Transaction reference was not found");
  }
     await session.commitTransaction();
     session.endSession();
-        //  await WalletHistoryModel.create(info);
-        //  return await TemporalTransactionModel.findOneAndDelete({reference})
+       return history;
     } catch (error) {
         await session.abortTransaction();
          session.endSession();
@@ -52,13 +52,14 @@ exports.newTransactionHistory = async (info) => {
 exports.adminTransactionHistory = async (info) => {
     const session = await mongoose.startSession();
    session.startTransaction()
-    try {
-        const {reference} = info;
+    try { 
         const history = await WalletHistoryModel.create([info], { session });
 
     await session.commitTransaction();
     session.endSession(); 
+    return history;
     } catch (error) {
+        console.log(error)
         await session.abortTransaction();
          session.endSession();
         return { error: error.message || "Failed to create transaction history" };
@@ -95,9 +96,6 @@ exports.walletHistoryByDateRange = async (user, startDate, endDate) => {
 exports.walletBalance = async (user) => {
     try {
         const wallet = await WalletModel.findOne({ user: user }).select("-_id -__v -user -createdAt -updatedAt");
-        if (!wallet) {
-            return { error: "Wallet not found" };
-        }
         return wallet;
     } catch (error) {
         return { error: error.message || "Failed to fetch wallet balance" };

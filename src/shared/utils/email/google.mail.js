@@ -315,6 +315,7 @@ exports.paymentSuccessMailHandler = async (email,plan, name) => {
 
 
 const OrderConfirmationOptions = async (to, orderData) => {
+  console.log(orderData)
   return {
   from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
       to,
@@ -332,20 +333,19 @@ const OrderConfirmationOptions = async (to, orderData) => {
       price: (item.price / 100).toFixed(2), // if stored in kobo
     })),
     totalAmount: (orderData.total / 100).toFixed(2),
-    paymentReference: orderData.paymentReference,
-    paymentMethod: orderData.paymentMethod,
+    paymentReference: orderData.reference,
+    paymentMethod: orderData.paymentType,
     unsubscribeUrl: `${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${to}`,
-    privacyUrl: `${process.env.BASE_URL}/privacy`,
+    privacyUrl: `${config.BASE_URL}/privacy`,
   }
   }
 }
 exports.OrderConfirmationMailer = async (to, orderData) => {
    try {
       return new Promise((resolve, reject) => {
-        const mail = sendOrderConfirmation(
-          email,
+        const mail = OrderConfirmationOptions(
+          to,
           orderData
-          
         );
         transporter.sendMail(mail, (err, data) => {
           if (err) {

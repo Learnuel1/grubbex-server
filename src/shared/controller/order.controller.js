@@ -40,6 +40,8 @@ const {
   userExistById,
   acceptOrRejectOrder,
   getRiderOrder,
+  getStoreAddressWithId,
+  createAdminTransactionHistory,
 } = require("../services/interface");
 const { META } = require("../../utils/actions");
 const { APIError } = require("../utils/apiError");
@@ -287,14 +289,15 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
     req.body.total = Math.ceil(req.body.total);
     qrText += `amount:${Math.round(req.body.total)}-`;
     // DELIVERY FEE
-    const storeInfo = await getStoreAddress(req.body.storeId);
+    const storeInfo = await getStoreAddressWithId(req.body.storeId);
+    
     if (storeInfo.location.hasOwnProperty("latitude") === false)
       return next(APIError.badRequest("Store address could not be verified"));
     let storeAddress = null;
     const { location } = storeInfo;
     store[0].location = location;
     storeAddress = storeInfo.location;
-    req.body.store = store;
+    req.body.store = storeInfo._id;
 
     const { destinationAddress } = req.body;
     if (!destinationAddress)
@@ -392,7 +395,6 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         destAddressExist.result.formatted_address;
     }
     const userInfo = await getAccountByGrubbexId(req.userId);
-
     const phoneNumber = `${userInfo.countryCode}${userInfo.phoneNumber.slice(1)}`;
     let cardPayload = {};
 
@@ -407,6 +409,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         paymentType: CONSTANTS.PAYMENT_TYPE_OBJ.card,
         orderId,
         user: req.user,
+        customerName: `${userInfo.firstName} ${userInfo.lastName}`,
       };
     } else if (req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet) {
       cardPayload = {
@@ -417,6 +420,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         paymentType: CONSTANTS.PAYMENT_TYPE_OBJ.wallet,
         orderId,
         user: req.user,
+        customerName: `${userInfo.firstName} ${userInfo.lastName}`,
       };
       const userBal = await walletBalance(req.user);
       if (userBal?.error) return next(APIError.badRequest(userBal.error));
@@ -437,6 +441,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         refreshToken: initializeCardCharge.data.access_code,
         otp: initializeCardCharge.data.reference,
         orderId,
+     
       };
       req.body.reference = initializeCardCharge.data.reference;
       // save order as draft
@@ -532,7 +537,6 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
     if (hash == req.headers["x-paystack-signature"]) {
       // Retrieve the request's body
       const { data: info, event } = req.body;
-      console.log(info)
       if (event === "charge.success" && info.status === "success" && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.checkout) {
         logger.info("Payment successful", { service: META.PAYSTACK_SERVICE });
         const reference = info.reference;
@@ -715,7 +719,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           }
           if(transType.type === CONSTANTS.TRANSACTION_TYPE.debit) {
             details.debit = info.amount/100;
-             details.balanceAfter= wallet.balance - details.debit;
+             details.balanceAfter = wallet.balance == 0 ? 0: wallet.balance - details.debit;
             }
 
           const createHistory = await createTransactionHistory(details);
@@ -732,30 +736,31 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           details.balanceBefore = adminBal.balance;
           details.balanceAfter =  adminBal.balance + order.total
           details.credit = order.total;
-            const createAdminHistory = await createTransactionHistory(details);
-          if (!createHistory)
+            const createAdminHistory = await createAdminTransactionHistory(details);
+          if (!createAdminHistory)
             return next(
               APIError.badRequest("Failed to create admin transaction history"),
             );
           if (createAdminHistory?.error)
             return next(APIError.badRequest(createAdminHistory.error));
-          // const delTempRef = await removeTemporalTransaction({ reference });
-          // if (!delTempRef)
-          //   return next(
-          //     APIError.badRequest("Failed to delete temporal transaction"),
-          //   );
-          // if (delTempRef?.error)
-          //   return next(APIError.badRequest(delTempRef.error));
-          // logger.info("Temporal transaction deleted successfully", {
-          //   service: META.PAYMENT,
-          // });
+          logger.info("Admin transaction history created successfully", {
+            service: META.PAYMENT,
+          });
           // send order confirmation mail
+
           const notice = {
             event: "Order Payment",
             order,
+            email:info.metadata.email,
+            customerName: info.metadata.customerName,
           };
           notification.emit("orderPayment", notice);
-
+          notice.category = CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction;
+          notice.account = order.shopper;
+          notice.userId = order.shopperId;
+          notice.title = "Payment for order";
+          notice.info = `Payment for order ${order.orderId} was successful`;
+          notification.emit("notify", notice);
 
 
         } else if (

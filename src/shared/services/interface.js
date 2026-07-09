@@ -60,6 +60,7 @@ exports.getCityInfo = async () => await KYCModule.cityInfo()
 exports.getTownInfo = async (cityId) => await KYCModule.townInfo(cityId);
 exports.getStoreInfo = async (query) => await KYCModule.storeAddress(query);
 exports.getStoreAddress = async (storeId) => await KYCModule.getStoreAddress(storeId);
+exports.getStoreAddressWithId = async (storeId) => await KYCModule.getStoreAddressWithId(storeId);
 
  // NOTIFICATION SECTION
 exports.getUserNotifications = async (account) => await NotificationModule.notifications(account);

@@ -7,7 +7,7 @@ const StoreModel = require("../../models/store.model");
 const TownModel = require("../../models/town.model");
 
 exports.update = async(info) => {
-  try{
+  try{ 
     let update;
     let completed = 0; 
     if(info.kyc === CONSTANTS.KYC_TYPE_INFO.tin ){
@@ -428,6 +428,15 @@ exports.storeAddress = async (query) => {
 exports.getStoreAddress = async (storeId) => {
   try {
     const store = await StoreModel.findOne({storeId}).select("-_id -__v -createdAt -updatedAt").exec();
+    if(!store) return {error: "Store not found"};
+    return store;
+  } catch (error) {
+    return {error: error.message};
+  }
+}
+exports.getStoreAddressWithId = async (storeId) => {
+  try {
+    const store = await StoreModel.findOne({storeId}).select("-__v -createdAt -updatedAt").exec();
     if(!store) return {error: "Store not found"};
     return store;
   } catch (error) {

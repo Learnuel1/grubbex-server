@@ -88,11 +88,14 @@ const OrderSchema = new Schema({
             enum: Object.values(CONSTANTS.SHIPPING_ADDRESS_STATUS_OBJ),
             required: false
         },
-        location: { 
-            latitude: { type: Number },
-            longitude: { type: Number },
-            formattedAddress: { type: String }
+        location: {   
+            type: { type: String, enum: ['Point'], default: "Point" },
+            coordinates: { type: [Number] },
+         formattedAddress: { type: String },
+         latitude: { type: Number },
+         longitude: { type: Number },
         },
+        
         distanceValue: {
             type: Number
         },
@@ -106,9 +109,12 @@ const OrderSchema = new Schema({
             type: Number
         }
     },
-    store: [{
-        type: Schema.Types.Mixed // Define structure if needed
-    }],
+    store: {
+        type: Schema.Types.ObjectId,
+        ref:"Store",
+        required: true,
+        index: true
+    },
     shopperId: {
         type: String,
         minlength: 10,
@@ -237,6 +243,6 @@ payment: [ {
     ]
 }, { timestamps: true });
 
-OrderSchema.index({ createdAt: 1, store:"2dsphere" })
+OrderSchema.index({createdAt: 1, "destinationAddress.location":"2dsphere" })
  const OrderModel = model('Order', OrderSchema);
 module.exports = OrderModel;

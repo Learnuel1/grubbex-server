@@ -4,10 +4,17 @@ const TemporalAccountModel = require("../../models/temporal.account.model");
 
 exports.createDraft = async (info) => {
     try {  
-       await OrderModel.findOneAndDelete({qrText: info.qrText, status: CONSTANTS.ORDER_STATUS_OBJ.draft, shopperId: info.shopperId});
+        const {latitude, longitude, formattedAddress, ...rest } = info.destinationAddress.location;
+        info.destinationAddress.location = {
+            coordinates: [longitude, latitude],
+           formattedAddress,
+           latitude,
+            longitude,
+        }  
+        await OrderModel.findOneAndDelete({qrText: info.qrText, status: CONSTANTS.ORDER_STATUS_OBJ.draft, shopperId: info.shopperId});
         const createOrder = await OrderModel.create({...info, $set:{
-            payment: info.payment
-        }});
+            payment: info.payment,
+        }});  
         return createOrder;
     } catch (error) {
         return { error: error.message || "Failed to create order" };
