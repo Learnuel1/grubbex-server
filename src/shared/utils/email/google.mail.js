@@ -315,7 +315,6 @@ exports.paymentSuccessMailHandler = async (email,plan, name) => {
 
 
 const OrderConfirmationOptions = async (to, orderData) => {
-  console.log(orderData)
   return {
   from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
       to,

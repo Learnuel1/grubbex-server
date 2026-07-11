@@ -42,6 +42,8 @@ const {
   getRiderOrder,
   getStoreAddressWithId,
   createAdminTransactionHistory,
+  createUserNotification,
+  findUserByCustomId,
 } = require("../services/interface");
 const { META } = require("../../utils/actions");
 const { APIError } = require("../utils/apiError");
@@ -410,6 +412,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         orderId,
         user: req.user,
         customerName: `${userInfo.firstName} ${userInfo.lastName}`,
+         userType: req.userType,
       };
     } else if (req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet) {
       cardPayload = {
@@ -421,6 +424,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         orderId,
         user: req.user,
         customerName: `${userInfo.firstName} ${userInfo.lastName}`,
+        userType: req.userType,
       };
       const userBal = await walletBalance(req.user);
       if (userBal?.error) return next(APIError.badRequest(userBal.error));
@@ -471,6 +475,14 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         date: new Date(),
       };
       req.body.payment = [paymentInfo];
+      const orderStates = {
+        status: req.body.status,
+        by: req.user,
+        type: req.userType,
+        currentState: req.body.status,
+        date: new Date(),
+      }
+      req.body.orderStates = [orderStates]
       const temporalOrder = await createDraftOrder(req.body);
       if (!temporalOrder)
         return next(APIError.badRequest("Failed to create order, try again"));
@@ -642,7 +654,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           updateInfo.payment = {
             amount: order.total,
             status: CONSTANTS.ORDER_PAYMENT_STATUS.completed,
-            date: new Date(),
+            
           };
           if (order.type === CONSTANTS.ORDER_TYPE_OBJ.pickup) {
             const pickUpCharge =
@@ -652,6 +664,22 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           }
           order.total = updateInfo.total;
           order.subTotal = updateInfo.subTotal;
+          const {orderStates} = order
+         
+            const otherOrderStates = []
+           orderStates.forEach((cur) => {
+            const{currentState, ...rest} = cur.toObject();
+             otherOrderStates.push(rest)
+          })   
+          const orderState = {
+            status: CONSTANTS.ORDER_STATUS_OBJ.pending,
+            date: new Date(),
+            by: info.metadata.user,
+            type: info.metadata.userType,
+            currentState: CONSTANTS.ORDER_STATUS_OBJ.pending,
+          }
+          otherOrderStates.push(orderState);
+          updateInfo.orderStates = otherOrderStates 
           const updateOrder = await updateCompletedOrder(updateInfo, reference);
           if (!updateOrder)
             return logger.error("Completed order update failed", {
@@ -806,8 +834,15 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
           });
 
           // create order QR CODE
-          const qrCode = await generateQRCode(
-            `${order.orderId}-${order.qrText}`,
+          const text = `${order.orderId}-${order.qrText}`;
+          const qrCode = await qrcodeService.generateQRCodeWithLogo(
+            text,
+            logoPath,
+            {
+              width,
+              logoSize,
+              errorCorrectionLevel: "H",
+            },
           );
           if (qrCode?.error) next(APIError.badRequest(qrCode.error));
           else
@@ -1229,6 +1264,12 @@ exports.orderStatusUpdate = async (req, res, next) => {
         APIError.forbidden("You are not allowed to update order status"),
       );
     }
+     const orderState = {
+        status: status,
+        by: req.user,
+        type: req.userType,
+        currentState: status
+      }
     if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
       // get store pending balance
       query.$and = [
@@ -1243,7 +1284,8 @@ exports.orderStatusUpdate = async (req, res, next) => {
           },
         },
       ];
-      const order = await updateOrderStatus(query, { storeStatus: status });
+     
+      const order = await updateOrderStatus(query, { storeStatus: status , orderState});
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
       logger.info("Order status updated successfully", { service: META.ORDER });
@@ -1262,7 +1304,7 @@ exports.orderStatusUpdate = async (req, res, next) => {
           },
         },
       ];
-      const order = await updateOrderStatus(query, { storeStatus: status });
+      const order = await updateOrderStatus(query, { storeStatus: status ,orderState});
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
       logger.info("Order status updated successfully", { service: META.ORDER });
@@ -1282,7 +1324,7 @@ exports.orderStatusUpdate = async (req, res, next) => {
           },
         },
       ];
-      const order = await updateOrderStatus(query, { status });
+      const order = await updateOrderStatus(query, { status, orderState });
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
       logger.info("Order status updated successfully", { service: META.ORDER });
@@ -1306,12 +1348,22 @@ exports.generateOrderPickUpCode = async (req, res, next) => {
       return next(APIError.badRequest("Order has been Picked up already"));
     if (orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.ready)
       return next(APIError.badRequest("Order is not ready for pick up"));
+    if(orderExist.store.toString() !== req.user.toString()) return next(APIError.unauthorized());
     // sign the text with jwt
     const qrText = `${orderExist.qrText}-${shortIdGen()}`;
     const signedQrText = jwt.sign({ data: qrText }, config.TOKEN_SECRETE, {
-      expiresIn: "30",
-    });
-    const qrCode = await generateQRCode(signedQrText);
+      expiresIn: "5m",
+    }); 
+    const qrCode = await qrcodeService.generateQRCodeWithLogo(
+            qrText,
+            logoPath,
+            {
+              width,
+              logoSize,
+              errorCorrectionLevel: "H",
+            },
+          );
+    // const qrCode = await generateQRCode(signedQrText);
     // generate random 6 digit code
     const pickUpCode = OTPGen().toString();
     const auth = {
@@ -1339,13 +1391,14 @@ exports.generateOrderPickUpCode = async (req, res, next) => {
       .json({
         success: true,
         msg: "Order pick up code generated successfully",
-        data: { qrCode, pickUpCode, expiresIn: "30 sec" },
+        data: { pickUpCode, expiresIn: "5m" , qrCode,},
       });
   } catch (error) {
     next(error);
   }
 };
-exports.verifyPickUpByQRCode = async (req, res, next) => {
+exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
+  let sectionUsed;
   try {
     const { qrCode, code } = req.body;
     const auth = {};
@@ -1353,9 +1406,10 @@ exports.verifyPickUpByQRCode = async (req, res, next) => {
     let orderExist;
     if (!qrCode && !code)
       return next(
-        APIError.badRequest("Scan QR Code or provide code is required"),
+        APIError.badRequest("Scan QR Code or provided code is required"),
       );
     if (code) {
+      sectionUsed = "code";
       if (code.toString().length !== 6)
         return next(APIError.badRequest("Code must be 6 digits"));
       if (isNaN(code))
@@ -1363,16 +1417,18 @@ exports.verifyPickUpByQRCode = async (req, res, next) => {
       auth.code = code.toString();
       orderExist = await getOrderByQRData(auth);
       if (!orderExist || orderExist.length === 0)
-        return next(APIError.notFound("Order not Found"));
+        return next(APIError.notFound("Order not Found or Invalid Pick up Code"));
       if (orderExist?.error) return next(APIError.badRequest(orderExist.error));
       const token = orderExist.auth?.token;
       if (!token) return next(APIError.badRequest("Fake Pickup Detected"));
       const decoded = jwt.verify(token, config.TOKEN_SECRETE);
       if (!decoded)
-        return next(APIError.badRequest("Invalid or expired QR Code"));
+        return next(APIError.badRequest("Pickup Code Expired"));
       data = decoded.data;
       logger.info("Code Token verified successfully", { service: META.ORDER });
+
     } else if (qrCode) {
+      sectionUsed = "QRcode";
       const decoded = jwt.verify(qrCode, config.TOKEN_SECRETE);
       if (!decoded)
         return next(APIError.badRequest("Invalid or expired QR Code"));
@@ -1381,9 +1437,10 @@ exports.verifyPickUpByQRCode = async (req, res, next) => {
       data = decoded.data;
       orderExist = await getOrderByQRData(auth);
       if (!orderExist || orderExist.length === 0)
-        return next(APIError.notFound("Order not Found"));
+        return next(APIError.notFound("Order not Found or Invalid Pick up code"));
       if (orderExist?.error) return next(APIError.badRequest(orderExist.error));
     }
+
     if (orderExist.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup)
       return next(APIError.badRequest("Order has been Picked up already"));
     if (orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.ready)
@@ -1398,13 +1455,25 @@ exports.verifyPickUpByQRCode = async (req, res, next) => {
     logger.info("Rider and Order authenticated successfully", {
       service: META.ORDER,
     });
+    const storeKYC = await getStoreAddress(orderExist.storeId);
+    const {location} = storeKYC;
+   
     const info = {
       _id: orderExist._id,
       orderId: orderExist.orderId,
       storeId: orderExist.storeId,
       auth: { pickedUpdAt: Date.now() },
       status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      storeStatus:CONSTANTS.ORDER_STATUS_OBJ.pickup,
     };
+    const orderState = {
+      status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      by:req.user,
+      type: req.userType,
+      currentState: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+    }
+     info.riderCurrentLocation = location;
+    info.orderState = orderState;
     const updateOrderAuth = await updateOrderVerificationInfo(info);
     if (!updateOrderAuth)
       return next(
@@ -1417,7 +1486,19 @@ exports.verifyPickUpByQRCode = async (req, res, next) => {
     logger.info("Order pick up completed successfully", {
       service: META.ORDER,
     });
+    // get order owner 
+    const shopper = await findUserByCustomId(orderExist.shopperId);
+    if(!shopper) return next(APIError.badRequest("Account not found"));
+    if(shopper?.error) return next(APIError.badRequest(shopper.error));
     // send email to notify user // app notification
+    const options = {
+      to: shopper.email,
+      subject: `Order Pick up by Rider`,
+      name: `${shopper.firstName} ${shopper.lastName}`,
+      event: "orderPickup",
+    }
+     notification.emit("emailer", options)
+
     // notification
     const notifyData = {
       userId: orderExist.shopperId,
@@ -1425,25 +1506,120 @@ exports.verifyPickUpByQRCode = async (req, res, next) => {
       account: orderExist.shopper,
       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
       info: `Your order with Order ID: ${orderExist.orderId} has been picked up by the rider`,
-    };
-    const notify = await createNotification(notifyData);
-    if (!notify)
-      logger.error("Failed to create order pick up notification", {
-        service: META.NOTIFICATION,
-      });
-    if (notify?.error)
-      logger.error(notify.error, { service: META.NOTIFICATION });
-    logger.info("Order pick up notification created successfully", {
-      service: META.NOTIFICATION,
+    }; 
+    notification.emit("notify", notifyData)
+    
+    res
+      .status(200)
+      .json({ success: true, msg: "Pick up completed successfully" });
+  } catch (error) { 
+    if (error.message === ERROR_FIELD.JWT_EXPIRED && sectionUsed === "code")
+      next(APIError.badRequest("Pick up CODE expired"));
+    if (error.message === ERROR_FIELD.JWT_EXPIRED && sectionUsed === "QRcode")
+      next(APIError.badRequest("Pick up QR CODE expired"));
+    else next(error);
+  }
+};
+exports.verifyPickUpByQRCode = async (req, res, next) => {
+  let sectionUsed;
+  try {
+    const {id} = req.params;
+    const auth = {};
+    let data;
+    let orderExist;
+    if (!id )
+      return next(
+        APIError.badRequest("Scan QR Code"),
+      );
+      
+      auth.qrcode = id.slice(0, id.lastIndexOf('-')); 
+      orderExist = await getOrderByQRData(auth);
+      if (!orderExist || orderExist.length === 0)
+        return next(APIError.notFound("Order not Found"));
+      if (orderExist?.error) return next(APIError.badRequest(orderExist.error));
+      // verify token
+      const token = orderExist.auth?.token;
+      if (!token) return next(APIError.badRequest("Fake Pickup Detected"));
+      const decoded = jwt.verify(token, config.TOKEN_SECRETE);
+      if (!decoded)
+        return next(APIError.badRequest("Pickup Code Expired"));
+      data = decoded.data;
+      logger.info("QR CODE verified successfully", { service: META.ORDER });
+    if (orderExist.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup)
+      return next(APIError.badRequest("Order has been Picked up already"));
+    if (orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.ready)
+      return next(APIError.badRequest("Order is not ready for pick up"));
+    if (orderExist.orderId !== data.split("-")[0])
+      return next(APIError.badRequest("Unverified Order"));
+    if (
+      req.userId !== orderExist.riderId &&
+      orderExist.orderId !== data.split("-")[0]
+    )
+      return next(APIError.unauthorized("Fake Rider for the Pickup"));
+    logger.info("Rider and Order authenticated successfully", {
+      service: META.ORDER,
     });
+ const storeKYC = await getStoreAddress(orderExist.storeId);
+    const {location} = storeKYC;
+    
+    const info = {
+      _id: orderExist._id,
+      orderId: orderExist.orderId,
+      storeId: orderExist.storeId,
+      auth: { pickedUpdAt: Date.now() },
+      status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      storeStatus:CONSTANTS.ORDER_STATUS_OBJ.pickup,
+    };
+    const orderState = {
+      status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      by:req.user,
+      type: req.userType,
+      currentState: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+    }
+    info.riderCurrentLocation = location;
+    info.orderState = orderState;
+    const updateOrderAuth = await updateOrderVerificationInfo(info);
+    if (!updateOrderAuth)
+      return next(
+        APIError.badRequest(
+          "Failed to authenticate order pick up code, try again",
+        ),
+      );
+    if (updateOrderAuth?.error)
+      return next(APIError.badRequest(updateOrderAuth.error));
+    logger.info("Order pick up completed successfully", {
+      service: META.ORDER,
+    }); 
+  // get order owner 
+    const shopper = await findUserByCustomId(orderExist.shopperId);
+    if(!shopper) return next(APIError.badRequest("Account not found"));
+    if(shopper?.error) return next(APIError.badRequest(shopper.error));
+    // send email to notify user // app notification
+    const options = {
+      to: shopper.email,
+      subject: `Order Pick up by Rider`,
+      name: `${shopper.firstName} ${shopper.lastName}`,
+      event: "orderPickup",
+    }
+     notification.emit("emailer", options)
 
-    // send email
+    // notification
+    const notifyData = {
+      userId: orderExist.shopperId,
+      title: "Order Picked Up",
+      account: orderExist.shopper,
+      category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
+      info: `Your order with Order ID: ${orderExist.orderId} has been picked up by the rider`,
+    }; 
+    notification.emit("notify", notifyData)
+    
     res
       .status(200)
       .json({ success: true, msg: "Pick up completed successfully" });
   } catch (error) {
+  
     if (error.message === ERROR_FIELD.JWT_EXPIRED)
-      next(APIError.badRequest("QR CODE expired"));
+      next(APIError.badRequest("Pick up QR CODE expired"));
     else next(error);
   }
 };
@@ -1465,7 +1641,7 @@ exports.getOrderQRCode = async (req, res, next) => {
     const order = await findOrderForQRCodeGeneration(orderId, query);
     if (!order) return next(APIError.notFound("Order not Found"));
     if (order?.error) return next(APIError.badRequest(order.error));
-
+    if(order.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup) return next(APIError.badRequest("Order has been pickup already"))
     if (order.qrCode && order.qrCode.url) {
       // delete existing QR code from cloudinary
       const deleteQrCode = await deleteFileFromCloudinary(order.qrCode.id);
@@ -1475,14 +1651,24 @@ exports.getOrderQRCode = async (req, res, next) => {
         service: META.ORDER,
       });
     }
-    const logoPath = path.join(__dirname, "../assets/img/GrubbexLogo.png");
+    //const logoPath = path.join(__dirname, "../assets/img/GrubbexLogo.png");
     const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
-    const qrCode = await qrcodeService.generateQRCodeWithLogo(
-      order.qrText.concat(expiresAt),
-      logoPath,
-      (width = 300),
-      (logoSize = 80),
-    );
+    // const qrCode = await qrcodeService.generateQRCodeWithLogo(
+    //   order.qrText.concat(expiresAt),
+    //   logoPath,
+    //   (width),
+    //   (logoSize),
+    // );
+     const qrText = `${order.qrText}-${shortIdGen()}`;
+     const qrCode = await qrcodeService.generateQRCodeWithLogo(
+            qrText,
+            logoPath,
+            {
+              width,
+              logoSize,
+              errorCorrectionLevel: "H",
+            },
+          );
     if (!qrCode) return next(APIError.badRequest("Failed to generate QR code"));
     if (qrCode?.error) return next(APIError.badRequest(qrCode.error));
     const qrCodeUpload = await uploadBase64ToCloudinary(qrCode, req);
@@ -1503,11 +1689,25 @@ exports.getOrderQRCode = async (req, res, next) => {
       config.TOKEN_SECRETE,
       { expiresIn: "1m" },
     );
+      const pickUpCode = OTPGen().toString();
+    const auth = {
+      code: pickUpCode,
+      token,
+    };
     info.token = token;
     info.qrCode = {
       ...info,
     };
-    const updateToken = await updateOrderQRCodeInfo(orderId, info);
+    info.auth = auth;
+     const data = {
+      _id: order._id,
+      orderId,
+      storeId: order.storeId,
+      auth,
+      qrCode:info.qrCode,
+    };
+    // const updateToken = await updateOrderQRCodeInfo(orderId, info);
+    const updateToken = await updateOrderVerificationInfo(data)
     if (!updateToken)
       return next(APIError.badRequest("Failed to update order QR code info"));
     if (updateToken?.error) return next(APIError.badRequest(updateToken.error));
@@ -1518,6 +1718,7 @@ exports.getOrderQRCode = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: {
+        pickUpCode,
         expiresIn: 60,
         url: qrCodeUpload.secure_url,
       },
@@ -1603,10 +1804,11 @@ exports.acceptOrder = async (req, res, next) => {
       rider.riderCurrentLocation = {
         latitude: locationData.lat,
         longitude: locationData.lng,
-        formattedAddress: locationData.others.formattedAddress,
+        formattedAddress: locationData.others?.formattedAddress,
       };
       rider.isAvailable = status.toLowerCase() == "accept" ? false : true;
-      rider.riderId = userInfo.riderId;
+      rider.riderId = userInfo.userId;
+      rider.type = req.userType;
       ((rider.rider = userInfo._id),
         (rider.status =
           status.toLowerCase() == "accept"
@@ -1617,9 +1819,10 @@ exports.acceptOrder = async (req, res, next) => {
       rider.riderCurrentLocation = {
         ...location,
       };
-      rider.isAvailable = status.toLowerCase() == "accept" ? false : true;
-      rider.riderId = userInfo.riderId;
+      rider.isAvailable = status.toLowerCase() == CONSTANTS.ORDER_STATUS_OBJ.accept ? false : true;
+      rider.riderId = userInfo.userId;
       rider.rider = userInfo._id;
+      rider.type = req.userType;
       ((rider.status =
         status.toLowerCase() == CONSTANTS.ORDER_STATUS_OBJ.accept
           ? CONSTANTS.ORDER_STATUS_OBJ.accept
@@ -1635,11 +1838,11 @@ exports.acceptOrder = async (req, res, next) => {
 
     // notify
     const info = {
-      title: "Order Acceptance",
+      title: CONSTANTS.ORDER_STATUS_OBJ.accept ? "Order Acceptance": "Order Cancelled",
       account: userInfo._id,
       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
       userId: userInfo.userId,
-      info: `Your order has been accept by a rider`,
+      info: CONSTANTS.ORDER_STATUS_OBJ.accept ?`Your order delivery has been accept by a rider`: "Your order delivery has been cancelled by the rider",
       userId: req.userId,
     };
     notification.emit("notify", info);
@@ -1647,7 +1850,7 @@ exports.acceptOrder = async (req, res, next) => {
     logger.info("Notification created successfully", { service: META.ORDER });
     const payload = {
       to: userInfo.email,
-      subject: "Order Acceptance by Rider",
+      subject: CONSTANTS.ORDER_STATUS_OBJ.accept ? "Order Acceptance by Rider": "Order Cancelled by Rider",
       name: `${userInfo.firstName}`,
       event: CONSTANTS.EMAIL_TEMPLATES_OBJ.orderEmail,
     };
@@ -1664,7 +1867,7 @@ exports.getAcceptedOrders = async (req, res, next) => {
   try {
     if (req.userType?.toLowerCase() !== CONSTANTS.ACCOUNT_ROLE_OBJ.rider) {
       return next(
-        APIError.forbidden("You are not authorized to view accepted orders"),
+        APIError.unauthorized("You are not authorized to view accepted orders"),
       );
     }
     let query;
@@ -1675,8 +1878,9 @@ exports.getAcceptedOrders = async (req, res, next) => {
     if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider) {
       query = {
         rider: req.user,
-        status: CONSTANTS.ORDER_STATUS_OBJ.accepted,
-        riderId: req.userId,
+        // status: CONSTANTS.ORDER_STATUS_OBJ.accepted,
+       status: { $ne: CONSTANTS.ORDER_STATUS_OBJ.delivered } ,
+       // riderId: req.userId,
       };
     } else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper) {
       query = {
@@ -1687,7 +1891,7 @@ exports.getAcceptedOrders = async (req, res, next) => {
     if (search) {
       query.orderId = new RegExp(search, "i");
     }
-    const { orders, total } = await getRiderOrder(query);
+    const { orders, total } = await getRiderOrder(query, skip, limit);
     if (!orders) {
       return res.status(200).json({
         success: true,

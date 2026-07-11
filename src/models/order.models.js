@@ -217,12 +217,32 @@ const OrderSchema = new Schema({
         type: String,
         required: false
     },
-    riderCurrentLocation: { 
-        formattedAddress: { type: String },
-        latitude: { type: Number },
-        longitude: { type: Number }
-    }, 
 },
+riderCurrentLocation: { 
+    formattedAddress: { type: String },
+    latitude: { type: Number, default:0 },
+    longitude: { type: Number,default:0 }
+}, 
+orderStates: [{
+    status:{
+        type: String, 
+        enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ),
+        default: CONSTANTS.ORDER_STATUS_OBJ.pending 
+       },
+    date: {
+       type: Date, 
+        default: new Date,
+    },
+    by: { 
+        type: Schema.Types.ObjectId,
+        ref: "Account",
+    },
+    type:{
+        type: String,
+    },
+    currentState: {type: String, 
+        enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ)}
+}],
 payment: [ {
         amount: {
             type: Number,

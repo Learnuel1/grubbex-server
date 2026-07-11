@@ -44,7 +44,7 @@ exports.allOrders = async (query, page =1, limit= 14) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
-        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id").sort({ createdAt: -1 }).limit(limit).lean();
+        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id -orderStates._id -orderStates.by").sort({ createdAt: -1 }).limit(limit).lean();
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }
@@ -59,12 +59,20 @@ exports.updateOrderStatus = async (query,status) => {
             return { error: "Order already has this status" };
         }
         if(status.hasOwnProperty("storeStatus")) {
-            if(data.status.toLowerCase() === CONSTANTS.ORDER_STATUS_OBJ.pending.toLowerCase()) return {error: "Order is yet to be accepted by a rider"}
+            if(data.status.toLowerCase() === CONSTANTS.ORDER_STATUS_OBJ.pending.toLowerCase() && data.status.toLowerCase() === CONSTANTS.ORDER_STATUS_OBJ.pickup.toLowerCase()) return {error: "Order is yet to be accepted by a rider"}
             data.storeStatus = status.storeStatus;
         }
         if(status.hasOwnProperty("status")) {
             data.status = status.status;
-        } 
+        }
+        const {orderStates} = data;
+        const states = []; 
+        orderStates.forEach((cur) => {
+            const {currentState, ...rest} = cur.toObject();
+            states.push(rest);
+        })
+         states.push(status.orderState);
+         data.orderStates = states;
      return   await data.save();
     } catch (error) {
         return { error: error.message || "Failed to update order status" };
@@ -76,7 +84,7 @@ exports.orderById = async (orderId ) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email  picture -_id"
-        }]).select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType").sort({ createdAt: -1 });
+        }]).select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -orderStates._id -orderStates.by").sort({ createdAt: -1 });
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }
@@ -95,11 +103,25 @@ exports.orderByIdForAuth = async (orderId ) => {
 exports.updateOrderByIdForAuth = async (info ) => {
     try {
         const data = await OrderModel.findOne({_id: info._id, storeId:info.storeId, orderId:info.orderId} );
-        if (!data) {
+         if (!data) {
             return { error: "Order not found" };
         }
-        data.auth = info.auth; 
-        if(info.hasOwnProperty("status")) data.status = info.status;
+         const {orderStates} = data;
+        let others = [];
+        orderStates.forEach((cur)=>{
+            const {currentState, ...current} = cur.toObject();
+            others.push(current);
+        });
+        others.push(info.orderState);
+       // update Rider location to store location;
+        data.riderCurrentLocation = info.riderCurrentLocation;
+        data.auth = info.auth;
+        data.qrCode =info.qrCode;
+        if(info?.orderState) data.orderStates = others
+        if(info.hasOwnProperty("status")){ 
+            data.status = info.status;
+            data.storeStatus =info.storeStatus;
+        }
        return await data.save();
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
@@ -109,7 +131,8 @@ exports.findOrderByQRInfo = async (info) => {
     try{
         if(info.hasOwnProperty("token"))
         return await OrderModel.findOne({"auth.token":info.token})
-    if(info.hasOwnProperty("code")) return await OrderModel.findOne({"auth.code":info.code})
+    if(info.hasOwnProperty("code")) return await OrderModel.findOne({"auth.code":info.code});
+    if(info.hasOwnProperty("qrcode")) return await OrderModel.findOne({qrText:info.qrcode});
     } catch (error) {
         return {error: error.message || "Failed to fetch Order"}
     }
@@ -135,29 +158,39 @@ exports.acceptOrRejectOrder = async (info, orderId) => {
     try{
         const order = await OrderModel.findOne({orderId});
         if(!order) return {error: "Order does not exist"};
-        if(order.isAvailable === false && info.operation === "accept") return {error: "Order is no more available"};
+        if(order.isAvailable === false && info.operation === CONSTANTS.ORDER_STATUS_OBJ.accept) return {error: "Order is no more available"};
+        const {orderStates} = order;
+        let others = [];
+        orderStates.forEach((cur)=>{
+            const {currentState, ...current} = cur.toObject();
+            others.push(current);
+        })
+        const currentState = info.operation === CONSTANTS.ORDER_STATUS_OBJ.accept ? info.status : CONSTANTS.ORDER_STATUS_OBJ.cancelled
         order.riderCurrentLocation = info.riderCurrentLocation;
         order.isAvailable = info.isAvailable;
         order.riderId = info.riderId;
         order.rider = info.rider;
         order.status =info.status
-        order.save();
+        others.push({status:currentState , by:info.rider, type:info.type, currentState:currentState});
+        order.orderStates = others; 
+       order.save();
         return order;
     } catch (error) {
+        console.log(error)
         return {error: error.message}
     }
 }
 
-exports.riderOrder = async (query, skip= 10, limit =10) => {
+exports.riderOrder = async (query, skip= 0, limit =10) => {
     try{
          const total = await OrderModel.countDocuments(query);
         const orders = await OrderModel.find(query)
             .populate([{ model: "Account", path: "destinationAddress.account", select: "firstName lastName email picture -_id" }])
-            .select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType")
+            .select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id -orderStates._id -orderStates.by")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
-            .lean();
+            .lean(); 
             return {orders, total}
     } catch (error){
         return {error:error.message}

@@ -132,7 +132,7 @@ class Notification extends EventEmitter {
         logger.error( error.message, { service: META.NOTIFY});
       }
     })
-    this.on("emailer", async(payload) => {
+  this.on("emailer", async(payload) => {
       try {
         const {to, subject, name, event} = payload;
         const temp = await emailTemplateSetting({name: event}); 
