@@ -59,36 +59,43 @@ exports.adminTransactionHistory = async (info) => {
     session.endSession(); 
     return history;
     } catch (error) {
-        console.log(error)
         await session.abortTransaction();
          session.endSession();
         return { error: error.message || "Failed to create transaction history" };
     }
 }
-exports.walletHistory = async (user) => {
-    try {
-        return await WalletHistoryModel.find({ user: user })
-            .sort({ createdAt: -1 }).select("-_id -__v -user")
-            .populate("user", "name email")
+exports.walletHistory = async (user, skip = 0, limit = 10) => {
+    try { 
+      const total = await   WalletHistoryModel.countDocuments({ user })
+        const data = await WalletHistoryModel.find({ user: user })
+            .sort({ createdAt: -1 })
+            .select("-_id -__v -initiatedBy -order -updatedAt")  
+            .populate("user", "name email -_id")
+            .skip(skip)
+            .limit(limit)
             .exec();
+            return { total, data};
     } catch (error) {
         return { error: error.message || "Failed to fetch wallet history" };
     }
-}
+};
 
 exports.walletHistoryByDateRange = async (user, startDate, endDate) => {
     try {
         const query = {
             user: user,
             createdAt: {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
+                $gte: startDate,
+                $lte: endDate
             }
         };
-        return await WalletHistoryModel.find(query)
-            .sort({ createdAt: -1 })
-            .populate("user", "name email")
+        const total = await   WalletHistoryModel.countDocuments(query);
+        const data =  await WalletHistoryModel.find(query)
+        .sort({ createdAt: -1 })
+        .select("-_id -__v -initiatedBy -order -updatedAt")  
+            .populate("user", "name email -_id") 
             .exec();
+        return {total, data}
     } catch (error) {
         return { error: error.message || "Failed to fetch wallet history by date range" };
     }

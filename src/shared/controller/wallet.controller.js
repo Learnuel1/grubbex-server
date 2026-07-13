@@ -3,27 +3,97 @@ const logger = require("../../logger");
 const { getAccountByGrubbexId } = require("../../services");
 const { getWalletHistory, getWalletHistoryByDateRange, payStackPayWithCard, saveOrderOTP, createTempTransaction, walletBalance } = require("../services/interface");
 const { META } = require("../utils/actions");
+const { APIError } = require("../utils/apiError");
 
 exports.walletHistory = async (req, res, next) => {
     try {
-        const history = await getWalletHistory(req.user);
-        if (history?.error)  return next(APIError.badRequest(history.error)); 
-        return res.status(200).json({ success: true, message: !history || history.length === 0 ? "No transaction history" :"Wallet history fetched successfully", data: !history || history.length === 0 ? [] :history, count: history.length });
+           const page = Math.max(1, parseInt(req.query.page) || 1);          // default page = 1
+        const limit = Math.max(1, parseInt(req.query.limit) || 10);       // default limit = 10
+        const skip = (page - 1) * limit;
+        const {data, total} = await getWalletHistory(req.user, skip, limit);
+        if (data?.error)  return next(APIError.badRequest(data.error)); 
+        if(!data) {
+             return res.status(200).json({
+            success: true,
+            message: data.length === 0 ? "No transaction history" : "Wallet history fetched successfully",
+            data: data,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages:0,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
+        }
+        const totalPages = Math.ceil(total / limit);
+
+        return res.status(200).json({
+            success: true,
+            message: data.length === 0 ? "No transaction history" : "Wallet history fetched successfully",
+            data: data,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
     } catch (error) {
-         next({ error: error.message || "Failed to fetch wallet history" });
+         next(error);
     }
 }
 exports.walletHistoryByDateRange = async (req, res, next) => {
     try {
         const { startDate, endDate } = req.query;
-        if (!startDate || !endDate) return next(APIError.badRequest("Start date and end date are required"));
+        const page = Math.max(1, parseInt(req.query.page) || 1);          // default page = 1
+        const limit = Math.max(1, parseInt(req.query.limit) || 10);       // default limit = 10
+        const skip = (page - 1) * limit;
+        let start, end;
+        if (!startDate ) return next(APIError.badRequest("Start date is required"));
+        if(!endDate) end = new Date(startDate);
+        else end = new Date(endDate);
+        end.setHours(23, 59, 59, 999)
+        start = new Date(startDate);
+        start.setHours(0, 0, 0, 0)
+        const {data, total} = await getWalletHistoryByDateRange(req.user, start, end);
+        if (data?.error) return next(APIError.badRequest(data.error));
         
-        const history = await getWalletHistoryByDateRange(req.user, startDate, endDate);
-        if (history?.error) return next(APIError.badRequest(history.error));
-        
-        return res.status(200).json({ success: true, message: !history || history.length === 0 ? "No transaction history for the specified date range" : "Wallet history by date range fetched successfully", data: !history || history.length === 0 ? [] : history, count: history.length });
+        if(!data) {
+             return res.status(200).json({
+            success: true,
+            message: data.length === 0 ? "No transaction history" : "Wallet history fetched successfully",
+            data: data,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages:0,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
+        }
+        const totalPages = Math.ceil(total / limit);
+
+        return res.status(200).json({
+            success: true,
+            message: data.length === 0 ? "No transaction history" : "Wallet history fetched successfully",
+            data: data,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
     } catch (error) {
-        next({ error: error.message || "Failed to fetch wallet history by date range" });
+        next(error);
     }
 }
 

@@ -142,7 +142,7 @@ exports.updateAdminWallet = async (info) => await WalletModule.adminWalletUpdate
 exports.updateWallet = async (info) => await WalletModule.walletUpdate(info);
 exports.createTransactionHistory = async (info) => await WalletModule.newTransactionHistory(info);
 exports.createAdminTransactionHistory = async (info) => await WalletModule.adminTransactionHistory(info);
-exports.getWalletHistory = async (user) => await WalletModule.walletHistory(user);
+exports.getWalletHistory = async (user, skip,limit) => await WalletModule.walletHistory(user, skip, limit);
 exports.getWalletHistoryByDateRange = async (user, startDate, endDate) => await WalletModule.walletHistoryByDateRange(user, startDate, endDate);
 exports.walletBalance = async (user) => await WalletModule.walletBalance(user);
 
