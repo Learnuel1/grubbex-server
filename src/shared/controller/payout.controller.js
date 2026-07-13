@@ -1,4 +1,5 @@
 const { CONSTANTS } = require("../../config");
+const config = require("../../config/env");
 const logger = require("../../logger");
 const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts, createRecipient, initiateTransfer, getUserKYC } = require("../services/interface");
 const { META } = require("../utils/actions");
@@ -7,7 +8,7 @@ const Notification = require("../utils/Notification");
 
 exports.createPayout = async (req, res, next) => {
     try{
-        const { amount } = req.body;
+        let { amount } = req.body;
         const wallet = await walletBalance(req.user);
         if(wallet.error) return next(APIError.badRequest(wallet.error));
        if(wallet.balance < amount) return next(APIError.badRequest("Insufficient wallet balance for payout"));
@@ -16,6 +17,15 @@ exports.createPayout = async (req, res, next) => {
        if(!bankDetails || bankDetails?.length ===0) return next(APIError.badRequest("Please Update Bank kyc details"));
        const bankExist = bankDetails.find(c => c.bankName === req.body.bankDetails.bankName && c.accountNumber === req.body.bankDetails.accountNumber);
        if(!bankExist) return next(APIError.badRequest("Provided payout bank does not exist in KYC"));
+       const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const dueDate = new Date(wallet.payoutDueDate);
+        dueDate.setHours(0, 0, 0, 0);
+       if(dueDate.getTime() !== today.getTime()){
+        //add  payout charge
+        amount += amount * (config.PAYOUT_SERVICE_CHARGE_PERCENT / 100);
+       }
         const payout = await createPayout(req.body);
         if(!payout) return next(APIError.badRequest("Payout failed, try again "));
         if(payout.error) return next(APIError.badRequest(payout.error));
