@@ -96,8 +96,12 @@ exports.getWalletBalance = async (req, res, next) => {
         const info = {}
         if (wallet?.error) return next(APIError.badRequest(wallet.error));
         logger.info("Wallet balance fetched successfully", {service: META.WALLET});
-         if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
+        if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
         info.balance = wallet.balance;
+         }else {
+            info.balance = wallet.balance;
+            info.pendingBalance = wallet.pendingBalance;
+            info.payOutDueDate = wallet.payoutDueDate;
          }
         return res.status(200).json({ success: true, msg: "Wallet balance fetched successfully", data: info });
     } catch (error) {

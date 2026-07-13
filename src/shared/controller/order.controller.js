@@ -2112,11 +2112,11 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
       data = decoded.data; 
     }
     if (orderExist.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.delivered)
-      return next(APIError.badRequest("Order has been Delivery already"));
+      return next(APIError.badRequest("Order has been Delivered already"));
     if (orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.pickup)
       return next(APIError.badRequest("Order is not ready for Delivery"));
     if (orderExist.orderId !== data.split("-")[0])
-      return next(APIError.badRequest("Unverified Order"));
+      return next(APIError.badRequest("Unverified Delivery"));
     if (
       req.userId !== orderExist.riderId &&
       orderExist.orderId !== data.split("-")[0]
@@ -2146,9 +2146,7 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
      
     info.orderState = orderState;
     // get order delivery for the grubbex
-    const commission = destinationAddress.deliveryPrice * (config.ORDER_SERVICE_CHARGE / 100);
-     
-    const userWallet = await walletBalance(req.user);
+    const commission = destinationAddress.deliveryPrice * (config.ORDER_SERVICE_CHARGE_PERCENTAGE / 100);    const userWallet = await walletBalance(req.user);
     if (!userWallet)
               return next(APIError.badRequest("User Wallet not found"));
      
@@ -2159,7 +2157,7 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
             amount: destinationAddress.deliveryPrice - commission,
             credit: destinationAddress.deliveryPrice - commission,
             description: `Payment for order ${ orderExist.orderId}`,
-            type: orderExist.paymentType,
+            type: CONSTANTS.TRANSACTION_TYPE.credit,
              reference: orderExist.reference,
              currency: "NGN",
              status: CONSTANTS.ORDER_PAYMENT_STATUS.success,
@@ -2167,18 +2165,17 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
              orderId: orderExist.orderId,
              balanceAfter: userWallet.balance + destinationAddress.deliveryPrice - commission
           };
-        
 
     const updateOrderAuth = await completeOrderDelivery(info, details);
     if (!updateOrderAuth)
       return next(
         APIError.badRequest(
-          "Failed to authenticate order pick up code, try again",
+          "Failed to authenticate order Delivery code, try again",
         ),
       );
     if (updateOrderAuth?.error)
       return next(APIError.badRequest(updateOrderAuth.error));
-    logger.info("Order pick up completed successfully", {
+    logger.info("Order Delivery completed successfully", {
       service: META.ORDER,
     });
     // get order owner 
@@ -2204,11 +2201,11 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
     }; 
     notification.emit("notify", notifyData)
     const dataInfo = {
-      userId: orderExist.req.userId,
+      userId: req.userId,
       title: "Order Delivered",
       account: orderExist.rider,
       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction,
-      info: `Payment for Order ID: ${orderExist.orderId} delivered received succesfullt`,
+      info: `Payment for Order ID: ${orderExist.orderId} delivered received successfully`,
     }; 
     notification.emit("notify", dataInfo);
     

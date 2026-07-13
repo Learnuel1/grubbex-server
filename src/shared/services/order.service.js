@@ -1,6 +1,9 @@
+const { default: mongoose } = require("mongoose");
 const { CONSTANTS } = require("../../config");
 const OrderModel = require("../../models/order.models");
 const TemporalAccountModel = require("../../models/temporal.account.model");
+const { WalletModel } = require("../../models/wallet.model");
+const { WalletHistoryModel } = require("../../models/wallet.history.model");
 
 exports.createDraft = async (info) => {
     try {  
@@ -169,13 +172,13 @@ exports.completedOrderByIdForAuth = async (info, othersParam) => {
         //    (assuming othersParam has fields: user, balanceAfter)
         await WalletModel.findOneAndUpdate(
             { user: othersParam.user },
-            { $inc: {balance:othersParam.amount} },
+            { $inc: {balance: othersParam.amount} },
             { session }
         );
 
         // 5. Create wallet history – again use the object from othersParam
         //    If you need to create history for each state, adjust accordingly.
-        await WalletHistory.create([othersParam], { session });
+        await WalletHistoryModel.create([othersParam], { session });
 
         // 6. Save the order document within the transaction
         await data.save({ session });

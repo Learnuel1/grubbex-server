@@ -90,7 +90,7 @@ debit: {
 WalletHistorySchema.index({ user: 1, createdAt: -1 });
 WalletHistorySchema.index({ orderId: 1, createdAt: -1 });
 WalletHistorySchema.index({ status: 1, createdAt: -1 });
-WalletHistorySchema.index({ reference: 1 }, { unique: true });
+WalletHistorySchema.index({ reference: 1 });
  
 const WalletHistoryModel = model("WalletHistory", WalletHistorySchema)
 module.exports = {
