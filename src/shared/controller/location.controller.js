@@ -18,6 +18,7 @@ exports.updateAVailability = async (req, res, next ) => {
     if(!lat || !lng) return next(APIError.badRequest("Provide location data"));
     if(isNaN(lat) || isNaN(lng)) return next(APIError.badRequest("Location data must be digits only"));
     const data = await verifyLocation({latitude: lat, longitude: lng});
+    console.log(data)
     if(data?.error) return next(APIError.badRequest(data.error));
      logger.info(`Verified location successfully`, {service: META.LOCATION});
     const info = {

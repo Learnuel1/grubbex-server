@@ -116,7 +116,36 @@ exports.updateOrderByIdForAuth = async (info ) => {
        // update Rider location to store location;
         data.riderCurrentLocation = info.riderCurrentLocation;
         data.auth = info.auth;
-        data.qrCode =info.qrCode;
+       if(data?.qrCode ) data.qrCode =info.qrCode;
+        if(info?.orderState) data.orderStates = others
+        if(info.hasOwnProperty("status")){ 
+            data.status = info.status;
+            data.storeStatus =info.storeStatus;
+        }
+       return await data.save();
+    } catch (error) {
+        return { error: error.message || "Failed to fetch orders" };
+    }
+}
+exports.completedOrderByIdForAuth = async (info ) => {
+    const session = mongoose.session();
+    session.startSession();
+    try {
+        const data = await OrderModel.findOne({_id: info._id, storeId:info.storeId, orderId:info.orderId} );
+         if (!data) {
+            return { error: "Order not found" };
+        }
+         const {orderStates} = data;
+        let others = [];
+        orderStates.forEach((cur)=>{
+            const {currentState, ...current} = cur.toObject();
+            others.push(current);
+        });
+        others.push(info.orderState);
+       // update Rider location to store location;
+        data.riderCurrentLocation = info.riderCurrentLocation;
+        data.auth = info.auth;
+       if(data?.qrCode ) data.qrCode =info.qrCode;
         if(info?.orderState) data.orderStates = others
         if(info.hasOwnProperty("status")){ 
             data.status = info.status;
@@ -129,10 +158,12 @@ exports.updateOrderByIdForAuth = async (info ) => {
 }
 exports.findOrderByQRInfo = async (info) => {
     try{
+        if(info.hasOwnProperty("qrCode") && info.hasOwnProperty("pickUpCode"))
+            return await OrderModel.findOne({"auth.code":info.pickUpCode, qrText:info.qrCode});
         if(info.hasOwnProperty("token"))
         return await OrderModel.findOne({"auth.token":info.token})
     if(info.hasOwnProperty("code")) return await OrderModel.findOne({"auth.code":info.code});
-    if(info.hasOwnProperty("qrcode")) return await OrderModel.findOne({qrText:info.qrcode});
+    if(info.hasOwnProperty("pickUpCode")) return await OrderModel.findOne({"auth.code":info.code});
     } catch (error) {
         return {error: error.message || "Failed to fetch Order"}
     }

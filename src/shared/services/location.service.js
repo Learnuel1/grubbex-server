@@ -1,13 +1,21 @@
+const { CONSTANTS } = require("../../config");
 const AccountModel = require("../../models/account.model");
 const OrderModel = require("../../models/order.models");
 
 exports.updateLocationAndAvailability = async ( accountId,info) => {
-    try{
+
+    try{ 
         const update = await AccountModel.findByIdAndUpdate({_id:accountId});
         if(!update) return {error: "Account was not found"};
         if(update.availability === info.availability && update.locationData.lat == info.locationData.lat && update.locationData.lng === info.locationData.lng) return {error: "No new data"};
         update.availability = info.availability;
         update.locationData = info.locationData;
+        // get orders that have been picked up by this rider,
+        const riderCurrentLocation = { 
+            latitude: info.locationData.lat,
+            longitude: info.locationData.lng
+        };
+        await OrderModel.updateMany({rider:accountId, status: CONSTANTS.ORDER_STATUS_OBJ.pickup},{riderCurrentLocation})
         update.save();
         return update
     } catch (error) {
