@@ -1,7 +1,11 @@
+const { default: mongoose } = require("mongoose");
 const { CONSTANTS } = require("../config");
-const SettingModel = require("../models/setting.model")
+const SettingModel = require("../models/setting.model");
+const { WalletModel } = require("../models/wallet.model");
 
 exports.updateSettingNotification = async (info) => {
+    const session = await mongoose.startSession();
+    session.startTransaction()
     try{
         const data  = await SettingModel.find({});
         const target = info.target;
@@ -63,11 +67,20 @@ exports.updateSettingNotification = async (info) => {
             findOthers = [];
             if(find) if(find.name === info.name) throw new Error(`${find.name} payout duration already set`);
             findOthers.push(info);
+            const payoutDueDate = new Date(Date.now() + info.numberOfDays * 24 * 60 * 60 * 1000);
+            await WalletModel.updateMany({},{payoutDueDate}, {session})
+            const update = await SettingModel.findByIdAndUpdate({_id:data[0]._id}, {$set:{[target]: findOthers}},{session});
+            await session.commitTransaction();
+        session.endSession();
+        return update;
         }
+
              return await SettingModel.findByIdAndUpdate({_id:data[0]._id}, {$set:{[target]: findOthers}})
         }
          
     } catch (error) {
+         await session.abortTransaction();
+        session.endSession();
         return {error: error.message}
     }
 }
