@@ -136,7 +136,7 @@ exports.findOrderForQRCodeGeneration = async (orderId, info) => await OrderModul
 exports.updateOrderQRCodeInfo = async (orderId, info) => await OrderModule.updateOrderQRCodeInfo(orderId, info);
 exports.acceptOrRejectOrder = async (info, orderId) => await OrderModule.acceptOrRejectOrder(info, orderId);
 exports.getRiderOrder = async (query, skip, limit) => await OrderModule.riderOrder(query, skip, limit);
-
+exports.completeOrderDelivery = async (info, others) => await OrderModule.completedOrderByIdForAuth(info, others);
 // WALLET SECTION
 exports.updateAdminWallet = async (info) => await WalletModule.adminWalletUpdate(info);
 exports.updateWallet = async (info) => await WalletModule.walletUpdate(info);

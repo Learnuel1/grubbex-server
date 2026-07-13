@@ -44,6 +44,7 @@ const {
   createAdminTransactionHistory,
   createUserNotification,
   findUserByCustomId,
+  completeOrderDelivery,
 } = require("../services/interface");
 const { META } = require("../../utils/actions");
 const { APIError } = require("../utils/apiError");
@@ -742,7 +743,6 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
              ipAddress:info.ip_address,
           };
           if(transType.type === CONSTANTS.TRANSACTION_TYPE.credit){ 
-            details.credit = info.amount/100;
             details.balanceAfter= wallet.balance + details.credit;
           }
           if(transType.type === CONSTANTS.TRANSACTION_TYPE.debit) {
@@ -2145,7 +2145,31 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
     }
      
     info.orderState = orderState;
-    const updateOrderAuth = await updateOrderVerificationInfo(info);
+    // get order delivery for the grubbex
+    const commission = destinationAddress.deliveryPrice * (config.ORDER_SERVICE_CHARGE / 100);
+     
+    const userWallet = await walletBalance(req.user);
+    if (!userWallet)
+              return next(APIError.badRequest("User Wallet not found"));
+     
+    const details = {
+            balanceBefore: userWallet.balance,
+            user: req.user,
+            initiatedBy: req.user,
+            amount: destinationAddress.deliveryPrice - commission,
+            credit: destinationAddress.deliveryPrice - commission,
+            description: `Payment for order ${ orderExist.orderId}`,
+            type: orderExist.paymentType,
+             reference: orderExist.reference,
+             currency: "NGN",
+             status: CONSTANTS.ORDER_PAYMENT_STATUS.success,
+             order: orderExist._id,
+             orderId: orderExist.orderId,
+             balanceAfter: userWallet.balance + destinationAddress.deliveryPrice - commission
+          };
+        
+
+    const updateOrderAuth = await completeOrderDelivery(info, details);
     if (!updateOrderAuth)
       return next(
         APIError.badRequest(
@@ -2179,6 +2203,14 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
       info: `Your order with Order ID: ${orderExist.orderId} has been delivered by the rider`,
     }; 
     notification.emit("notify", notifyData)
+    const dataInfo = {
+      userId: orderExist.req.userId,
+      title: "Order Delivered",
+      account: orderExist.rider,
+      category: CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction,
+      info: `Payment for Order ID: ${orderExist.orderId} delivered received succesfullt`,
+    }; 
+    notification.emit("notify", dataInfo);
     
     res
       .status(200)

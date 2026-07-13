@@ -124,38 +124,75 @@ exports.updateOrderByIdForAuth = async (info ) => {
         }
        return await data.save();
     } catch (error) {
-        return { error: error.message || "Failed to fetch orders" };
+        return { error: error.message };
     }
 }
-exports.completedOrderByIdForAuth = async (info ) => {
-    const session = mongoose.session();
-    session.startSession();
+exports.completedOrderByIdForAuth = async (info, othersParam) => {
+    // Start a session and begin transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
-        const data = await OrderModel.findOne({_id: info._id, storeId:info.storeId, orderId:info.orderId} );
-         if (!data) {
+        // 1. Find the order
+        const data = await OrderModel.findOne(
+            { _id: info._id, storeId: info.storeId, orderId: info.orderId },
+            null,
+            { session }
+        );
+        if (!data) {
+            await session.abortTransaction();
+            session.endSession();
             return { error: "Order not found" };
         }
-         const {orderStates} = data;
-        let others = [];
-        orderStates.forEach((cur)=>{
-            const {currentState, ...current} = cur.toObject();
-            others.push(current);
+
+        // 2. Build new orderStates array (excluding 'currentState' from each)
+        const newOrderStates = data.orderStates.map(cur => {
+            const { currentState, ...rest } = cur.toObject();
+            return rest;
         });
-        others.push(info.orderState);
-       // update Rider location to store location;
+        // Add the new state from info
+        if (info.orderState) {
+            newOrderStates.push(info.orderState);
+        }
+
+        // 3. Update fields on the order document
         data.riderCurrentLocation = info.riderCurrentLocation;
         data.auth = info.auth;
-       if(data?.qrCode ) data.qrCode =info.qrCode;
-        if(info?.orderState) data.orderStates = others
-        if(info.hasOwnProperty("status")){ 
+        if (data.qrCode) data.qrCode = info.qrCode;
+        if (info.hasOwnProperty("status")) {
             data.status = info.status;
-            data.storeStatus =info.storeStatus;
+            data.storeStatus = info.storeStatus;
         }
-       return await data.save();
+        data.orderStates = newOrderStates;
+
+        // 4. Wallet update – use the original 'othersParam' which presumably contains user and balance
+        //    (assuming othersParam has fields: user, balanceAfter)
+        await WalletModel.findOneAndUpdate(
+            { user: othersParam.user },
+            { $inc: {balance:othersParam.amount} },
+            { session }
+        );
+
+        // 5. Create wallet history – again use the object from othersParam
+        //    If you need to create history for each state, adjust accordingly.
+        await WalletHistory.create([othersParam], { session });
+
+        // 6. Save the order document within the transaction
+        await data.save({ session });
+
+        // 7. Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        return data; // success
+
     } catch (error) {
-        return { error: error.message || "Failed to fetch orders" };
+        // Abort transaction on error
+        await session.abortTransaction();
+        session.endSession();
+        return { error: error.message || "Failed to process order" };
     }
-}
+};
 exports.findOrderByQRInfo = async (info) => {
     try{
         if(info.hasOwnProperty("qrCode") && info.hasOwnProperty("pickUpCode"))
