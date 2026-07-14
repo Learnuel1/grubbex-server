@@ -18,8 +18,8 @@ const { AdvertRoute } = require("./promotion.route");
 const OrderModule = require("./order.route");
 const { TransactionRouter } = require("./transaction.route");
 const Location = require("./location.route");
-const PayoutModule = require("./payout.route") 
-const QRModule = require("./qrcode.routes");
+const PayoutModule = require("./payout.route"); 
+const { ReturnedOrderRouter } = require("./return.order.router");
 
 Router.use("/user", UserModule.userRoute);
 Router.use("/auth", AuthModule.authRoute); 
@@ -34,6 +34,7 @@ Router.use("/order", OrderModule.OrderRouter);
 Router.use("/transaction", TransactionRouter);
 Router.use("/location", Location.LocationRouter);
 Router.use("/payout", PayoutModule.PayoutRouter);
+Router.use("/return", ReturnedOrderRouter)
 
 
 MobileRouter.use("/user", UserModule.userRoute);
@@ -52,8 +53,7 @@ MobileRouter.use("/order", OrderModule.OrderRouter);
 MobileRouter.use("/transaction", TransactionRouter);
 MobileRouter.use("/location", Location.LocationRouter);
 MobileRouter.use("/payout", PayoutModule.PayoutRouter);
-MobileRouter.use("/qrcode", QRModule.QRRouter);
-
+MobileRouter.use("/return", ReturnedOrderRouter)
 module.exports = {
   Router,
   MobileRouter,

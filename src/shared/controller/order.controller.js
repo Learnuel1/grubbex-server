@@ -1184,6 +1184,7 @@ exports.getAllOrders = async (req, res, next) => {
         { isAvailable: true },
         // {_id: { $nin: mutedOrders.map(order => order.order)}},
         { storeStatus: CONSTANTS.ORDER_STATUS_OBJ.ready },
+        { type: {$ne: CONSTANTS.ORDER_STATUS_OBJ.pickup }},
       ];
     }
 
@@ -1444,7 +1445,7 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
       auth.token = token;
       data = decoded.data; 
     }
-    if (orderExist.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup)
+    if (orderExist.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup )
       return next(APIError.badRequest("Order has been Picked up already"));
     if (orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.ready)
       return next(APIError.badRequest("Order is not ready for pick up"));
@@ -1452,7 +1453,7 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
       return next(APIError.badRequest("Unverified Order"));
     if (
       req.userId !== orderExist.riderId &&
-      orderExist.orderId !== data.split("-")[0]
+      orderExist.orderId !== data.split("-")[0] && req.userType !== CONSTANTS.ACCOUNT_TYPE_OBJ.shopper
     )
       return next(APIError.unauthorized("Fake Rider for the Pickup"));
     logger.info("Rider and Order authenticated successfully", {
@@ -1465,15 +1466,15 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
       orderId: orderExist.orderId,
       storeId: orderExist.storeId,
       auth: { pickedUpdAt: Date.now() },
-      status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      status: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? CONSTANTS.ORDER_STATUS_OBJ.delivered : CONSTANTS.ORDER_STATUS_OBJ.pickup,
       storeStatus:CONSTANTS.ORDER_STATUS_OBJ.pickup,
       qrCode: orderExist.qrCode,
     };
     const orderState = {
-      status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      status: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? CONSTANTS.ORDER_STATUS_OBJ.delivered : CONSTANTS.ORDER_STATUS_OBJ.pickup,
       by:req.user,
       type: req.userType,
-      currentState: CONSTANTS.ORDER_STATUS_OBJ.pickup,
+      currentState: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? CONSTANTS.ORDER_STATUS_OBJ.delivered : CONSTANTS.ORDER_STATUS_OBJ.pickup,
     }
      info.riderCurrentLocation = location;
     info.orderState = orderState;
@@ -1496,7 +1497,7 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
     // send email to notify user // app notification
     const options = {
       to: shopper.email,
-      subject: `Order Pick up by Rider`,
+      subject: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? `Order Pick up by YOu`:  `Order Pick up by Rider`,
       name: `${shopper.firstName} ${shopper.lastName}`,
       event: "orderPickup",
     }
@@ -1505,10 +1506,10 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
     // notification
     const notifyData = {
       userId: orderExist.shopperId,
-      title: "Order Picked Up",
+      title: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? "YOu picked up your Order" :"Order Picked Up",
       account: orderExist.shopper,
       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
-      info: `Your order with Order ID: ${orderExist.orderId} has been picked up by the rider`,
+      info: `Your order with Order ID: ${orderExist.orderId} has been picked up by  ${req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper? "you": "the rider"}`,
     }; 
     notification.emit("notify", notifyData)
     

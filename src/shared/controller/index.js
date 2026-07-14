@@ -10,8 +10,9 @@ const FAQController = require("./faq.controller");
 const LikeRatingController = require("./likes.rating.controller");
 const ShippingAddressCtrl = require("./shipping.address.controller");
 const WalletController = require("./wallet.controller");
-const PayoutController = require("./payout.controller")
-const LocationController = require("./location.controller")
+const PayoutController = require("./payout.controller");
+const LocationController = require("./location.controller");
+const ReturnedOrderController = require("./returned.order.controller");
 module.exports = {
   TempController,
   AccController,
@@ -27,4 +28,5 @@ module.exports = {
   WalletController,
   PayoutController,
   LocationController,
+  ReturnedOrderController,
 }

@@ -16,6 +16,7 @@ const WalletModule = require("./wallet.service");
 const MutedOrderModel = require("./muted.order.service");  
 const PayoutModule = require("./payout.service");
 const LocationModule = require("./location.service");
+const ReturnOrderModule = require("./returned.order.service");
 
 exports.temporalAccExist =async (email) => await TemporalModules.findTemAccount(email);
 exports.temporalAccExistByToken =async (token) => await TemporalModules.findTemAccountByToken(token);
@@ -168,4 +169,5 @@ exports.getRiderLocation = async (accountId) => await LocationModule.getRiderLoc
 exports.getOrderLocation = async (orderId, accountId) => await LocationModule.getOrderLocation(orderId, accountId);
 
 
-// PROMOTION SECTION
+// ORDER RETURN SECTION
+exports.returnOrder = async (info) => await ReturnOrderModule.create(info)

@@ -41,7 +41,7 @@ exports.login = async (req, res, next) => {
 		if (
 			req.baseUrl.includes('m') &&
 			(exist.type?.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.business ||
-				exist.type.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.admin)
+				exist.type?.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.admin)
 		)
 			return next(APIError.unauthorized('Please visit Grubbex website'));
 		if (!compareSync(password, exist.password))

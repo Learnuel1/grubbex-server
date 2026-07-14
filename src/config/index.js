@@ -150,6 +150,7 @@ exports.CONSTANTS = {
     closed: "closed",
     accepted: "accepted",
     accept: "accept",
+    approved: "approved",
   },
   PAYMENT_TYPE_OBJ: { 
     card: "card",
