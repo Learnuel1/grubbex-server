@@ -42,7 +42,7 @@ const startServer = async () => {
     await defaultAdminAccount();
     const notice = new Notification(); 
     appLogger.info(`server running on port ${PORT}`, {service:"application"});
-    // notice.emit("systemLoaded");
+    notice.emit("systemLoaded");
   } catch (error) {
     appLogger.error(error, {service:"application"});
     process.exit(-1);
