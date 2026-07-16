@@ -2,8 +2,6 @@ exports.CONFIG = {
   APP_NAME: "Grubbex",
 };
 
-// exports.CORS_WHITELISTS = [`https://grubby-frontend.vercel.app`, `https://grubbex.vercel.app/`, `${process.env.FRONTEND_ORIGIN_URL}`,`http://127.0.0.1:3000`,`localhost:${process.env.PORT || 8001}`,  `http://localhost:3001`, `http://localhost:5173`, `http://localhost:5501`,`http://localhost:4000`];
-// exports.CORS_WHITELISTS =  [`${process.env.FRONTEND_ORIGIN_URL}`];
 exports.CORS_WHITELISTS = [ `${process.env.FRONTEND_ORIGIN_URL}`,`http://localhost:4000`,`http://127.0.0.1:4000`, `http://127.0.0.1:3000`, `https://grubbex-dev.netlify.app`, `https://grubbex.netlify.app`,'https://potential-space-guacamole-q4wr7xx65v92vpx-4000.app.github.dev'];
 
 exports.CONSTANTS = {

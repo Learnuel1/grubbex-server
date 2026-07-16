@@ -20,10 +20,10 @@ exports.createProduct = async (req, res, next) => {
     if(additionalInfo)
       additionalInfo = JSON.parse(JSON.stringify(additionalInfo.trim()));
     if(variation && variation.hasOwnProperty("type")) {
-      // const variationObjects = [];
-      // variation.forEach((cur) =>{
-      //   variationObjects.push(JSON.parse(JSON.stringify(cur.trim())))
-      // });
+      const variationObjects = [];
+      variation.forEach((cur) =>{
+        variationObjects.push(JSON.parse(JSON.stringify(cur.trim())))
+      });
       req.body.variation = [variation];
     }
     req.body.prodId = shortIdGen(20);
@@ -51,8 +51,8 @@ exports.createProduct = async (req, res, next) => {
       discountRate,
     }
     req.body.vat = config?.VAT !== 0 ? (config.VAT / 100) * price: 0;
-   // req.body.variation = variation;
-    //req.body.additionalInfo = additionalInfo;
+   req.body.variation = variation;
+    req.body.additionalInfo = additionalInfo;
     let result = await searchUserStore({user: req.user});
     if(!result || result.length === 0) return res.status(200).json({success: true, msg:"No store found"})
     req.body.store = result[0]._id;

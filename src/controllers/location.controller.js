@@ -48,7 +48,7 @@ exports.getReverseGeocode = async (req, res, next) => {
       if(storeLocation?.error) return next(APIError.badRequest(storeLocation.error));
       logger.info("Location saved successfully to Store", {service:  META.STORE});
     }
-    // res.json({ ok: true, result: { formatted: best.formatted_address, place_id: best.place_id, lat, lng } });
+ 
     res.status(200).json({ success: true, msg: "Location saved successfully", data: position });
 
   } catch (error) {

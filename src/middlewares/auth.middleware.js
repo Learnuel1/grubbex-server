@@ -158,13 +158,6 @@ const phoneIsRequired = async (req, res, next) => {
   try{
     
     req.usedRoute =CONSTANTS.APP_ROUTE.mobile
-    // const agent = useragent.parse(req.headers['user-agent']);
-    // const others = ["iOS", " iPhone"];
-    // // const deviceType = req.headers["device-type"];
-    // if (!agent.isMobile && !agent.source.includes(others)) return next(APIError.unauthorized("Device is not allowed")); 
-    // else if(agent.isMobile && agent.isMobileSafari || agent.isAndroidBrowser || agent.source === 'AppleWebKit') return next(APIError.unauthorized("Browser is not allowed")); 
-    // if(!deviceType) return next(APIError.unauthorized("Device type is required"))
-    // if(!CONSTANTS.MOBILE_DEVICE_TYPE.includes(deviceType.trim().toLowerCase())) return next(APIError.unauthorized("Device is not allowed")); 
     next();
   }catch(error){
     next(error);
@@ -172,11 +165,7 @@ const phoneIsRequired = async (req, res, next) => {
 }
 const webIsRequired = async (req, res, next) => {
   try{
-    req.usedRoute =CONSTANTS.APP_ROUTE.web;
-    // const agent = useragent.parse(req.headers['user-agent']);
-    // if (!agent.isChrome && !agent.isFirefox && !agent.isSafari && !agent.isIE && !agent.isEdge && !agent.isOpera && !agent.isBrave && !agent.isVivaldi && !agent.source.includes('axios') && !agent.source.split("/")[0].includes("PostmanRuntime") && config?.NODE_ENV) return next(APIError.unauthorized("Device is not allowed"))
-    // const deviceType = req.headers["device-type"];
- 
+    req.usedRoute =CONSTANTS.APP_ROUTE.web; 
     next();
   }catch(error){
     next(error);
@@ -226,7 +215,6 @@ const isVerified = async (req, res, next) => {
     if(!isUser) return next(APIError.notFound("Account does not exist"))
     if (isUser.verified === false) {
       req.verified = isUser.verified;  
-      // return next(APIError.unauthorized("Account is not verified"));
     }
     next();
   } catch (error) {
