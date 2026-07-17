@@ -17,6 +17,7 @@ const MutedOrderModel = require("./muted.order.service");
 const PayoutModule = require("./payout.service");
 const LocationModule = require("./location.service");
 const ReturnOrderModule = require("./returned.order.service");
+const TemporalTransferModule = require("./temporal.payout.service");
 
 exports.temporalAccExist =async (email) => await TemporalModules.findTemAccount(email);
 exports.temporalAccExistByToken =async (token) => await TemporalModules.findTemAccountByToken(token);
@@ -119,7 +120,7 @@ exports.removeTemporalTransaction = async (query) => await PayStackModule.delete
 // ORDER SECTION
 exports.createDraftOrder = async (info) => await OrderModule.createDraft(info);
 exports.verifyPayStackTransaction = async (reference) => await PayStackModule.verifyTransaction(reference);
-exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout') => await PayStackModule.initiateTransfer(recipientCode, amount, reason = 'Payout')
+exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout', user) => await PayStackModule.initiateTransfer(recipientCode, amount, reason = 'Payout', user)
 exports.createRecipient = async (name, accountNumber, bankCode) => await PayStackModule.createRecipient(name, accountNumber, bankCode)
 exports.finalizeTransfer = async (transferCode, otp) => await PayStackModule.finalizeTransfer(transferCode, otp)
 exports.getTransferStatus = async (transferCode) => await PayStackModule.getTransferStatus(transferCode)
@@ -162,11 +163,19 @@ exports.getRecentPayouts = async (status, type = "business", limit = 5) => await
 exports.getPayoutsAggregate = async (statuses, type = "business") => await PayoutModule.payoutAggregate(statuses, type);
 exports.getTodayPayoutsAggregate = async (status, type = "business") => await PayoutModule.todayPayoutAggregate(status, type);
 exports.topPayouts = async (type = "business", limit = 5) => await PayoutModule.topPayouts(type, limit);
+exports.getPayoutByID = async (id) => await PayoutModule.payoutByID(id);
+exports.processPayoutPayment = async (info) => await PayoutModule.processPayout(info);
 
 // LOCATION SECTION
 exports.updateLocationAndAvailability = async ( accountId,info) => await LocationModule.updateLocationAndAvailability(accountId, info);
 exports.getRiderLocation = async (accountId) => await LocationModule.getRiderLocation(accountId);
 exports.getOrderLocation = async (orderId, accountId) => await LocationModule.getOrderLocation(orderId, accountId);
+
+// TEMPORAL TRANSFER SECTION
+exports.createTemporalTransfer = async (info) => await TemporalTransferModule.createTemporalTransfer(info);
+exports.getATemporalTransfer = async (query) => await TemporalTransferModule.findATemporalTransfer(query)
+exports.getTemporalTransfers = async (query) => await TemporalTransferModule.findTemporalTransfers(query)
+exports.removeTemporalTransferByTransCode = async (transfer_code) => await TemporalTransferModule.deleteATemporalTransferByTransferCode(transfer_code);
 
 
 // ORDER RETURN SECTION

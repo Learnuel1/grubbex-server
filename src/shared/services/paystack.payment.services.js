@@ -4,6 +4,7 @@ const { PAYSTACK_ROUTES, PAYSTACK_METHOD } = require('../../utils/paystack.route
 const TemporalTransactionModel = require('../../models/temporal.transaction');
 const { default: axios } = require('axios');
 const config = require('../../config/env');
+const { createTemporalTransfer } = require('./interface');
 exports.payWithCard = async (payload) => {
     const params = JSON.stringify({
         email: payload.email, 
@@ -100,7 +101,7 @@ exports.deleteTemporalTransaction = async (query) => {
     return {error: error.response?.data || error.message};
   }
 }
-exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout')  =>{
+exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout', user)  =>{
   try {
     const response = await paystackClient.post(
       '/transfer',
@@ -111,9 +112,20 @@ exports.initiateTransfer = async (recipientCode, amount, reason = 'Payout')  =>{
         reason: reason
       }
       );
-
-    if (response.data.status) {
-    
+      const info = {
+        recipientCode,
+         amount, 
+         reason,
+         source:'balance',
+         user, 
+      }
+    if (response.data.data.status) {
+      info.transferCode =  response.data.data.transfer_code;
+      info.otpRequired =  response.data.data.otp_required;
+        // save this info to data base here
+      const createTem = await createTemporalTransfer(info);
+      if(!createTem) return {error: "Temporal Transfer failed to create"};
+      if(createTem?.error) return {error: createTem.error};
       return {
         transferCode: response.data.data.transfer_code,
         otpRequired: response.data.data.otp_required, // true if OTP is needed

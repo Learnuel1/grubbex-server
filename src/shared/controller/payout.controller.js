@@ -1,7 +1,7 @@
 const { CONSTANTS } = require("../../config");
 const config = require("../../config/env");
 const logger = require("../../logger");
-const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts, createRecipient, initiateTransfer, getUserKYC } = require("../services/interface");
+const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts, createRecipient, initiateTransfer, getUserKYC, getPayoutByID, processPayoutPayment, userExistByMail } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const Notification = require("../utils/Notification");
@@ -146,8 +146,11 @@ exports.initializeTransfer = async (req, res, next ) => {
         const { accountName, accountNumber, bankCode , amount} = req.body;
     // 1. Create recipient
     const recipientCode = await createRecipient(accountName, accountNumber, bankCode);
+    
     // 2. Initiate transfer (₦1,000)
-    const initResult = await initiateTransfer(recipientCode, 1000, 'Payout');
+    const initResult = await initiateTransfer(recipientCode, 1000, 'Payout', req.user);
+    if(initResult?.error) return next(APIError.badRequest(initResult.error));
+    logger.info("Temporal Transfer Created Successfully", {service: META.PAYSTACK_SERVICE});
     if(initResult.otpRequired) //send option
     return res.status(200).json({success: true, msg: "Transfer Initialized", data: initResult})
   } catch (error) {
@@ -169,5 +172,28 @@ exports.finalizeTransfer = async (req, res, next ) => {
     res.status(200).json( {success: true, finalStatus});
     } catch (error) {
         next (error)
+    }
+}
+exports.payPayout = async ( req, res, next ) => {
+    try{
+  const { id } = req.body;
+  if (!id) return next(APIError.badRequest("Payout ID is required"));
+  // find payout info
+  const payoutExist = await getPayoutByID(id);
+  if(!payoutExist) return next(APIError.badRequest("Payout does not exist"));
+  if(payoutExist?.error) return next(APIError.badRequest(payoutExist.error));
+  if(payoutExist.status === CONSTANTS.PAYOUT_STATUS.completed) return next(APIError.badRequest("Payout has be proceed and completed"));
+  user = await userExistByMail(payoutExist.account.email)
+  const info = payoutExist.toObject();
+  info.status = CONSTANTS.PAYOUT_STATUS.completed;
+ const pay = await processPayoutPayment({...info,createBy:req.createdBy, account: user._id});
+ if(!pay) return next(APIError.badRequest("Payout processing failed, try again"));
+ if(pay?.error) return next(APIError.badRequest(pay.error));
+ logger.info("Payout processed successfully", {service: META.PAYOUT});
+ // send notification in app
+
+ res.status(200).json(pay)
+    } catch (error) {
+        next(error)
     }
 }

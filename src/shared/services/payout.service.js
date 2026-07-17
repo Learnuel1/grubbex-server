@@ -1,5 +1,9 @@
+const { default: mongoose } = require("mongoose");
 const { CONSTANTS } = require("../../config");
 const PayoutModel = require("../../models/payout.model");
+const { WalletHistoryModel } = require("../../models/wallet.history.model");
+const { WalletModel } = require("../../models/wallet.model");
+const SettingModel = require("../../models/setting.model");
 
 exports.create = async (info) => {
     try {
@@ -74,4 +78,84 @@ exports.topPayouts = async (accountType, limit) => {
         return {error: error.message }
     }
 }
+
+exports.payoutByID = async (id) => {
+    try {
+         return await PayoutModel.findOne({id}).select("-_id -__v -account -store").populate("paidBy.account", "firstName email").populate("account", "email firstName lastName phoneNumber status state picture.url -_id").populate("paidBy.account", "firstName email type role -_id").sort({createdAt: -1});
+
+           
+        
+    } catch(error) {
+        return {error: error.message }
+    }
+}
+exports.processPayout = async (info) => {
+    // Start a Mongoose session and begin transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const wallet = await WalletModel.findOne({ user: info.account }).session(session); 
+        if (!wallet) {
+            throw new Error('Wallet was not found');
+        }
+
+        // 2. Check sufficient balance
+        if (wallet.balance < info.amount) {
+            throw new Error('Insufficient Wallet balance');
+        }
+
+        // 3. Retrieve payout duration setting (single document)
+        const setting = await SettingModel.findOne().session(session);
+        if (!setting || !setting.payoutDuration || setting.payoutDuration.length === 0) {
+            throw new Error('Payout duration setting is missing');
+        }
+
+        const numberOfDays = setting.payoutDuration[0].numberOfDays;
+        // 4. Compute next due date (safe date arithmetic)
+        const currentPayoutDate = wallet.payoutDate ? new Date(wallet.payoutDate) : new Date();
+        const nextDueDate = new Date(currentPayoutDate.getTime() + numberOfDays * 24 * 60 * 60 * 1000);
+
+        // 5. Update wallet balance and due date
+        wallet.balance = wallet.balance - info.amount;
+        wallet.payoutDueDate = nextDueDate;
+        await wallet.save({ session });
+
+        // 6. Update payout status
+        const updatedPayout = await PayoutModel.findOneAndUpdate(
+            { id: info.id },
+            { status: info.status },
+            { session, new: true }  // optional: return updated document
+        );
+        if (!updatedPayout) {
+            throw new Error('Payout record not found');
+        }
+
+        // 7. Commit transaction if all operations succeeded
+       
+        const history = {
+            reference: info.id,
+            user:info.account,
+            type:CONSTANTS.TRANSACTION_TYPE.withdrawal,
+            currency: "NGN",
+            debit: info.amount,
+            status:CONSTANTS.ORDER_PAYMENT_STATUS.success,
+            balanceBefore:wallet.balance,
+            balanceAfter: wallet.balance - info.amount,
+            description: "Payout",
+            initiatedBy: info.createdBy,
+            meta: info.account
+        }
+        await WalletHistoryModel.create([history], {session});
+         await session.commitTransaction();
+        session.endSession();
+        // Return success (you may customise the returned object)
+        return { success: true, message: 'Payout processed successfully' };
+
+    } catch (error) { 
+        await session.abortTransaction();
+        session.endSession();
  
+        return { error: error.message };
+    }
+};
