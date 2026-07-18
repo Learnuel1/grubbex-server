@@ -22,8 +22,7 @@ class Notification extends EventEmitter {
         category ,
         id: shortIdGen(10),
         account:payload.account,
-        title:payload.title,
-        category:payload.category,
+        title:payload.title, 
         info:payload.info,
         userId:payload.userId,
       };

@@ -5,7 +5,7 @@ const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAgg
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const Notification = require("../utils/Notification");
-
+ const notice = new Notification();
 exports.createPayout = async (req, res, next) => {
     try{
         let { amount } = req.body;
@@ -39,7 +39,7 @@ exports.createPayout = async (req, res, next) => {
             category:CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction,
             info: `Your payout request of amount ${amount} has been submitted successfully`
         };
-        const notice = new Notification();
+       
         notice.emit("notify", notifyPayload) 
         res.status(201).json({ msg: "Payout request completed successfully" });
     } catch (error) {
@@ -65,7 +65,17 @@ exports.getPayouts = async (req, res, next) => {
                 {"account.email": { $regex: search, $options: "i" }}, 
             ]
         }
+        }else if(!search && req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.admin) {
+            query = {
+                $and: [ {status} ],
         }
+    }else {
+             query = {
+                $and: [ {status}, {accountType: type} ],
+        }
+        
+    }
+
         const payouts = await getPayouts(status, type, query);
         if(payouts?.error) return next(APIError.badRequest(payouts.error));
         logger.info("Payouts retrieved successfully", {service:META.PAYOUT})
@@ -178,11 +188,12 @@ exports.payPayout = async ( req, res, next ) => {
     try{
   const { id } = req.body;
   if (!id) return next(APIError.badRequest("Payout ID is required"));
+  if (id.length !==12) return next(APIError.badRequest("Payout ID is invalid"));
   // find payout info
   const payoutExist = await getPayoutByID(id);
   if(!payoutExist) return next(APIError.badRequest("Payout does not exist"));
   if(payoutExist?.error) return next(APIError.badRequest(payoutExist.error));
-  if(payoutExist.status === CONSTANTS.PAYOUT_STATUS.completed) return next(APIError.badRequest("Payout has be proceed and completed"));
+  if(payoutExist.status === CONSTANTS.PAYOUT_STATUS.completed) return next(APIError.badRequest("Payout has been proceed and completed"));
   user = await userExistByMail(payoutExist.account.email)
   const info = payoutExist.toObject();
   info.status = CONSTANTS.PAYOUT_STATUS.completed;
@@ -191,7 +202,14 @@ exports.payPayout = async ( req, res, next ) => {
  if(pay?.error) return next(APIError.badRequest(pay.error));
  logger.info("Payout processed successfully", {service: META.PAYOUT});
  // send notification in app
-
+const payload = {
+    category: CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction,
+    account:user._id,
+    title: "Payout",
+    info:pay.msg,
+    userId:user._id,
+};
+notice.emit("notify", payload);
  res.status(200).json(pay)
     } catch (error) {
         next(error)

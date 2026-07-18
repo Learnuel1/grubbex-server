@@ -150,7 +150,7 @@ exports.processPayout = async (info) => {
          await session.commitTransaction();
         session.endSession();
         // Return success (you may customise the returned object)
-        return { success: true, message: 'Payout processed successfully' };
+        return { success: true, msg: 'Payout processed successfully' };
 
     } catch (error) { 
         await session.abortTransaction();
