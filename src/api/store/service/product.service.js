@@ -187,3 +187,10 @@ exports.decreaseProductQuantity = async (prodId, storeId, quantity) => {
     return {error: error.message}
   }
 }
+exports.productsByStoreAndProId = async (store, prodId) => {
+  try{
+    return await ProductModel.find({store, prodId}).select("-_id -__v -store -barcode.id -barcode._id -media.mainImage.id -media.others.id").exec();
+  }  catch (error) {
+    return {error: error.message}
+  }
+}

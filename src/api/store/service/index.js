@@ -25,6 +25,7 @@ exports.categoryExists = async (category) => await categoryModule.categoryExist(
 // PRODUCT SECTION
 exports. addNewProduct = async (schemaValidator, details) => await ProductModule.create(details);
 exports.getProductsByStore = async (store) => await ProductModule.productsByStore(store);
+exports.getProductsByStoreAndProdId = async (store,prodId) => await ProductModule.productsByStoreAndProId(store, prodId);
 exports.getProductsByStoreId = async (storeId) => await ProductModule.productsByStoreId(storeId);
 exports.getFilteredProducts = async (query) => await ProductModule.searchProductInStore(query);
 exports.updateProductStatus = async (info) => await ProductModule.updateProductStatus(info);

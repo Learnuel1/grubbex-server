@@ -8,7 +8,7 @@ const productRoute = require("express").Router();
 const routes = require("express").Router();
 
 routes.post("/new", multerFile.fields([{name:"mainImage", maxCount:1}, {name: "others", maxCount:4}]),  productModule.ProductCtrl.createProduct
-).get("/store", productModule.ProductCtrl.productsByStoreOwner).delete("/",productModule.ProductCtrl.deleteStoreProduct).patch("/status", productModule.ProductCtrl.updateStoreProductStatus).patch("/contact", shared.Controllers.AccController.updateUserContact)
+).get("/store", productModule.ProductCtrl.productsByStoreOwner).delete("/",productModule.ProductCtrl.deleteStoreProduct).patch("/status", productModule.ProductCtrl.updateStoreProductStatus).patch("/contact", shared.Controllers.AccController.updateUserContact).get("/store/id",  productModule.ProductCtrl.productsByStoreOwnerByID)
 
 productRoute.use("/", userRequired , isVerified, allowedRoles([CONSTANTS.ACCOUNT_ROLE_OBJ.business]), notAllowedAccount(CONSTANTS.ACCOUNT_TYPE_OBJ.admin), routes)
 
