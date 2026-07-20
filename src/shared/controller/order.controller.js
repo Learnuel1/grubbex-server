@@ -269,6 +269,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
     // check for promo code to verify pricing
     let deduction = 0;
     let total = req.body.total;
+    const {deliveryPrice} = req.body;
     if (req.body?.promoCode && req.body.promoCode.length > 0) {
       for (const promoCode in req.body.promoCode) {
         total = 0;
@@ -284,24 +285,18 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
 
       logger.info(`Promo code applied successfully`, { service: META.ORDER });
     }
-
-    if (subTotal + VAT !== total)
-      return next(
-        APIError.badRequest("Total amount does not match the calculated total"),
-      );
-    req.body.total = Math.ceil(req.body.total);
-    qrText += `amount:${Math.round(req.body.total)}-`;
+ 
+   
     // DELIVERY FEE
     const storeInfo = await getStoreAddressWithId(req.body.storeId);
-    
     if (storeInfo.location.hasOwnProperty("latitude") === false)
       return next(APIError.badRequest("Store address could not be verified"));
     let storeAddress = null;
     const { location } = storeInfo;
     store[0].location = location;
+    // storeAddress = storeInfo.address[0];
     storeAddress = storeInfo.location;
     req.body.store = storeInfo._id;
-
     const { destinationAddress } = req.body;
     if (!destinationAddress)
       return next(
@@ -326,14 +321,15 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
               "Delivery location could not be verified",
           ),
         );
+
       }
 
       const km = await getDistanceKmBetweenAddresses(
-        { lat: location.latitude, lng: location.longitude },
         {
           lat: destinationAddressCord.latitude,
           lng: destinationAddressCord.longitude,
         },
+         { lat: location.latitude, lng: location.longitude },
         {
           apiKey: config.GOOGLE_MAPS_API_KEY,
           mode: CONSTANTS.TRANSPORTATION_MODE.driving,
@@ -342,7 +338,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
       if (km?.error) return next(APIError.badRequest(km.error));
       req.body.destinationAddress.distance = km.distance.text;
       req.body.destinationAddress.duration = km.duration.text;
-      const distanceValue = Number((km.distance.value / 1000).toFixed(1));
+      const distanceValue =(km.distance.value / 1000).toFixed(1) ;
       logger.info(
         `Calculated  ${CONSTANTS.DELIVERY_TYPE_OBJ.delivery}  distance successfully `,
         { service: META.ORDER },
@@ -350,10 +346,15 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
       req.body.destinationAddress.distanceValue = distanceValue;
       // compute delivery cost
       req.body.destinationAddress.deliveryPrice =
-        distanceValue * Number(config.DELIVERY_FEE_PER_KM) +
-        Number(config.DEFAULT_DELIVERY_FEE);
+        (km.distance.value / 1000).toFixed(1) * Number(config.DELIVERY_FEE_PER_KM) 
+        req.body.destinationAddress.deliveryPrice += Number(config.DEFAULT_DELIVERY_FEE);
       req.body.destinationAddress.location.formattedAddress =
         destAddressExist.result.formatted_address;
+         if (subTotal + VAT + req.body.destinationAddress.deliveryPrice !== total)
+      return next(
+        APIError.badRequest("Total amount does not match the calculated total"),
+      );
+
     } else if (req.body.type === CONSTANTS.DELIVERY_TYPE_OBJ.pickup) {
       const destinationAddressCord = {
         latitude: destinationAddress.location.latitude,
@@ -373,11 +374,11 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
         );
       }
       const km = await getDistanceKmBetweenAddresses(
-        { lat: location.latitude, lng: location.longitude },
         {
           lat: destinationAddressCord.latitude,
           lng: destinationAddressCord.longitude,
         },
+        { lat: location.latitude, lng: location.longitude },
         {
           apiKey: config.GOOGLE_MAPS_API_KEY,
           mode: CONSTANTS.TRANSPORTATION_MODE.driving,
@@ -396,7 +397,14 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
       // req.body.destinationAddress.deliveryPrice = distanceValue * Number(config.DELIVERY_FEE_PER_KM) + Number( config.DEFAULT_DELIVERY_FEE)
       req.body.destinationAddress.location.formattedAddress =
         destAddressExist.result.formatted_address;
+         if (subTotal + VAT  !== total)
+      return next(
+        APIError.badRequest("Total amount does not match the calculated total"),
+      );
     }
+    req.body.total = Math.ceil(req.body.total);
+    qrText += `amount:${Math.round(req.body.total)}-`;
+
     const userInfo = await getAccountByGrubbexId(req.userId);
     const phoneNumber = `${userInfo.countryCode}${userInfo.phoneNumber.slice(1)}`;
     let cardPayload = {};
@@ -1760,12 +1768,14 @@ exports.getOderDistance = async (req, res, next) => {
     storeAddress = storeInfo.location;
     const dis = await getDistanceKmBetweenAddresses(
       { lat, lng },
-      { lat: storeAddress.latitude, lng: storeAddress.longitude },
+      { lat: location.latitude, lng: location.longitude },
       {
         apiKey: config.GOOGLE_MAPS_API_KEY,
         mode: CONSTANTS.TRANSPORTATION_MODE.driving,
       },
     );
+    
+
     if (dis?.error) return next(APIError.badRequest(dis.error));
     const data = {
       distance: dis.distance.text,
@@ -1776,7 +1786,7 @@ exports.getOderDistance = async (req, res, next) => {
       (dis.distance.value / 1000).toFixed(1) *
       Number(config.DELIVERY_FEE_PER_KM);
     data.deliveryPrice += Number(config.DEFAULT_DELIVERY_FEE);
-
+    
     logger.info(`Delivery Price calculated successfully `, {
       service: META.ORDER,
     });
