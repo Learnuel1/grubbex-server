@@ -47,6 +47,14 @@ exports.allOrders = async (query, page =1, limit= 14) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
+        },{
+            model:"Store",
+            path:"store",
+            select: "name description location -_id"
+        }, {
+            model: "Account",
+            path: "rider",
+            select: "firstName lastName -_id"
         }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id -orderStates._id -orderStates.by").sort({ createdAt: -1 }).limit(limit).lean();
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };

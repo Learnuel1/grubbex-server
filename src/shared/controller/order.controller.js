@@ -1164,7 +1164,6 @@ exports.getAllOrders = async (req, res, next) => {
         return next(APIError.badRequest("Invalid coordinates"));
 
       const nearByStores = await nearByStore(riderLng, riderLat);
-
       if (!nearByStores)
         return next(APIError.badRequest("No order in yor current location"));
       if (nearByStores?.error)

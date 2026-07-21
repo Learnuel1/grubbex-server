@@ -8,6 +8,7 @@ const WalletHistorySchema = new Schema({
     required: true,
     unique: true,
     trim: true,
+    index: true
   },
   user: {
     type: Schema.Types.ObjectId,
@@ -39,7 +40,6 @@ debit: {
     type: String,
     enum: Array.from(Object.values(CONSTANTS.ORDER_PAYMENT_STATUS)),
     default: CONSTANTS.ORDER_PAYMENT_STATUS.pending,
-    index: true,
   },
 
   // --- Wallet State (snapshot) ---
@@ -90,7 +90,7 @@ debit: {
 WalletHistorySchema.index({ user: 1, createdAt: -1 });
 WalletHistorySchema.index({ orderId: 1, createdAt: -1 });
 WalletHistorySchema.index({ status: 1, createdAt: -1 });
-WalletHistorySchema.index({ reference: 1 });
+// WalletHistorySchema.index({ reference: 1 });
  
 const WalletHistoryModel = model("WalletHistory", WalletHistorySchema)
 module.exports = {
