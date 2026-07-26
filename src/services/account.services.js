@@ -201,9 +201,11 @@ exports.updateToken = async (id, refreshToken, token) => {
   }
 };
 
-exports.userAccounts = async (search) => {
+exports.userAccounts = async (search, skip=0, limit=10) => {
   try {
-    return await AccountModel.find(search).select("-_id -password -refreshToken -__v");
+    const total =await AccountModel.countDocuments(search);
+    const account =  await AccountModel.find(search).select("-_id -password -refreshToken -__v").sort({createdAt: -1}).skip(skip).limit(limit).lean();
+    return {account, total };
   } catch (error) {
     if (error instanceof mongoose.Error.CastError && error.kind === 'ObjectId') {
       return  {error:'Invalid account ID format'} ;

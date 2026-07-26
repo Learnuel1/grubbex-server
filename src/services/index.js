@@ -25,7 +25,7 @@ exports.logOutUser = async (id) => AccountModule.logOut(id);
 exports.updateUserToken = async (id, refreshToken,token) => AccountModule.updateToken(id, refreshToken,token);
 exports.getUserById = async (id) => AccountModule.checkById(id);
 exports.updateUserPass = async (id, password) => AccountModule.updatePassword(id, password);
-exports.getUserAccounts = async (search) => AccountModule.userAccounts(search);
+exports.getUserAccounts = async (search,skip , limit ) => AccountModule.userAccounts(search, skip, limit );
 exports.deleteUser = async (email) => AccountModule.removeAccount(email);
 exports.userExistByEmail = async (email) => AccountModule.checkByEmail( email);
 exports.passwordRecovery = async (info) => AccountModule.passwordRecoveryInfo(info);

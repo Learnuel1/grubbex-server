@@ -160,7 +160,9 @@ exports.getNearbyStores = async (req, res, next) => {
 }
 exports.getStores = async (req, res, next ) => {
   try{
-    const { limit, skip, search } = req.query;
+    const { search } = req.query;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 10));
     let query;
     
     if(search) {
@@ -168,11 +170,24 @@ exports.getStores = async (req, res, next ) => {
       name: new RegExp(search, 'i')
     }
   } else query = {};
-  const stores = await getAllStore(query, limit, skip)
-  if (!stores) return next(APIError.badRequest("Store retrieval failed, try again"));
-  if(stores?.error) return next(APIError.badRequest(stores.error));
+  const result = await getAllStore(query, page, limit)
+  if (!result) return next(APIError.badRequest("Store retrieval failed, try again"));
+  if(result?.error) return next(APIError.badRequest(result.error));
+  const totalPages = Math.ceil(result.total / limit);
   logger.info("Stores retrieved successfully", {service: META.STORE});
-  res.status(200).json({success: true, msg: "Found", data: stores})
+  res.status(200).json({
+    success: true,
+    msg: "Found",
+    data: result.stores,
+    pagination: {
+      page,
+      limit,
+      total: result.total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  })
   } catch (error) {
     next(error);
   }

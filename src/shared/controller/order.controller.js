@@ -1905,6 +1905,7 @@ exports.getAcceptedOrders = async (req, res, next) => {
       query.orderId = new RegExp(search, "i");
     }
     const { orders, total } = await getRiderOrder(query, skip, limit);
+      const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
     if (!orders) {
       return res.status(200).json({
         success: true,
@@ -1923,7 +1924,7 @@ exports.getAcceptedOrders = async (req, res, next) => {
       });
     }
     if (orders?.error) return next(APIError.badRequest(orders.error));
-    const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+  
 
     return res.status(200).json({
       success: true,

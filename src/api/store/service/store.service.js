@@ -141,13 +141,17 @@ exports.nearByStore = async (longitude, latitude) => {
     return {error:error.message}
   }
 }
-exports.allStore = async (query ={}, limit, skip) => {
+exports.allStore = async (query = {}, page = 1, limit = 10) => {
   try {
-      const stores = await KYCModel.find(query).populate([{
-      path: "user",
-      select: "likes status rating -_id"
-    }]).select("-__v -_id -store._id -category._id -locationStatus -updatedAt -likers -viewers -user -reviews -profile.logo.id -profile.banner.id -bankDetails -documents -rejection -insurance -store.category._id -logistics").skip(skip).limit(limit)
-    return stores || [];
+    const skip = (page - 1) * limit;
+    const [stores, total] = await Promise.all([
+      KYCModel.find(query).populate([{
+        path: "user",
+        select: "likes status rating -_id"
+      }]).select("-__v -_id -store._id -category._id -locationStatus -updatedAt -likers -viewers -user -reviews -profile.logo.id -profile.banner.id -bankDetails -documents -rejection -insurance -store.category._id -logistics").skip(skip).limit(limit),
+      KYCModel.countDocuments(query),
+    ]);
+    return { stores, total };
   } catch (error) {
     return {error: error.message}
   }

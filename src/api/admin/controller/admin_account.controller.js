@@ -87,6 +87,9 @@ exports.defaultAdminAccount = async () => {
 exports.getAdminAccounts = async (req, res, next) => {
   try {
     const {search} = req.query;
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit)) || 10);
+    const skip = (page - 1) * limit;
     const searchQuery = {
           $or:[
             {email: new RegExp(search, 'i')},
@@ -103,10 +106,38 @@ exports.getAdminAccounts = async (req, res, next) => {
 
           ]
          }
-      const account = await adminAccounts(searchQuery);
-      if(account || account.length === 0) return res.status(200).json({success: true, msg: "No record found", account})
-      logger.info('Account Found', { service: META.ACCOUNT }); 
-      res.status(200).json({success: true, msg: "Found", account});
+      const {account, total} = await adminAccounts(searchQuery, skip, limit);
+     const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+    if ( !account || account.length === 0)
+      return  res.status(200).json({
+    success: true, 
+    msg: "No record found", 
+    account, 
+    count: 0, 
+    total, pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    } })
+    logger.info('Account Found', { service: META.ACCOUNT }); 
+    res.status(200).json({
+      success: true, 
+      msg: "Found", 
+      account,
+      count: 0, 
+    total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    }
+    });
   } catch (error) {
     next(error)
   }
@@ -114,6 +145,9 @@ exports.getAdminAccounts = async (req, res, next) => {
 exports.getAccounts = async (req, res, next) => {
   try {
     const {search} = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit)) || 10);
+    const skip = (page - 1) * limit;
     const searchQuery = {
           $or:[
             {email: new RegExp(search, 'i')},
@@ -129,11 +163,38 @@ exports.getAccounts = async (req, res, next) => {
              
           ]
          }
-    const account = await getUserAccounts(searchQuery);
+    const {account, total} = await getUserAccounts(searchQuery, skip, limit);
+      const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
     if ( !account || account.length === 0)
-      return  res.status(200).json({success: true, msg: "No record found", account})
+      return  res.status(200).json({
+    success: true, 
+    msg: "No record found", 
+    account, 
+    count: 0, 
+    total, pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    } })
     logger.info('Account Found', { service: META.ACCOUNT }); 
-    res.status(200).json({success: true, msg: "Found", account});
+    res.status(200).json({
+      success: true, 
+      msg: "Found", 
+      account,
+      count: 0, 
+    total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    }
+    });
   } catch (error) {
     next(error);
   }
@@ -141,6 +202,9 @@ exports.getAccounts = async (req, res, next) => {
 exports.getBusinessAccounts = async (req, res, next) => {
   try {
     const {search} = req.query;
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+     const skip = (page - 1) * limit;
     const searchQuery = {
           $or:[
             {email: new RegExp(search, 'i')},
@@ -156,11 +220,37 @@ exports.getBusinessAccounts = async (req, res, next) => {
              
           ]
          }
-    const account = await getUserAccounts(searchQuery);
+    const {account, total} = await getUserAccounts(searchQuery, skip, limit);
+    const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
     if ( !account || account.length === 0)
-      return  res.status(200).json({success: true, msg: "No record found", account})
+      return  res.status(200).json({
+    success: true, 
+    msg: "No record found", 
+    account,  
+    total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    } })
     logger.info('Account Found', { service: META.ACCOUNT }); 
-    res.status(200).json({success: true, msg: "Found", account});
+    res.status(200).json({
+      success: true, 
+      msg: "Found", 
+      account, 
+    total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    }
+    });
   } catch (error) {
     next(error);
   }
@@ -168,6 +258,9 @@ exports.getBusinessAccounts = async (req, res, next) => {
 exports.getDriverAccounts = async (req, res, next) => {
   try {
     const {search} = req.query;
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+     const skip = (page - 1) * limit;
     const searchQuery = {
           $or:[
             {email: new RegExp(search, 'i')},
@@ -183,11 +276,37 @@ exports.getDriverAccounts = async (req, res, next) => {
              
           ]
          }
-    const account = await getUserAccounts(searchQuery);
+    const {account, total} = await getUserAccounts(searchQuery, skip, limit);
+    const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
     if ( !account || account.length === 0)
-      return  res.status(200).json({success: true, msg: "No record found", account})
+      return  res.status(200).json({
+    success: true, 
+    msg: "No record found", 
+    account,  
+    total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    } })
     logger.info('Account Found', { service: META.ACCOUNT }); 
-    res.status(200).json({success: true, msg: "Found", account});
+    res.status(200).json({
+      success: true, 
+      msg: "Found", 
+      account, 
+    total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    }
+    });
   } catch (error) {
     next(error);
   }

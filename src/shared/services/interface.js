@@ -37,7 +37,7 @@ exports.findUserByCustomId = async (userId) => await TemporalModules.findUserByC
 //ACCOUNT SECTION
 exports.removeAccount = async (userId, userType) => await AccountModules.delete(userId, userType);
 exports.createAccount = async (data) => await AccountModules.registerAccount(data);
-exports.adminAccounts = async (search) => await AccountModules.admins(search);
+exports.adminAccounts = async (search, skip, limit) => await AccountModules.admins(search, skip, limit);
 
 // SUBSCRIPTION SECTION
 exports.subscribe = async (info) =>  await SubscriptionModule.create(info);

@@ -200,9 +200,13 @@ exports.delete = async (userId, userType) => {
   }
 };
 
-exports.admins = async (search) => {
+exports.admins = async (search, skip = 0, limit =10) => {
   try {
-    return await AccountModel.find(search).select("-_id -password -refreshToken -__v");
+    const total = await AccountModel.countDocuments(search);
+    const account = await AccountModel.find(search).select("-_id -password -refreshToken -__v").sort({createdAt: -1}).skip(skip)
+    .limit(limit)
+    .lean();
+    return {total, account};
   } catch (error) {
     return {error}
   }
