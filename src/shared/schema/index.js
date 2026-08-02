@@ -15,10 +15,9 @@ const { ZLikeRatingSchema } = require("./like.schema");
 const { ZReviewSchema } = require("./review.schema");
 const { ZPromotionSchema } = require("./promotion.schema");
 const { ZShippingAddressSchema } = require("./shipping.address.schema");
-const { ZOrderSchema } = require("./order.schema");
+const { ZOrderSchema, ZOrderIdSchema } = require("./order.schema");
 const { ZPayoutSchema } = require("./payout.schema");
-const { ZShopperUpdateSchema } = require("./shopper.update.schema");
-
+const { ZShopperUpdateSchema } = require("./shopper.update.schema"); 
 module.exports = {
   ZAccountSchema,
   ZProfileSchema,
@@ -46,5 +45,6 @@ module.exports = {
   ZShippingAddressSchema,
   ZOrderSchema,
   ZPayoutSchema,
-  ZShopperUpdateSchema
+  ZShopperUpdateSchema,
+  ZOrderIdSchema
 }

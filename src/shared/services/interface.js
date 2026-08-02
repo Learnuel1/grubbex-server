@@ -131,6 +131,7 @@ exports.updateCompletedOrder = async (info, reference) => await OrderModule.upda
 exports.storeOrders = async (query, page, limit) => await OrderModule.allOrders(query, page, limit);
 exports.updateOrderStatus = async (query, status) => await OrderModule.updateOrderStatus(query, status);
 exports.getOrderById = async (orderId) => await OrderModule.orderById(orderId);
+exports.getOrderByIdForReturn = async (orderId) => await OrderModule.orderByIdForReturn(orderId);
 exports.getOrderByIdForVerification = async (orderId) => await OrderModule.orderByIdForAuth(orderId);
 exports.updateOrderVerificationInfo = async (info) => await OrderModule.updateOrderByIdForAuth(info);
 exports.getOrderByQRData = async (info) => await OrderModule.findOrderByQRInfo(info);

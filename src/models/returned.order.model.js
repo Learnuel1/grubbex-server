@@ -23,10 +23,6 @@ const ReturnedOrderSchema = new Schema({
         trim: true,
         description: "Store ID"
     },
-    items: [{
-        type: Schema.Types.Mixed, // Replace with your Product schema reference if available
-        required: true
-    }],
     rider: {
         type: Types.ObjectId,
         ref: 'Account',
@@ -127,29 +123,7 @@ const ReturnedOrderSchema = new Schema({
         trim: true,
         required: true
     },
-    subTotal: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    total: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    vat: {
-        type: Number,
-        min: 0,
-        default: 0
-    },
-    promoCode: [{
-        type: String
-    }],
-    discount: {
-        type: Number,
-        min: 0,
-        default: 0
-    },
+     
     shopper: {
         type: Types.ObjectId,
         ref: 'Account',
@@ -160,11 +134,7 @@ const ReturnedOrderSchema = new Schema({
         enum: Object.values(CONSTANTS.PAYMENT_TYPE_OBJ),
         required: true
     }, 
-    status: {
-        type: String,
-        enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ),
-        default: CONSTANTS.ORDER_STATUS_OBJ.pending
-    },
+     
     storeStatus: {
         type: String,
         enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ),
@@ -185,11 +155,7 @@ const ReturnedOrderSchema = new Schema({
         enum: Object.values(CONSTANTS.ORDER_TYPE_OBJ),
         required: true
     },
-    reference: {
-        type: String,
-        required: true,
-        unique: true
-    },
+     
     qrText: {
         type: String,
         required: [true, "Order QR text is required"],
@@ -210,11 +176,7 @@ const ReturnedOrderSchema = new Schema({
             required: false
         }
     },
-    note: {
-        type: String,
-        maxlength: 500,
-        required: false, 
-    },
+    
     reason: {
         type: String,
         maxlength: 500,
@@ -247,26 +209,7 @@ riderCurrentLocation: {
     latitude: { type: Number, default:0 },
     longitude: { type: Number,default:0 }
 }, 
-orderStates: [{
-    status:{
-        type: String, 
-        enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ),
-        default: CONSTANTS.ORDER_STATUS_OBJ.pending 
-       },
-    date: {
-       type: Date, 
-        default: new Date,
-    },
-    by: { 
-        type: Schema.Types.ObjectId,
-        ref: "Account",
-    },
-    type:{
-        type: String,
-    },
-    currentState: {type: String, 
-        enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ)}
-}],
+
 returnedOrderStates: [{
     status:{
         type: String, 
@@ -287,24 +230,7 @@ returnedOrderStates: [{
     currentState: {type: String, 
         enum: Object.values(CONSTANTS.ORDER_STATUS_OBJ)}
 }],
-payment: [ {
-        amount: {
-            type: Number,
-            default: 0,
-            
-        },
-        status: {
-            type: String,
-            enum: Array.from(Object.values(CONSTANTS.ORDER_PAYMENT_STATUS)),
-            default: CONSTANTS.ORDER_PAYMENT_STATUS.pending
-        },
-        date: {
-            type: Date,
-            required: true,
-            default: new Date(),
-        }
-    }
-    ],
+
 returnedPayment: [ {
         amount: {
             type: Number,

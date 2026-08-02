@@ -17,9 +17,10 @@ const ShippingAddressCtrl = require("./controller/shipping.address.controller");
 const ProductModule = require("../api/store");
 const OrderController = require("./controller/order.controller");
 const WalletController = require("./controller/wallet.controller");
-const PayoutController = require("./controller/payout.controller")
-const LocationController = require("./controller/location.controller")
-const buildRes = require("./utils/seedData")
+const PayoutController = require("./controller/payout.controller");
+const LocationController = require("./controller/location.controller");
+const buildRes = require("./utils/seedData");
+const ReturnedOrderController = require("./controller/returned.order.controller");
 module.exports =  {
   Controllers: {
     TempController,
@@ -37,7 +38,8 @@ module.exports =  {
     OrderController,
     WalletController,
     PayoutController,
-    LocationController
+    LocationController,
+    ReturnedOrderController
   },
   Modules: {
     ProductModule,

@@ -201,3 +201,11 @@ exports.ZOrderSchema = z.object({
         invalid_type_error: "Order note must be a string",
     }).max(500, { message: "Order note cannot exceed 500 characters" }).optional(),    
 }); 
+exports.ZOrderIdSchema = z.object({
+    orderId: z.string({
+        description: "Order ID",
+        required_error: "Order ID is required",
+        invalid_type_error: "Order ID is invalid"
+    }).min(20, {message: "Order ID must be 20 characters"})
+    .max(20, {message: "Order ID cannot exceed 20 characters"})
+})

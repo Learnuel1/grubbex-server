@@ -321,7 +321,7 @@ exports.deleteAccount = async (req, res, next) => {
     const account = await deleteUser(email);
     if (!account) return next(APIError.customError("No Account found", 404));
     if (account.error) return next(APIError.customError(account.error, 400));
-    logger.info("Delete account successful", { meta:"account-service" });
+    logger.info("Delete account successful", { service: META.ACCOUNT });
     res
       .status(200)
       .json({ success: true, msg: "Account deleted successfully" });
@@ -339,7 +339,7 @@ exports.deleteAdminAccount = async (req, res, next) => {
     const account = await deleteUser(email.trim());
     if (!account) return next(APIError.customError("No Account found", 404));
     if (account.error) return next(APIError.customError(account.error, 400));
-    logger.info("Delete account successful", { meta:"account-service" });
+    logger.info("Delete account successful", { service: META.ACCOUNT });
     res
       .status(200)
       .json({ success: true, msg: "Account deleted successfully" });

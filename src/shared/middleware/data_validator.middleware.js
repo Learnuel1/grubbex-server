@@ -155,7 +155,14 @@ module.exports = {
         }  
       }
     }
- 
+    if(schema === "ZOrderIdSchema") {
+      let {orderId} = req.query;
+      if(orderId) req.body.orderId = orderId ;
+      if(!orderId) orderId = req.params.orderId;
+      if(orderId) req.body.orderId = orderId 
+      if(!orderId) orderId = req.body.orderId;
+       
+    }
     Schemas[schema].parse(req.body); 
      next();
    }catch(error){

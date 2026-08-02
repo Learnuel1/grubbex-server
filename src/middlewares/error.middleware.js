@@ -4,12 +4,7 @@ const {fromZodError} = require("zod-validation-error");
 const { mongoose } = require("mongoose");
 const { JsonWebTokenError } = require("jsonwebtoken");
 
-exports.notFound = (_req, res, _next) => {
-  const err = new Error("Route Not Found");
-  err.status = 404;
-  logger.error(err, {service:"error"});
-  res.status(err.status).json({ error: err.message });
-};
+
 
 exports.errorHandler = (err, _req, res, _next) => {
   logger.error(err,{service:"error"});
@@ -60,4 +55,11 @@ exports.errorHandler = (err, _req, res, _next) => {
       .status(err.status || 404)
       .json({ error: "No Internet connection" });
   res.status(err.status || 500).json({ error: err.message || "Unknown error" });
+};
+
+exports.notFound = (_req, res, _next) => {
+  const err = new Error("Route Not Found");
+  err.status = 404;
+  logger.error(err, {service:"error"});
+  res.status(err.status).json({ error: err.message });
 };
