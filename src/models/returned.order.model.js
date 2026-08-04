@@ -176,7 +176,11 @@ const ReturnedOrderSchema = new Schema({
             required: false
         }
     },
-    
+    pickupType: {
+        type: String,
+        require: true,
+        enum: ["rider", "dropOff"],
+    },
     reason: {
         type: String,
         maxlength: 500,
@@ -186,6 +190,10 @@ const ReturnedOrderSchema = new Schema({
             id:String,
             url: String
     }],
+    video: {
+        id: String,
+        url: String,
+    },
     auth: {
     pickedUpAt: {
         type: Date,

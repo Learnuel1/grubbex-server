@@ -209,3 +209,29 @@ exports.ZOrderIdSchema = z.object({
     }).min(20, {message: "Order ID must be 20 characters"})
     .max(20, {message: "Order ID cannot exceed 20 characters"})
 })
+
+exports.ZReturnOrderSchema = z.object({
+     orderId: z.string({
+        description: "Order ID",
+        required_error: "Order ID is required",
+        invalid_type_error: "Order ID is invalid"
+    }).min(20, {message: "Order ID must be 20 characters"})
+    .max(20, {message: "Order ID cannot exceed 20 characters"}),
+    reason: z.string({
+        description: "Reason for returning the item",
+        validation_error: "Reason for item return is required",
+        invalid_type_error: "Reason for item return is invalid"
+    }).min(10,{message: "Reason for item item return should be at least 0 character"})
+    .max(100, {message: "Reason for item return cannot exist 100 characters"}),
+    additionDetail: z.string({
+        description: "Addition details",
+        validation_error: "Addition info for item turning"
+    }).min(20,{message: "Addition info should be 20 character or more "})
+    .max(200, {message: "Additional info cannot exceed 200 characters"})
+    .optional(),
+    returnType: z
+    .enum(["pickup", "dropOff"])
+    .refine((val) => val === "pickup" || val === "dropOff", {
+    message: "Return type must be either 'pickup' or 'dropOff'",
+  }),
+})

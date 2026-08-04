@@ -67,6 +67,18 @@ exports.returnOrderItem = async (req, res, next) => {
       logger.info(`${otherImages?.length} images uploaded successfully for order return'`, {
         service: META.CLOUDINARY,
       });
+      if(req?.files?.video){
+        const {video } = req.files;
+        const vid = await uploadSingleFileToCloudinary(video, req);
+        if(vid?.error) return next(APIError.badRequest(vid.message));
+        req.body.video = {
+          id: vid.public_id,
+          url: vid.secure_url,
+        }
+        logger.info(`${otherImages?.length} Video uploaded successfully for order return'`, {
+        service: META.CLOUDINARY,
+      });
+      }
     }
     const fields = orderExist.toObject();
     const returnedOrder = {
