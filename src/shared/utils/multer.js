@@ -9,21 +9,20 @@ const imageFilter = (req, file, cb) => {
 		 cb(new Error("Invalid file format or size (1mb or less)"))
 	}
 }
-const fileFilter = (req, file, cb) => {
+const fileFilter = (req, file, cb) => { 
 	if (CONSTANTS.KYC_FORMAT.includes(file.mimetype)) {
 		cb(null, true)
-	} else if(file.mimetype.startsWith("video/")){
-		videoFilter(req,file, cb);
 	} else {
 		cb(null, false)
 		 cb(new Error("Invalid file format or size (3mb or less)"))
 	}
 }
 const videoFilter = (req, file, cb) => {
-	console.log(file)
-	if ( file.mimetype.startsWith("video/")) {
+	if (CONSTANTS.IMAGE_FORMAT.includes(file.mimetype)) {
+		imageFilter(req, file, cb);
+	}else if ( file.mimetype.startsWith("video/")) {
 		cb(null, true)
-	} else {
+	}  else {
 		cb(null, false)
 		 cb(new Error("Invalid file format or size (10mb or less)"))
 	}
@@ -46,7 +45,7 @@ const multerFile = multer({
 const multerVideo = multer({
 	storage: multer.diskStorage({}),
 	limits: {
-		fileSize: 1020 *1024 * 10
+		fileSize: 1024 * 1024 * 10
 	},
 	fileFilter: videoFilter
 })

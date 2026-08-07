@@ -58,6 +58,20 @@ const accessPath = {
     return {error}
   }
 }
+ const uploadVideoFileToCloudinary = async (file, req)=> {
+  try{ 
+    file.filename = file.originalname +req.userId + new Date(); 
+    const upload = await cloudinary.uploader.upload(file.path, {
+        resource_type: 'video',
+        upload_preset:accessPath.preset,
+        folder: accessPath.folder,
+        chunk_size: 6000000 
+        });
+    return upload;
+  }catch(error){
+    throw error;
+  }
+}
  const deleteFileFromCloudinary = async (fileId)=> {
   try{   
   const upload = await cloudinary.uploader.destroy(fileId, {
@@ -89,4 +103,5 @@ module.exports = {
 deleteFileFromCloudinary,
 uploadSingleFileToCloudinary,
 uploadBase64ToCloudinary,
+uploadVideoFileToCloudinary,
 };

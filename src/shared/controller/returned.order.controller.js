@@ -1,15 +1,17 @@
 const { CONSTANTS } = require("../../config");
 const logger = require("../../logger");
 const { APIError } = require("../../utils/apiError");
-const { returnOrder, getOrderByIdForReturn } = require("../services/interface");
+const { returnOrder, getOrderByIdForReturn, getStoreAddressWithId } = require("../services/interface");
 const { META } = require("../utils/actions");
-const { uploadFileToCloudinary } = require("../utils/cloudinary");
+const { uploadFileToCloudinary, uploadVideoFileToCloudinary } = require("../utils/cloudinary");
 
 exports.returnOrderItem = async (req, res, next) => {
   try {
-    const { orderId, reason } = req.body;
+    const { orderId, items } = req.body;
+  
     if(!orderId) return next(APIError.badRequest("Order ID to return is required"));
-    if(!reason) return next(APIError.badRequest("Provide reason for the return"));
+    if(!items || items.length === 0) return next(APIError.badRequest("Select item to return"));
+      const itemArray = JSON.parse(items);
     // very file that order exist
     const findOrder = await getOrderByIdForReturn(orderId);
     let orderExist ;
@@ -23,7 +25,42 @@ exports.returnOrderItem = async (req, res, next) => {
     }
     // if(orderExist.status !== CONSTANTS.ORDER_STATUS_OBJ.delivered && orderExist.type === CONSTANTS.ORDER_TYPE_OBJ.delivery) return next(APIError.badRequest("Order cannot be returned because it is yet to be delivered"));
     // else if(orderExist.status !== CONSTANTS.ORDER_STATUS_OBJ.delivered && orderExist.type === CONSTANTS.ORDER_TYPE_OBJ.pickup) return next(APIError.badRequest("Order cannot be returned because it is yet to be picked up"));
+    const returnedItemsExist = [];
+    let subTotal =0;
+    for( let item of orderExist.items){
+      const exist = itemArray.find(x => x.prodId === item.prodId);
+      if(!exist) throw new Error("A select item was not found in the order");
+      item.reason = exist.reason;
+      returnedItemsExist.push(item);
+      itemArray.splice(itemArray.indexOf(exist,1));
+      subTotal += item.price;
+    }
      
+     const {auth, ...fields} = orderExist.toObject();
+     
+    const returnedOrder = {
+        ...fields, 
+        items: returnedItemsExist,
+        returnStatus: CONSTANTS.ORDER_STATUS_OBJ.pending,
+        adminStatus: CONSTANTS.ORDER_STATUS_OBJ.pending,
+        returnedOrderStates: {
+            status:CONSTANTS.ORDER_STATUS_OBJ.pending,
+            date: new Date(),
+            by: req.user,
+            type: req.userType,
+            currentState: CONSTANTS.ORDER_STATUS_OBJ.pending
+        },
+        reason: req.body?.reason,
+    }
+    // get store address;
+    
+    const storeInfo = await getStoreAddressWithId(fields.storeId);
+        if (storeInfo.location.hasOwnProperty("latitude") === false)
+          return next(APIError.badRequest("Store address could not be verified"));
+        let storeAddress = null;
+        const { location } = storeInfo;
+        returnedOrder.destinationAddress = location;
+ 
     if(req?.files?.length === 0) return next(APIError.badRequest("Provide product images to returned"));
     
     // other images
@@ -67,34 +104,23 @@ exports.returnOrderItem = async (req, res, next) => {
       logger.info(`${otherImages?.length} images uploaded successfully for order return'`, {
         service: META.CLOUDINARY,
       });
-      if(req?.files?.video){
+      returnedOrder.images =  [...otherImages];
+    }
+    if(req?.files?.video){
         const {video } = req.files;
-        const vid = await uploadSingleFileToCloudinary(video, req);
+        const vid = await uploadVideoFileToCloudinary(video[0], req);
         if(vid?.error) return next(APIError.badRequest(vid.message));
-        req.body.video = {
+        returnedOrder.video = {
           id: vid.public_id,
           url: vid.secure_url,
         }
-        logger.info(`${otherImages?.length} Video uploaded successfully for order return'`, {
+        logger.info(`${video?.length} Video uploaded successfully for order return'`, {
         service: META.CLOUDINARY,
       });
       }
-    }
-    const fields = orderExist.toObject();
-    const returnedOrder = {
-        ...fields,
-        images: [...otherImages],
-        returnStatus: CONSTANTS.ORDER_STATUS_OBJ.pending,
-        adminStatus: CONSTANTS.ORDER_STATUS_OBJ.pending,
-        returnedOrderStates: {
-            status:CONSTANTS.ORDER_STATUS_OBJ.pending,
-            date: new Date(),
-            by: req.user,
-            type: req.userType,
-            currentState: CONSTANTS.ORDER_STATUS_OBJ.pending
-        },
-        reason: req.body.reason,
-    }
+   
+         
+         
       console.log(returnedOrder)
     const createProduct = await returnOrder(returnedOrder);
     if (!createProduct) return next(APIError.badRequest("Returning of order failed, try again"));
@@ -105,6 +131,7 @@ exports.returnOrderItem = async (req, res, next) => {
     // notify admin
     res.status(201).json({success: true, msg: "Product created successfully"})
   } catch (error) {
+    console.log(error)
     console.log(error.message)
     next(error)
   }

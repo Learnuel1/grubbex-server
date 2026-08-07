@@ -222,7 +222,8 @@ exports.ZReturnOrderSchema = z.object({
         validation_error: "Reason for item return is required",
         invalid_type_error: "Reason for item return is invalid"
     }).min(10,{message: "Reason for item item return should be at least 0 character"})
-    .max(100, {message: "Reason for item return cannot exist 100 characters"}),
+    .max(100, {message: "Reason for item return cannot exist 100 characters"})
+    .optional(),
     additionDetail: z.string({
         description: "Addition details",
         validation_error: "Addition info for item turning"
@@ -234,4 +235,20 @@ exports.ZReturnOrderSchema = z.object({
     .refine((val) => val === "pickup" || val === "dropOff", {
     message: "Return type must be either 'pickup' or 'dropOff'",
   }),
+//   items: z.array(
+//     z.object({
+//       prodId: z.string({
+//         required_error: "Product ID is required",
+//         invalid_type_error: "Product ID must be a string"
+//       }).min(1, { message: "Product ID cannot be empty" }),
+
+//       reason: z.string({
+//         required_error: "Reason is required",
+//         invalid_type_error: "Reason must be a string"
+//       }).min(1, { message: "Reason for return is required" })
+//     })
+//   )
+//   .min(1, { message: "Provide at least 1 item to return" })
+//   .max(10, { message: "Items cannot exceed 10" })
+
 })

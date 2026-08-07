@@ -34,7 +34,11 @@ const ReturnedOrderSchema = new Schema({
         maxlength: 10,
         required: false,
         description: "Rider ID"
-    },
+    }, 
+    items: [{
+        type: Schema.Types.Mixed, // Replace with your Product schema reference if available
+        required: true
+    }],
     isAvailable: {
         type: Boolean,
         default: true
@@ -183,8 +187,7 @@ const ReturnedOrderSchema = new Schema({
     },
     reason: {
         type: String,
-        maxlength: 500,
-        required: true, 
+        maxlength: 500, 
     },
     images: [{
             id:String,
