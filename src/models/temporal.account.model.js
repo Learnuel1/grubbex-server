@@ -30,6 +30,11 @@ const TemporalAccountSchema = new Schema({
     trim: true,
     required: true,
   },
+  isOTP: {
+    type: String,
+    enum: ["checked", "unchecked", "none"],
+    default: "none"
+  }
 },
 {timestamps: true}
 );

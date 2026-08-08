@@ -74,6 +74,7 @@ exports.renewOTP = async (req, res, next) => {
       email,
       otp:hashedOTP,
       refreshToken: token,
+      isOTP: "checked",
     }; 
     const otpType = await userExistByMail(email);
     let mailTemplate = otpType ? "mfa" : "all_otp";
@@ -217,7 +218,8 @@ exports.verifyOTP = async (req, res, next) => {
     const payload = {
       id:exist._id, 
       email:exist.email, 
-      otp:hashSync(otp, 10), 
+      otp:hashSync(otp, 10),
+      isOTP: "checked", 
     }
       let registrationToken = jwt.sign(payload, config.TOKEN_SECRETE, {
         expiresIn: '1d',

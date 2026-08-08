@@ -118,10 +118,7 @@ exports.returnOrderItem = async (req, res, next) => {
         service: META.CLOUDINARY,
       });
       }
-   
-         
-         
-      console.log(returnedOrder)
+    
     const createProduct = await returnOrder(returnedOrder);
     if (!createProduct) return next(APIError.badRequest("Returning of order failed, try again"));
     if (createProduct?.error) return next(APIError.badRequest(createProduct.error));
@@ -130,9 +127,7 @@ exports.returnOrderItem = async (req, res, next) => {
 
     // notify admin
     res.status(201).json({success: true, msg: "Product created successfully"})
-  } catch (error) {
-    console.log(error)
-    console.log(error.message)
+  } catch (error) { 
     next(error)
   }
 }

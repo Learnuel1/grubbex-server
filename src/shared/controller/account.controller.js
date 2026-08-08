@@ -253,10 +253,11 @@ exports.resetPassword = async (req, res, next) => {
     if (!ref && req.userType !== CONSTANTS.ACCOUNT_TYPE_OBJ.rider && req.userType !== CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ) return next(APIError.badRequest('Recovery Link reference is required'));
     let check ;
     if(ref) check = await recoverInfoByRef(ref);
-    if (!check) check = await temporalAccExistByToken(req.token)
+    if (!check) check = await temporalAccExistByToken(req.token);
     if (!check)
       return next(APIError.badRequest("Recovery process is invalid"));
     if (check?.error) return next(APIError.badRequest(check.error));
+    if(check?.isOTP === "unchecked") return next(APIError.badRequest("Please verify OTP"))
     if (!isStrongPassword(newPassword)) return next(APIError.badRequest('Password is weak'));
     const refreshToken = check.refreshToken || req.token;
     jwt.verify(refreshToken, config.TOKEN_SECRETE, async(err, _decoded) => {
@@ -379,18 +380,22 @@ exports.sendRecoverMail = async (req, res, next) => {
       email,
       otp:hashedOTP,
       refreshToken: token,
-      user:userExist._id, 
+      user:userExist._id,
+      isOTP: "unchecked", 
     };
-    const createTemAccount = await createRecoveryTempInfo(validateRequestData("ZTemporalAccountSchema"),info);  
-    if(!createTemAccount) return next(APIError.badRequest("Recovery process failed"))
-      if(createTemAccount?.error) return next(APIError.badRequest(createTemAccount.error))
-      result = await recoveryPasswordMailHandler(
+   
+    const createTemAccount = await createRecoveryTempInfo(validateRequestData("ZTemporalAccountSchema"), info); 
+
+    if(!createTemAccount) return next(APIError.badRequest("Recovery process failed"));
+    if(createTemAccount?.error) return next(APIError.badRequest(createTemAccount.error));
+    result = await recoveryPasswordMailHandler(
       email,
-      "Password Recovery" ,
+      "Password Recovery",
       uniqueString,
       "Password Reset Request for Your Grubbex Account",
       message,
-      "Grubbex Team", otp
+      "Grubbex Team", 
+      otp
     );
     if (result.error)
       return next(APIError.badRequest('Recovery mail failed to send'));

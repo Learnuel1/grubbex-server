@@ -116,12 +116,12 @@ exports.invitationMailHandler = async (email, subject, uniqueString, title, mess
 };
 
 // password recovery
-const passwordMailOptions = (sendTo, subject, uniqueString, title, message,grubbexDept, otp) => {
+const passwordMailOptions = (sendTo, subject, uniqueString, title, message,grubbexDept, otp, template ="password_recovery") => {
   return {
     from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
     to: sendTo,
     subject,
-    template: "password_recovery",
+    template,
     context: { 
       link: otp? " ": `${config.FRONTEND_ORIGIN_URL}/password-recovery?ref=${uniqueString}`,
       company: `${CONFIG.APP_NAME}`,
@@ -140,12 +140,12 @@ const passwordMailOptions = (sendTo, subject, uniqueString, title, message,grubb
 
 exports.recoveryPasswordMailHandler = async (
   email, 
-  subject, uniqueString, title, message,grubbexDept, otp
+  subject, uniqueString, title, message, grubbexDept, otp, template
 ) => {
   return new Promise((resolve, reject) => {
     const mail = passwordMailOptions(
       email,
-      subject, uniqueString, title, message,grubbexDept, otp
+      subject, uniqueString, title, message,grubbexDept, otp, template
     );
     transporter.sendMail(mail, (err, data) => {
       if (err) { 
