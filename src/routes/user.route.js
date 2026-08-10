@@ -28,7 +28,6 @@ userRoute.use("/notification", userRequired, notifyRouter)
 userRoute.use("/store", userRequired, userStoreRouter)
 userRoute.use("/ticket", userRequired, TicketRouter)
 userRoute.patch("/update_password", userRequired, checkRouteUsed, shared.Controllers.AccController.updatePassword); 
-// userRoute.patch("/update", userRequired, checkRouteUsed, allowedRoles([CONSTANTS.ACCOUNT_TYPE_OBJ.shopper]), shared.Controllers.AccController.updateUser); 
 module.exports = {
   userRoute,
   notifyRouter,

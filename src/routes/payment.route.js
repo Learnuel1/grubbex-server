@@ -10,6 +10,7 @@ paymentRoute.post("/verify",Controller.PaymentController.verify)
 .get("/wallet", userRequired, Controller.PaymentController.walletBalance)
 .get("/verify-account", userRequired, Controller.PaymentController.verifyBankInfo)
 .get("/banks", Controller.PaymentController.getBanks)
+.get("/transaction-status", Controller.PaymentController.transactionStatus)
 
 
 module.exports = {

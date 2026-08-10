@@ -90,6 +90,7 @@ exports.CONSTANTS = {
   activities: "Activities",
   order: "Order",
   system: "System",
+  orderReturned:"OrderReturned"
   },
   CHAT_STATUS : ["sent", "delivered", "read"],
   CHAT_STATUS_OBJ : {
@@ -192,7 +193,8 @@ exports.CONSTANTS = {
       onOrderRequest: "OrderRequest",
       onOrderUpdate: "OrderUpdate",
       onOrderStatusUpdate: "OrderStatusUpdate",
-      onNewOrder: "NewOrder"
+      onNewOrder: "NewOrder",
+      onOrderReturn: "OrderReturned",
     },
     TYPE: {
       notification: "notification",

@@ -85,6 +85,9 @@ class Notification extends EventEmitter {
             case CONSTANTS.NOTIFICATION_TYPE_OBJ.system:
               subject = "System Notification";
               message = "Grubbex server is up and running";
+            case CONSTANTS.SETTING_FIELDS_OBJ.NOTIFICATION.onOrderReturn:
+              subject = "Order Returned";
+              message = "An order has been returned by a customer, login to process";
         } 
         // get notification setting
         const notificationSetting = await getNotificationSetting()

@@ -106,7 +106,7 @@ exports.orderByIdForReturn = async (orderId ) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email  picture -_id"
-        }]).select("-__v -_id -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id  -reference -qrText -store.bankDetails -paymentType -orderStates._id -orderStates.by").sort({ createdAt: -1 });
+        }]).select("-__v  -user  -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id  -reference -store.bankDetails -orderStates._id -orderStates.by").sort({ createdAt: -1 });
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }

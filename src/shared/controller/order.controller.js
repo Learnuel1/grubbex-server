@@ -79,7 +79,7 @@ const Notification = require("../utils/Notification");
 
   // create order QRCODE
           const width = 300,
-            logoSize = 80;
+             logoSize = 80;
           const logoPath = path.join(
             __dirname,
             "../../assets/img/GrubbexLogo.png",
