@@ -1,4 +1,4 @@
-const { ZProductSchema } = require("../../api/store/schema/product.schema");
+const { ZProductSchema, ZProductIDSchema } = require("../../api/store/schema/product.schema");
 const { ZStoreCategorySchema } = require("../../api/store/schema/store.category.schema");
 const { ZStoreProfileSchema } = require("../../api/store/schema/store.profile.schema");
 const { ZStoreSchema, ZCategoryPreferenceSchema } = require("../../api/store/schema/store.schema"); 
@@ -47,5 +47,6 @@ module.exports = {
   ZPayoutSchema,
   ZShopperUpdateSchema,
   ZOrderIdSchema,
-  ZReturnOrderSchema
+  ZReturnOrderSchema,
+  ZProductIDSchema
 }

@@ -8,7 +8,7 @@ const { APIError } = require("../../../shared/utils/apiError");
 const { uploadFileToCloudinary, uploadSingleFileToCloudinary, uploadBase64ToCloudinary } = require("../../../shared/utils/cloudinary");
 const { shortIdGen } = require("../../../shared/utils/Generator");
 const { generateQRCode } = require("../../../utils/validation");
-const { getStoreCategory, addNewProduct, searchUserStore, getProductsByStore, deleteProduct, updateProductStatus, getProductsByStoreId, verifyProductPromoCode, findDiscountCode, getProductsByStoreAndProdId } = require("../service");
+const { getStoreCategory, addNewProduct, searchUserStore, getProductsByStore, deleteProduct, updateProductStatus, getProductsByStoreId, verifyProductPromoCode, findDiscountCode, getProductsByStoreAndProdId, getProductByProId } = require("../service");
 exports.createProduct = async (req, res, next) => {
   try {
     const { category, subcategory } = req.body;
@@ -237,6 +237,17 @@ exports.productsByStoreOwnerByID = async (req, res, next) => {
     const storeProducts = await getProductsByStoreAndProdId(req.body.store,prodId);
     logger.info("Products retrieved successfully", {service: META.PRODUCT})
   res.status(200).json({success: true, message: "Found", products: storeProducts, total: storeProducts.length})
+  } catch(error) {
+    next (error)
+  }
+}
+exports.productByID = async (req, res, next) => {
+  try{
+    const {prodId} = req.query;
+    if(!prodId) return next (APIError.badRequest("Product ID required"));
+    const product = await getProductByProId(prodId);
+    logger.info("Product retrieved successfully", {service: META.PRODUCT})
+   res.status(200).json({success: true, message: "Found", data: product,  })
   } catch(error) {
     next (error)
   }

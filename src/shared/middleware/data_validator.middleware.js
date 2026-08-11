@@ -171,6 +171,15 @@ module.exports = {
       if(!orderId) orderId = req.body.orderId;
        
     }
+    if(schema === "ZProductIDSchema"){
+      if(req?.query?.prodId)
+        Schemas[schema].parse(req.query);
+      else if(req?.params?.prodId) 
+        Schemas[schema].parse(req.params);
+      else if(req?.body?.prodId)
+        Schemas[schema].parse({prodId});
+
+    }
     Schemas[schema].parse(req.body); 
      next();
    }catch(error){
