@@ -63,59 +63,106 @@ exports.removeProduct = async (prodId, store) => {
     return {error: error.message}
   }
 }
-exports.searchProductsForShopper = async (query) =>{
+exports.searchProductsForShopper = async (query, skip =0, limit=20) =>{
   try{
-    const data = await ProductModel.find(query).populate([
-     { 
-      model: "Store",
-      path: "store",
-      select: "-_id -__v -createdAt -updatedAt -category -user",
-      sort: {rating: 1, likes: 1},
+
+    const populateOptions = [
+  {
+    model: "Store",
+    path: "store",
+    select: "-_id -__v -createdAt -updatedAt -category -user",
+    sort: { rating: 1, likes: 1 }
+  },
+  {
+    model: "Like",
+    path: "likers",
+    select: "userId -_id"
+  },
+  {
+    model: "Review",
+    path: "reviews",
+    select: "userId -_id"
+  },
+  {
+    model: "Like",
+    path: "raters",
+    select: "userId -_id"
+  }
+];
+const selectedFields = "-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id";
+  let [products, totalCount] = await Promise.all([
+    ProductModel.find(query)
+      .populate(populateOptions)
+      .sort({ rating: 1, likes: 1 })
+      .select(selectedFields)
+      .skip(skip)
+      .limit(limit)
+      .exec(),
+    ProductModel.countDocuments(query)
+  ]);
+   if(products.length === 0){
+    [products, totalCount] = await Promise.all([
+    ProductModel.find({status: CONSTANTS.CATEGORY_STATUS_OBJ.published})
+      .populate(populateOptions)
+      .sort({ rating: 1, likes: 1 })
+      .select(selectedFields)
+      .skip(skip)
+      .limit(limit)
+      .exec(),
+    ProductModel.countDocuments(query)
+      ]);
+   } 
+    // const data = await ProductModel.find(query).populate([
+    //  { 
+    //   model: "Store",
+    //   path: "store",
+    //   select: "-_id -__v -createdAt -updatedAt -category -user",
+    //   sort: {rating: 1, likes: 1},
       
-    },
-     {
-        model: "Like",
-        path: "likers",
-        select: "userId -_id"  
-       },
-       {
-        model: "Review",
-        path: "reviews",
-        select: "userId -_id"  
-       },
-       {
-        model: "Like",
-        path: "raters",
-        select: "userId -_id"  
-       }
-    ]).sort({rating:1, likes:1}).select("-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id").limit(20).exec();
-    if( data?.length === 0){
-    return  await ProductModel.find({status: CONSTANTS.CATEGORY_STATUS_OBJ.published}).populate([
-        { 
-         model: "Store",
-         path: "store",
-         select: "-_id -__v -createdAt -updatedAt -category -user ",
-         sort: {rating: 1, likes: 1}
-       },
-       {
-        model: "Like",
-        path: "likers",
-        select: "userId -_id"  
-       },
-       {
-        model: "Review",
-        path: "reviews",
-        select: "userId -_id"  
-       },
-       {
-        model: "Like",
-        path: "raters",
-        select: "userId -_id"  
-       }
+    // },
+    //  {
+    //     model: "Like",
+    //     path: "likers",
+    //     select: "userId -_id"  
+    //    },
+    //    {
+    //     model: "Review",
+    //     path: "reviews",
+    //     select: "userId -_id"  
+    //    },
+    //    {
+    //     model: "Like",
+    //     path: "raters",
+    //     select: "userId -_id"  
+    //    }
+    // ]).sort({rating:1, likes:1}).select("-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id").skip(skip).limit(limit).exec();
+    // if( data?.length === 0){
+    // return  await ProductModel.find({status: CONSTANTS.CATEGORY_STATUS_OBJ.published}).populate([
+    //     { 
+    //      model: "Store",
+    //      path: "store",
+    //      select: "-_id -__v -createdAt -updatedAt -category -user ",
+    //      sort: {rating: 1, likes: 1}
+    //    },
+    //    {
+    //     model: "Like",
+    //     path: "likers",
+    //     select: "userId -_id"  
+    //    },
+    //    {
+    //     model: "Review",
+    //     path: "reviews",
+    //     select: "userId -_id"  
+    //    },
+    //    {
+    //     model: "Like",
+    //     path: "raters",
+    //     select: "userId -_id"  
+    //    }
         
-       ]).sort({rating:1, likes:1}).select("-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id").limit(20).exec();
-    }
-    return data;
+    //    ]).sort({rating:1, likes:1}).select("-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id").skip(skip).limit(limit).exec();
+    // }
+    return { products, totalCount};
   } catch (error) {
     return {error : error.message};
   }

@@ -30,7 +30,7 @@ exports.getProductsByStoreId = async (storeId) => await ProductModule.productsBy
 exports.getFilteredProducts = async (query) => await ProductModule.searchProductInStore(query);
 exports.updateProductStatus = async (info) => await ProductModule.updateProductStatus(info);
 exports.deleteProduct = async (prodId, store) => await ProductModule.removeProduct(prodId, store); 
-exports.getShopperFilteredProducts = async (query) => await ProductModule.searchProductsForShopper(query)
+exports.getShopperFilteredProducts = async (query, skip, limit) => await ProductModule.searchProductsForShopper(query, skip, limit)
 exports.verifyProductPromoCode = async (code) => await ProductModule.verifyPromoCode(code);
 exports.findDiscountCode = async (discountCode) => await ProductModule.promoCodeExist(discountCode);
 exports.getStoreByProductId = (prodId) => ProductModule.storeInfoByProductId(prodId);
