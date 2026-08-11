@@ -17,9 +17,8 @@ Router.get("/payment/success", async (req, res, next) => {
   try {
 
   if (!reference) return next(APIError.badRequest('Missing transaction reference'));
-
     const response = await axios.get(
-      `https://api.paystack.co/transaction/verify/${reference}`,
+      `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
       {
         headers: { Authorization: `Bearer ${config.PAYSTACK_SECRETE_KEY}` },
       }

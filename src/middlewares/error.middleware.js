@@ -3,6 +3,7 @@ const logger = require("../logger");
 const {fromZodError} = require("zod-validation-error");
 const { mongoose } = require("mongoose");
 const { JsonWebTokenError } = require("jsonwebtoken");
+const { AxiosError }  = require("axios");
 
 
 
@@ -49,6 +50,10 @@ exports.errorHandler = (err, _req, res, _next) => {
   }
   if (err.message?.toLowerCase().includes("file too large")) {
     return  res.status(400).json({ error: err.message});
+  }
+ if (err instanceof AxiosError){
+    err.status = err.response?.status;
+   return res.status(err.status || 400).json({error: err.response.data.message})
   }
   if (err.error)
     return res

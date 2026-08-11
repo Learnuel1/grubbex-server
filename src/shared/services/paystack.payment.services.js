@@ -5,6 +5,7 @@ const TemporalTransactionModel = require('../../models/temporal.transaction');
 const { default: axios } = require('axios');
 const config = require('../../config/env');
 const { createTemporalTransfer } = require('./interface');
+const { AxiosError } = require('axios');
 exports.payWithCard = async (payload) => {
     const params = JSON.stringify({
         email: payload.email, 
@@ -53,6 +54,9 @@ exports.verifyTransaction = async (reference) => {
                 
                 return {error: response.data || 'Payment verification failed.'};
         } catch(error) {
+          if(error instanceof AxiosError){
+            return {error: error.response.data.message}
+          }
             return {error:error.message }
         }
     }
@@ -98,6 +102,9 @@ exports.deleteTemporalTransaction = async (query) => {
       throw new Error(response.data.message);
     }
   } catch (error) {
+    if(error instanceof AxiosError){
+            return {error: error.response.data.message}
+      }
     return {error: error.response?.data || error.message};
   }
 }
