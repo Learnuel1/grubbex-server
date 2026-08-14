@@ -1196,11 +1196,11 @@ exports.getAllOrders = async (req, res, next) => {
     }
 
     // get order
-    const orders = await storeOrders(query, page, limit);
+    const {orders, totalCount} = await storeOrders(query, skip, limit);
     if (!orders) return next(APIError.notFound("No orders found"));
     if (orders?.error) return next(APIError.badRequest(orders.error));
     logger.info("Orders fetched successfully", { service: META.ORDER });
-    const totalPages = Math.ceil(orders.length / limit);
+    const totalPages = Math.ceil(totalCount / limit);
 
     // get store pending balance
     query.$and = [
@@ -1219,12 +1219,12 @@ exports.getAllOrders = async (req, res, next) => {
         msg:
           orders.length > 0 ? "Orders retrieved successfully" : "No order yet",
         data: orders,
-        count: orders.length,
+        count: totalCount,
         processingBalance,
         pagination: {
           page,
           limit,
-          total: orders.length,
+          total: totalCount,
           hasNext: page < totalPages,
           hastPrev: page > 1,
         },
@@ -1235,11 +1235,11 @@ exports.getAllOrders = async (req, res, next) => {
         msg:
           orders.length > 0 ? "Orders retrieved successfully" : "No order yet",
         data: orders,
-        count: orders.length,
+        count: totalCount,
         pagination: {
           page,
           limit,
-          total: orders.length,
+          total: totalCount,
           hasNext: page < totalPages,
           hastPrev: page > 1,
         },
@@ -2229,5 +2229,107 @@ exports.verifyDeliveryByQRCodeAndCode = async (req, res, next) => {
     if (error.message === ERROR_FIELD.JWT_EXPIRED && sectionUsed === "QRcode")
       next(APIError.badRequest("Delivery QR CODE expired"));
     else next(error);
+  }
+};
+exports.getReturnedOrderQRCode = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    if (!orderId) return next(APIError.badRequest("Order ID is required"));
+    const query = {};
+    if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
+      query.storeId = req.storeId;
+    } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.shopper) {
+      query.shopper = req.user;
+    } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.rider) {
+      query.rider = req.user;
+    } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.admin) {
+      query.orderId = orderId;
+    }
+
+    const order = await findOrderForQRCodeGeneration(orderId, query);
+    if (!order) return next(APIError.notFound("Order not Found"));
+    if (order?.error) return next(APIError.badRequest(order.error));
+    if(order.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup && req.userType !== CONSTANTS.ACCOUNT_TYPE_OBJ.shopper) return next(APIError.badRequest("Order has been pickup already"))
+    if (order.qrCode && order.qrCode.url) {
+      // delete existing QR code from cloudinary
+      const deleteQrCode = await deleteFileFromCloudinary(order.qrCode.id);
+      if (deleteQrCode?.error)
+        logger.error(deleteQrCode.error, { service: META.CLOUDINARY });
+      logger.info("Existing Order QR code deleted successfully", {
+        service: META.ORDER,
+      });
+    }
+    //const logoPath = path.join(__dirname, "../assets/img/GrubbexLogo.png");
+    const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
+    // const qrCode = await qrcodeService.generateQRCodeWithLogo(
+    //   order.qrText.concat(expiresAt),
+    //   logoPath,
+    //   (width),
+    //   (logoSize),
+    // );
+     const pickUpCode = OTPGen().toString(); 
+     const qrText = `${order.qrText}-${shortIdGen()}:${pickUpCode}`;
+     const qrCode = await qrcodeService.generateQRCodeWithLogo(
+            qrText,
+            logoPath,
+            {
+              width,
+              logoSize,
+              errorCorrectionLevel: "H",
+            },
+          );
+    if (!qrCode) return next(APIError.badRequest("Failed to generate QR code"));
+    if (qrCode?.error) return next(APIError.badRequest(qrCode.error));
+    const qrCodeUpload = await uploadBase64ToCloudinary(qrCode, req);
+    if (qrCodeUpload?.error)
+      return next(APIError.badRequest(qrCodeUpload.message));
+    if (!qrCodeUpload)
+      return next(APIError.badRequest("Failed to upload QR code"));
+    logger.info("Order QR code generated and uploaded successfully", {
+      service: META.ORDER,
+    });
+    const info = {};
+      info.qrCode = {
+      id: qrCodeUpload.public_id,
+      url: qrCodeUpload.secure_url,
+    };
+    // sign a token
+    const token = jwt.sign(
+      { data: `${order.orderId}-${order.storeId}:${expiresAt}` },
+      config.TOKEN_SECRETE,
+      { expiresIn: "1m" },
+    );
+     
+    info.token = token;
+    info.auth = {
+      code: pickUpCode,
+      token,
+    };
+     const data = {
+      _id: order._id,
+      orderId,
+      storeId: order.storeId,
+      auth:info.auth,
+      qrCode:info.qrCode,
+    };
+    // const updateToken = await updateOrderQRCodeInfo(orderId, info);
+    const updateToken = await updateOrderVerificationInfo(data)
+    if (!updateToken)
+      return next(APIError.badRequest("Failed to update order QR code info"));
+    if (updateToken?.error) return next(APIError.badRequest(updateToken.error));
+    logger.info("Order QR code info updated successfully", {
+      service: META.ORDER,
+    });
+    // update qr code info in order
+    return res.status(200).json({
+      success: true,
+      data: {
+        pickUpCode,
+        expiresIn: 60,
+        qrCodeUrl: qrCodeUpload.secure_url,
+      },
+    });
+  } catch (error) {
+    next(error);
   }
 };

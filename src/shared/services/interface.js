@@ -128,7 +128,7 @@ exports.getTransferStatus = async (transferCode) => await PayStackModule.getTran
 
 exports.getOrderByReference = async (reference) => await OrderModule.orderByReference(reference);
 exports.updateCompletedOrder = async (info, reference) => await OrderModule.updateOrderDetails(info, reference)
-exports.storeOrders = async (query, page, limit) => await OrderModule.allOrders(query, page, limit);
+exports.storeOrders = async (query, skip, limit) => await OrderModule.allOrders(query, skip, limit);
 exports.updateOrderStatus = async (query, status) => await OrderModule.updateOrderStatus(query, status);
 exports.getOrderById = async (orderId) => await OrderModule.orderById(orderId);
 exports.getOrderByIdForReturn = async (orderId) => await OrderModule.orderByIdForReturn(orderId);
@@ -180,4 +180,7 @@ exports.removeTemporalTransferByTransCode = async (transfer_code) => await Tempo
 
 
 // ORDER RETURN SECTION
-exports.returnOrder = async (info) => await ReturnOrderModule.create(info)
+exports.returnOrder = async (info) => await ReturnOrderModule.create(info);
+exports.getAllReturnedOrders = async (query, skip, limit) => await ReturnOrderModule.allOrders(query, skip, limit);
+exports.updateReturnedOrderVerificationInfo =  async (info)  => await ReturnOrderModule.updateOrderByIdForAuth(info);
+exports.findReturnedOrderForQRCodeGeneration = async (orderId, info) => await ReturnOrderModule.findOrderForQRCodeGeneration(orderId, info);

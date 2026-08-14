@@ -34,14 +34,16 @@ exports.updateOrderDetails = async (info, reference) => {
         return {error};
     }
 }
-exports.allOrders = async (query, page =1, limit= 14) => {
+exports.allOrders = async (query, skip =0, limit= 14) => {
     try {
-        return await ReturnedOrderModel.find( query).populate([{
+        const totalCount = await ReturnedOrderModel.countDocuments(query);
+         const orders =  await ReturnedOrderModel.find(query).populate([{
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
-        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id -orderStates._id -orderStates.by").sort({ createdAt: -1 }).limit(limit).lean();
-    } catch (error) {
+        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText  -store -paymentType -payment._id -orderStates._id -orderStates.by -video.id -images.id -returnedOrderStates.by -returnedOrderStates._id -auth").sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+        return {orders, totalCount };
+    } catch (error) { 
         return { error: error.message || "Failed to fetch orders" };
     }
 }
@@ -100,23 +102,24 @@ exports.updateOrderByIdForAuth = async (info ) => {
     try {
         const data = await ReturnedOrderModel.findOne({_id: info._id, storeId:info.storeId, orderId:info.orderId} );
          if (!data) {
-            return { error: "Order not found" };
+            return { error: "Returned Order not found" };
         }
-         const {orderStates} = data;
+         const {returnedOrderStates} = data;
         let others = [];
-        orderStates.forEach((cur)=>{
+        returnedOrderStates.forEach((cur)=>{
             const {currentState, ...current} = cur.toObject();
             others.push(current);
         });
-        others.push(info.orderState);
+        others.push(info.returnedOrderStates);
        // update Rider location to store location;
         data.riderCurrentLocation = info.riderCurrentLocation;
         data.auth = info.auth;
        if(data?.qrCode ) data.qrCode =info.qrCode;
-        if(info?.orderState) data.orderStates = others
+        if(info?.returnedOrderStates) data.returnedOrderStates = others
         if(info.hasOwnProperty("status")){ 
-            data.status = info.status;
-            data.storeStatus =info.storeStatus;
+            data.returnStatus = info.status;
+            data.storeStatus = info.storeStatus;
+            data.adminStatus = info.adminStatus;
         }
        return await data.save();
     } catch (error) {
@@ -204,14 +207,15 @@ exports.findOrderByQRInfo = async (info) => {
 
 exports.findOrderForQRCodeGeneration = async (orderId, info) => {
     try {
-        return await OrderModel.findOne({orderId, ...info });
+        
+        return await ReturnedOrderModel.findOne({orderId, ...info });
     } catch (error) {
         return { error: error.message || "Failed to fetch order for QR code generation" };
     }
 }
 
 exports.updateOrderQRCodeInfo = async (orderId, info) => {
-    try {
+    try { 
         const data = await OrderModel.findOneAndUpdate({orderId}, {...info}, {new: true} );
         return data;
     } catch (error) {       
@@ -239,8 +243,7 @@ exports.acceptOrRejectOrder = async (info, orderId) => {
         order.orderStates = others; 
        order.save();
         return order;
-    } catch (error) {
-        console.log(error)
+    } catch (error) { 
         return {error: error.message}
     }
 }

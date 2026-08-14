@@ -41,9 +41,10 @@ exports.updateOrderDetails = async (info, reference) => {
         return {error};
     }
 }
-exports.allOrders = async (query, page =1, limit= 14) => {
+exports.allOrders = async (query, skip =0, limit= 14) => {
     try {
-        return await OrderModel.find( query).populate([{
+        const totalCount = await OrderModel.countDocuments(query);
+          const orders = await OrderModel.find(query).populate([{
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
@@ -55,7 +56,8 @@ exports.allOrders = async (query, page =1, limit= 14) => {
             model: "Account",
             path: "rider",
             select: "firstName lastName -_id"
-        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id -orderStates._id -orderStates.by").sort({ createdAt: -1 }).limit(limit).lean();
+        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText -store.bankDetails -paymentType -payment._id -orderStates._id -orderStates.by").sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+        return {orders , totalCount}
     } catch (error) {
         return { error: error.message || "Failed to fetch orders" };
     }
