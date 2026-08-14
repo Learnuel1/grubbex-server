@@ -41,7 +41,7 @@ exports.allOrders = async (query, skip =0, limit= 14) => {
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
-        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText  -store -paymentType -payment._id -orderStates._id -orderStates.by -video.id -images.id -returnedOrderStates.by -returnedOrderStates._id -auth").sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
+        }]).select("-__v -_id -user -updatedAt -destinationAddress.account -destinationAddress.addressId -qrCode.id -shopperId -shopper -reference -qrText  -store -paymentType -payment._id -orderStates._id -orderStates.by -video.id -images.id -returnedOrderStates.by -returnedOrderStates._id -auth -store -order").sort({ createdAt: -1 }).skip(skip).limit(limit).lean();
         return {orders, totalCount };
     } catch (error) { 
         return { error: error.message || "Failed to fetch orders" };
