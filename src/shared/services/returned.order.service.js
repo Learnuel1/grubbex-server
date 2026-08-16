@@ -43,7 +43,7 @@ exports.updateOrderDetails = async (info, reference) => {
     return { error };
   }
 };
-exports.allOrders = async (query, skip = 0, limit = 14) => {
+exports.allOrders = async (query, skip = 0, limit) => {
   try {
     const totalCount = await ReturnedOrderModel.countDocuments(query);
     const orders = await ReturnedOrderModel.find(query)
@@ -66,16 +66,22 @@ exports.allOrders = async (query, skip = 0, limit = 14) => {
     return { error: error.message || "Failed to fetch orders" };
   }
 };
-exports.updateReturnOrderStatus = async (query, status) => {
+exports.updateReturnOrderStatus = async (query, info) => {
   try {
     const data = await ReturnedOrderModel.findOne(query);
     if (!data) {
       return { error: "Order not found" };
     }
-    if (data.store.adminStatus === status.status) {
-      return { error: "Order already has this status" };
+    if (info?.adminStatus) {
+      if(data.adminStatus === info.adminStatus)
+      return { error: "Returned Order already has this status" };
+    else {
+      data.adminStatus = info.adminStatus;
+       data.returnStatus = info.orderState.status;
     }
-    if (status.hasOwnProperty("storeStatus")) {
+    }
+    if (info.hasOwnProperty("storeStatus")) {
+      if(data.adminStatus === CONSTANTS.ORDER_STATUS_OBJ.denied) return {error: "Return order has been denied"}
       if (
         data.returnedStatus.toLowerCase() ===
           CONSTANTS.ORDER_STATUS_OBJ.pending.toLowerCase()  
@@ -88,22 +94,24 @@ exports.updateReturnOrderStatus = async (query, status) => {
           CONSTANTS.ORDER_STATUS_OBJ.pickup.toLowerCase() && data.isAvailable === true
       )
         return { error: "Order return is yet to be accepted by a rider" };
+        else if(data.storeStatus === info.storeStatus)  return { error: "Returned Order already has this status" };
 
-      data.storeStatus = status.storeStatus;
+      data.storeStatus = info.storeStatus;
     }
-    if (status.hasOwnProperty("status")) {
-      data.returnStatus = status.status;
+    if (info.hasOwnProperty("status")) {
+      data.returnStatus = info.orderState.status;
     }
+    
     const { returnedOrderStates } = data;
     const states = [];
     returnedOrderStates.forEach((cur) => {
       const { currentState, ...rest } = cur.toObject();
       states.push(rest);
     });
-    states.push(status.orderState);
+    states.push(info.orderState);
     data.returnedOrderStates = states;
     return await data.save();
-  } catch (error) {
+  } catch (error) { 
     return { error: error.message || "Failed to update order status" };
   }
 };

@@ -234,6 +234,16 @@ exports.ZReturnOrderSchema = z.object({
     .enum(["pickup", "dropOff"])
     .refine((val) => val === "pickup" || val === "dropOff", {
     message: "Return type must be either 'pickup' or 'dropOff'",
+    pickupDate: z
+    .string({
+      description: "Pickup date for the returned order",
+      invalid_type_error: "Pickup date must be a valid date string",
+    })
+    .pipe(z.coerce.date())
+    .refine((date) => date > new Date(), {
+      message: "Pickup date must be in the future",
+    })
+    .optional(),
   }),
 //   items: z.array(
 //     z.object({

@@ -185,6 +185,9 @@ const ReturnedOrderSchema = new Schema({
         require: true,
         enum: ["rider", "dropOff"],
     },
+    pickupDate: {
+        type: Date,
+    },
     reason: {
         type: String,
         maxlength: 500, 

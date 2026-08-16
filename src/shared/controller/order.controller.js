@@ -1209,8 +1209,8 @@ exports.getAllOrders = async (req, res, next) => {
     ];
 
     if (req.userRole.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
-      const ordersAwaiting = await storeOrders(query);
-      const processingBalance = ordersAwaiting.reduce(
+      const {orders, totalCount} = await storeOrders(query);
+      const processingBalance = orders.reduce(
         (acc, order) => acc + (order.total || 0),
         0,
       );
@@ -1504,7 +1504,7 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
     // send email to notify user // app notification
     const options = {
       to: shopper.email,
-      subject: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? `Order Pick up by YOu`:  `Order Pick up by Rider`,
+      subject: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? `Order Pick up by You`:  `Order Pick up by Rider`,
       name: `${shopper.firstName} ${shopper.lastName}`,
       event: "orderPickup",
     }

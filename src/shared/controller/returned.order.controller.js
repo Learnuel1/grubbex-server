@@ -2,7 +2,7 @@ const { verifyProductPromoCode } = require("../../api/store/service");
 const { CONSTANTS } = require("../../config");
 const logger = require("../../logger");
 const { APIError } = require("../../utils/apiError");
-const { returnOrder, getOrderByIdForReturn, getStoreAddressWithId, getAllReturnedOrders, updateReturnedOrderVerificationInfo, findReturnedOrderForQRCodeGeneration, findMutedByUser, getUserKYC } = require("../services/interface");
+const { returnOrder, getOrderByIdForReturn, getStoreAddressWithId, getAllReturnedOrders, updateReturnedOrderVerificationInfo, findReturnedOrderForQRCodeGeneration, findMutedByUser, getUserKYC, returnedOrderStatusUpdate, storeOrders, returnedStoreOrders } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { uploadFileToCloudinary, uploadVideoFileToCloudinary, uploadBase64ToCloudinary, deleteFileFromCloudinary } = require("../utils/cloudinary");
 const qrcodeService = require("../../services/qrcode.service");
@@ -10,8 +10,7 @@ const path = require("path");
 const Notification = require("../utils/Notification");
 const { OTPGen, shortIdGen } = require("../utils/Generator");
 const jwt = require("jsonwebtoken");
-const config = require("../../config/env");
-const { updateReturnOrderStatus } = require("../services/returned.order.service");
+const config = require("../../config/env"); 
 const width = 300,
     logoSize = 80;
           const logoPath = path.join(
@@ -332,8 +331,9 @@ exports.getReturnedOrders = async (req, res, next ) => {
               { returnStatus: { $nin: [CONSTANTS.ORDER_STATUS_OBJ.completed] } },
             ];
         if (req.userRole.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
-              const ordersAwaiting = await storeOrders(query);
-              const processingBalance = ordersAwaiting.reduce(
+              const {orders, totalCount} = await returnedStoreOrders(query);
+              
+              const processingBalance = orders.reduce(
                 (acc, order) => acc + (order.total || 0),
                 0,
               );
@@ -481,13 +481,13 @@ exports.returnedOrderStatusUpdate = async (req, res, next) => {
     if (status === CONSTANTS.ORDER_STATUS_OBJ.draft)
       return next(
         APIError.badRequest(
-          `You are not allowed to update order status to ${CONSTANTS.ORDER_STATUS_OBJ.draft}`,
+          `You are not allowed to update returned order status to ${CONSTANTS.ORDER_STATUS_OBJ.draft}`,
         ),
       );
     if (
       !Object.values(CONSTANTS.ORDER_STATUS_OBJ).includes(status.toLowerCase())
     ) {
-      return next(APIError.badRequest("Invalid order status"));
+      return next(APIError.badRequest("Invalid returned order status"));
     }
     if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.shopper) {
       return next(
@@ -515,7 +515,7 @@ exports.returnedOrderStatusUpdate = async (req, res, next) => {
         },
       ];
      
-      const order = await updateReturnOrderStatus(query, { storeStatus: status , orderState});
+      const order = await returnedOrderStatusUpdate(query, { storeStatus: status , orderState});
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
       logger.info("Returned Order status updated successfully", { service: META.ORDER });
@@ -524,10 +524,11 @@ exports.returnedOrderStatusUpdate = async (req, res, next) => {
         .json({ success: true, msg: "Returned Order status updated successfully" });
     } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.admin) {
 
-      if(status.toLowerCase().trim() !== "approve" && status.toLowerCase().trim() !== "deny") return next(APIError.badRequest("Invalid return order status"));
-      req.body.status = status.toLowerCase().trim() === "approve" ? CONSTANTS.ORDER_STATUS_OBJ.approved : CONSTANTS.ORDER_STATUS_OBJ.deny;
-        orderState.status = req.body.status
+      if(status.toLowerCase().trim() !== CONSTANTS.ORDER_STATUS_OBJ.approve  && status.toLowerCase().trim() !== CONSTANTS.ORDER_STATUS_OBJ.deny) return next(APIError.badRequest("Invalid return order status"));
+      req.body.status = status.toLowerCase().trim() === CONSTANTS.ORDER_STATUS_OBJ.approve ? CONSTANTS.ORDER_STATUS_OBJ.approved : CONSTANTS.ORDER_STATUS_OBJ.denied;
+        orderState.status = req.body.status 
         orderState.currentState = req.body.status;
+        
       query.$and = [
         { orderId: orderId },
         {
@@ -538,18 +539,18 @@ exports.returnedOrderStatusUpdate = async (req, res, next) => {
           },
           adminStatus: {
             $nin: [
-               CONSTANTS.ORDER_STATUS_OBJ.approved
+               CONSTANTS.ORDER_STATUS_OBJ.draft
             ]
           }
         },
       ];
-      const order = await updateReturnOrderStatus(query, orderState);
+      const order = await returnedOrderStatusUpdate(query, {adminStatus:req.body.status, orderState});
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
       logger.info("Returned Order status updated successfully", { service: META.ORDER });
       return res
         .status(200)
-        .json({ success: true, msg: "Order status updated successfully" });
+        .json({ success: true, msg: "Returned Order status updated successfully" });
     } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.rider) {
        if(status.toLowerCase().trim() !==  CONSTANTS.ORDER_STATUS_OBJ.accept   && status.toLowerCase().trim() !==  CONSTANTS.ORDER_STATUS_OBJ.cancel) return next(APIError.badRequest("Invalid return order status"));
       orderState.status = req.body.status
@@ -561,13 +562,13 @@ exports.returnedOrderStatusUpdate = async (req, res, next) => {
           isAvailable: true
         },
       ];
-      const order = await updateOrderStatus(query, { status, orderState });
+      const order = await returnedOrderStatusUpdate(query, { status, orderState });
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
-      logger.info("Order status updated successfully", { service: META.ORDER });
+      logger.info("Returned Order status updated successfully", { service: META.ORDER });
       return res
         .status(200)
-        .json({ success: true, msg: "Order status updated successfully" });
+        .json({ success: true, msg: "Returned Order status updated successfully" });
     }
   } catch (error) {
     next(error);

@@ -151,7 +151,9 @@ exports.CONSTANTS = {
     accepted: "accepted",
     accept: "accept",
     approved: "approved",
-    deny:"denied"
+    approve: "approve",
+    deny:"deny",
+    denied:"denied",
   },
   PAYMENT_TYPE_OBJ: { 
     card: "card",
