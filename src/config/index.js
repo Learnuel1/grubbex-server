@@ -141,6 +141,7 @@ exports.CONSTANTS = {
     inProcess: "inProcess",
     delivered: "delivered",
     cancelled: "cancelled",
+    cancel: "cancel",
     draft: "draft",
     ready: "ready",
     completed: "completed",
@@ -150,6 +151,7 @@ exports.CONSTANTS = {
     accepted: "accepted",
     accept: "accept",
     approved: "approved",
+    deny:"denied"
   },
   PAYMENT_TYPE_OBJ: { 
     card: "card",

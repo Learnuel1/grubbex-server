@@ -184,3 +184,4 @@ exports.returnOrder = async (info) => await ReturnOrderModule.create(info);
 exports.getAllReturnedOrders = async (query, skip, limit) => await ReturnOrderModule.allOrders(query, skip, limit);
 exports.updateReturnedOrderVerificationInfo =  async (info)  => await ReturnOrderModule.updateOrderByIdForAuth(info);
 exports.findReturnedOrderForQRCodeGeneration = async (orderId, info) => await ReturnOrderModule.findOrderForQRCodeGeneration(orderId, info);
+exports.returnedOrderStatusUpdate = async (query, info) => await ReturnOrderModule.updateReturnOrderStatus(query, info);

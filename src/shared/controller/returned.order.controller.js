@@ -11,6 +11,7 @@ const Notification = require("../utils/Notification");
 const { OTPGen, shortIdGen } = require("../utils/Generator");
 const jwt = require("jsonwebtoken");
 const config = require("../../config/env");
+const { updateReturnOrderStatus } = require("../services/returned.order.service");
 const width = 300,
     logoSize = 80;
           const logoPath = path.join(
@@ -450,8 +451,7 @@ exports.getOrderQRCode = async (req, res, next) => {
       storeId: order.storeId,
       auth:info.auth,
       qrCode:info.qrCode,
-    };
-    // const updateToken = await updateOrderQRCodeInfo(orderId, info);
+    }; 
     const updateToken = await updateReturnedOrderVerificationInfo(data)
     if (!updateToken)
       return next(APIError.badRequest("Failed to update order QR code info"));
@@ -468,6 +468,107 @@ exports.getOrderQRCode = async (req, res, next) => {
         qrCodeUrl: qrCodeUpload.secure_url,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+exports.returnedOrderStatusUpdate = async (req, res, next) => {
+  try { 
+    const { orderId, status } = req.body;
+    const query = {};
+    if (!orderId) return next(APIError.badRequest("Returned Order ID is required"));
+    if (!status) return next(APIError.badRequest("Returned Order status is required"));
+    if (status === CONSTANTS.ORDER_STATUS_OBJ.draft)
+      return next(
+        APIError.badRequest(
+          `You are not allowed to update order status to ${CONSTANTS.ORDER_STATUS_OBJ.draft}`,
+        ),
+      );
+    if (
+      !Object.values(CONSTANTS.ORDER_STATUS_OBJ).includes(status.toLowerCase())
+    ) {
+      return next(APIError.badRequest("Invalid order status"));
+    }
+    if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.shopper) {
+      return next(
+        APIError.forbidden("You are not allowed to update order status"),
+      );
+    }
+     const orderState = {
+         
+        by: req.user,
+        type: req.userType,
+        
+      }
+    if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
+       orderState.status = req.body.status
+        orderState.currentState = req.body.status; 
+      query.$and = [
+        { storeId: req.storeId },
+        { orderId: orderId },
+        {
+          storeStatus: {
+            $nin: [
+              CONSTANTS.ORDER_STATUS_OBJ.completed, 
+            ],
+          },
+        },
+      ];
+     
+      const order = await updateReturnOrderStatus(query, { storeStatus: status , orderState});
+      if (!order) return next(APIError.notFound("Order not found"));
+      if (order?.error) return next(APIError.badRequest(order.error));
+      logger.info("Returned Order status updated successfully", { service: META.ORDER });
+      return res
+        .status(200)
+        .json({ success: true, msg: "Returned Order status updated successfully" });
+    } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.admin) {
+
+      if(status.toLowerCase().trim() !== "approve" && status.toLowerCase().trim() !== "deny") return next(APIError.badRequest("Invalid return order status"));
+      req.body.status = status.toLowerCase().trim() === "approve" ? CONSTANTS.ORDER_STATUS_OBJ.approved : CONSTANTS.ORDER_STATUS_OBJ.deny;
+        orderState.status = req.body.status
+        orderState.currentState = req.body.status;
+      query.$and = [
+        { orderId: orderId },
+        {
+          storeStatus: {
+            $nin: [
+              CONSTANTS.ORDER_STATUS_OBJ.completed
+            ],
+          },
+          adminStatus: {
+            $nin: [
+               CONSTANTS.ORDER_STATUS_OBJ.approved
+            ]
+          }
+        },
+      ];
+      const order = await updateReturnOrderStatus(query, orderState);
+      if (!order) return next(APIError.notFound("Order not found"));
+      if (order?.error) return next(APIError.badRequest(order.error));
+      logger.info("Returned Order status updated successfully", { service: META.ORDER });
+      return res
+        .status(200)
+        .json({ success: true, msg: "Order status updated successfully" });
+    } else if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.rider) {
+       if(status.toLowerCase().trim() !==  CONSTANTS.ORDER_STATUS_OBJ.accept   && status.toLowerCase().trim() !==  CONSTANTS.ORDER_STATUS_OBJ.cancel) return next(APIError.badRequest("Invalid return order status"));
+      orderState.status = req.body.status
+        orderState.currentState = req.body.status;
+      query.$and = [
+        { orderId: orderId },
+        { rider: req.user },
+        {
+          isAvailable: true
+        },
+      ];
+      const order = await updateOrderStatus(query, { status, orderState });
+      if (!order) return next(APIError.notFound("Order not found"));
+      if (order?.error) return next(APIError.badRequest(order.error));
+      logger.info("Order status updated successfully", { service: META.ORDER });
+      return res
+        .status(200)
+        .json({ success: true, msg: "Order status updated successfully" });
+    }
   } catch (error) {
     next(error);
   }

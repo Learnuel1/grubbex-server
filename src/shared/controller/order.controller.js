@@ -1312,7 +1312,7 @@ exports.orderStatusUpdate = async (req, res, next) => {
           },
         },
       ];
-      const order = await updateOrderStatus(query, { storeStatus: status ,orderState});
+      const order = await updateOrderStatus(query, { storeStatus: status , orderState});
       if (!order) return next(APIError.notFound("Order not found"));
       if (order?.error) return next(APIError.badRequest(order.error));
       logger.info("Order status updated successfully", { service: META.ORDER });
@@ -1324,12 +1324,12 @@ exports.orderStatusUpdate = async (req, res, next) => {
         { orderId: orderId },
         { rider: req.user },
         {
-          available: {
-            $nin: [
-              CONSTANTS.ORDER_STATUS_OBJ.completed,
-              CONSTANTS.ORDER_STATUS_OBJ.draft,
-            ],
-          },
+           isAvailable: true, // {
+          //   $nin: [
+          //     CONSTANTS.ORDER_STATUS_OBJ.completed,
+          //     CONSTANTS.ORDER_STATUS_OBJ.draft,
+          //   ],
+          // },
         },
       ];
       const order = await updateOrderStatus(query, { status, orderState });
