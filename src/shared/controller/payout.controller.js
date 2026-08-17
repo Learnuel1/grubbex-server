@@ -1,7 +1,7 @@
 const { CONSTANTS } = require("../../config");
 const config = require("../../config/env");
 const logger = require("../../logger");
-const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts, createRecipient, initiateTransfer, getUserKYC, getPayoutByID, processPayoutPayment, userExistByMail } = require("../services/interface");
+const { walletBalance, createPayout, getPayouts, getRecentPayouts, getPayoutsAggregate, getTodayPayoutsAggregate, topPayouts, createRecipient, initiateTransfer, getUserKYC, getPayoutByID, processPayoutPayment, userExistByMail, getReturnedOrderForPayout } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const Notification = require("../utils/Notification");
@@ -12,8 +12,22 @@ exports.createPayout = async (req, res, next) => {
         const wallet = await walletBalance(req.user);
         if(wallet.error) return next(APIError.badRequest(wallet.error));
        if(wallet.balance < amount) return next(APIError.badRequest("Insufficient wallet balance for payout"));
-       const kyc = await getUserKYC(req.user);
-       const {bankDetails} = kyc;
+        const kyc = await getUserKYC(req.user);
+          const {bankDetails, store} = kyc;
+       // checkout for an outstanding issue
+       if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business){
+             const query = {
+                $and: [
+                    {storeId: store[0].storeId },
+                    {storeStatus: CONSTANTS.ORDER_STATUS_OBJ.ready },
+                    {adminStatus: CONSTANTS.ORDER_STATUS_OBJ.approved}
+                ]
+             }
+           const returnedOrder = await getReturnedOrderForPayout(query);
+           if(returnedOrder) return next(APIError.badRequest("You have an outstanding order issue"));
+       }
+      
+     
        if(!bankDetails || bankDetails?.length ===0) return next(APIError.badRequest("Please Update Bank kyc details"));
        const bankExist = bankDetails.find(c => c.bankName === req.body.bankDetails.bankName && c.accountNumber === req.body.bankDetails.accountNumber);
        if(!bankExist) return next(APIError.badRequest("Provided payout bank does not exist in KYC"));

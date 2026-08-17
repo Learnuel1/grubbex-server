@@ -186,3 +186,4 @@ exports.returnedStoreOrders = async (query, skip, limit) => await ReturnOrderMod
 exports.updateReturnedOrderVerificationInfo =  async (info)  => await ReturnOrderModule.updateOrderByIdForAuth(info);
 exports.findReturnedOrderForQRCodeGeneration = async (orderId, info) => await ReturnOrderModule.findOrderForQRCodeGeneration(orderId, info);
 exports.returnedOrderStatusUpdate = async (query, info) => await ReturnOrderModule.updateReturnOrderStatus(query, info);
+exports.getReturnedOrderForPayout = async (query) => await ReturnOrderModule.getReturnedOrderForPayout(query);

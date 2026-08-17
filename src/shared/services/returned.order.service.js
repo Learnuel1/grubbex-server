@@ -347,3 +347,10 @@ exports.riderOrder = async (query, skip = 0, limit = 10) => {
     return { error: error.message };
   }
 };
+exports.getReturnedOrderForPayout = async (query)=> {
+  try{
+    return await ReturnedOrderModel.find(query);
+  } catch (error) {
+    return {error}
+  }
+}
