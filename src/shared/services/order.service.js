@@ -41,7 +41,7 @@ exports.updateOrderDetails = async (info, reference) => {
         return {error};
     }
 }
-exports.allOrders = async (query, skip =0, limit) => {
+exports.allOrders = async (query, skip=0, limit=0) => {
     try {
         const totalCount = await OrderModel.countDocuments(query);
           const orders = await OrderModel.find(query).populate([{

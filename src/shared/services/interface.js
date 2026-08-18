@@ -128,7 +128,7 @@ exports.getTransferStatus = async (transferCode) => await PayStackModule.getTran
 
 exports.getOrderByReference = async (reference) => await OrderModule.orderByReference(reference);
 exports.updateCompletedOrder = async (info, reference) => await OrderModule.updateOrderDetails(info, reference)
-exports.storeOrders = async (query, skip, limit) => await OrderModule.allOrders(query, skip, limit);
+exports.storeOrders = async (query, skip=0, limit=0) => await OrderModule.allOrders(query, skip, limit);
 exports.updateOrderStatus = async (query, status) => await OrderModule.updateOrderStatus(query, status);
 exports.getOrderById = async (orderId) => await OrderModule.orderById(orderId);
 exports.getOrderByIdForReturn = async (orderId) => await OrderModule.orderByIdForReturn(orderId);

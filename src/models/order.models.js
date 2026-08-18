@@ -260,7 +260,8 @@ payment: [ {
             default: new Date(),
         }
     }
-    ]
+    ],
+    bankDetails: []
 }, { timestamps: true });
 
 OrderSchema.index({createdAt: 1, "destinationAddress.location":"2dsphere" })

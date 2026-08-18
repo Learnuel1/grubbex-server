@@ -558,6 +558,7 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
     if (hash == req.headers["x-paystack-signature"]) {
       // Retrieve the request's body
       const { data: info, event } = req.body;
+     const { card_type, sender_bank, sender_account_number, sender_name, sender_bank_account_number} = info;
       if (event === "charge.success" && info.status === "success" && info.metadata.paymentEventType === CONSTANTS.TRANSACTION_TYPE.checkout) {
         logger.info("Payment successful", { service: META.PAYSTACK_SERVICE });
         const reference = info.reference;
@@ -688,7 +689,8 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
             currentState: CONSTANTS.ORDER_STATUS_OBJ.pending,
           }
           otherOrderStates.push(orderState);
-          updateInfo.orderStates = otherOrderStates 
+          updateInfo.orderStates = otherOrderStates;
+          updateInfo.bankDetails = { card_type, sender_bank, sender_account_number, sender_name, sender_bank_account_number}; 
           const updateOrder = await updateCompletedOrder(updateInfo, reference);
           if (!updateOrder)
             return logger.error("Completed order update failed", {
@@ -1197,18 +1199,18 @@ exports.getAllOrders = async (req, res, next) => {
 
     // get order
     const {orders, totalCount} = await storeOrders(query, skip, limit);
+   
     if (!orders) return next(APIError.notFound("No orders found"));
     if (orders?.error) return next(APIError.badRequest(orders.error));
     logger.info("Orders fetched successfully", { service: META.ORDER });
     const totalPages = Math.ceil(totalCount / limit);
 
-    // get store pending balance
-    query.$and = [
-      { user: req.user },
+    // get store pending balance 
+    if (req.userRole.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
+       query.$and = [
+       { storeId: req.storeId },
       { status: { $nin: [CONSTANTS.ORDER_STATUS_OBJ.completed] } },
     ];
-
-    if (req.userRole.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
       const {orders, totalCount} = await storeOrders(query);
       const processingBalance = orders.reduce(
         (acc, order) => acc + (order.total || 0),
