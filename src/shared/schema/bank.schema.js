@@ -41,27 +41,49 @@ const ZSubscription = z.object({
   .email(),
 });
 
-const carPlateSchema = z.string().toUpperCase().regex(
+const carPlateSchema = z.string({
+   description: "Vehicle license plate number",
+    required_error: "Plate number is required",
+    invalid_type_error: "Plate number must be a string",
+}).toUpperCase().regex(
   /^(?:[A-Z0-9]{3}-[A-Z0-9]{3}[A-Z]{3}|[A-Z]{1,3}[0-9]{1,4}-[A-Z]{1,3}|[A-Z0-9]{1,7}|(FG|SG)[0-9]{2,3}[A-Z]{1,2})$/,
   // /^(?:[A-Z0-9]{5}[A-Z0-9]{3}[0-9]{1,3}|[A-Z0-9]{1,7}|(FG|SG)[0-9]{2,3}[A-Z]{1,2})$/,
-  'Invalid car plate number format'
+  'Invalid car plate number format (e.g., KJA-123AB)'
 );
 
 const ZLogisticsSchema = z.object({
-  vehicleType: z.string({
-    description: "Type of logistics",
-    required_error: "Logistics type is required"
-  }).trim().min(3, {message : "Logistics type should be at least 3 characters"}).max(20, {message: "Logistics type cannot exceed 20 characters"}),
-  model: z.string({
-    description: "Logistics model",
-    required_error: "Logistic model is required",
-  }).trim().min(5, {message: "Logistics m model must be at least 5 characters"}).max(30, {message: "logistics model cannot exceed 30 characters"}),
+  vehicleType: z
+    .string({
+      description: "Type of logistics",
+      required_error: "Logistics type is required",
+      invalid_type_error: "Logistics type must be a string",
+    })
+    .trim()
+    .min(3, { message: "Logistics type should be at least 3 characters" })
+    .max(20, { message: "Logistics type cannot exceed 20 characters" }),
+
+  model: z
+    .string({
+      description: "Logistics model",
+      required_error: "Logistics model is required",
+      invalid_type_error: "Logistics model must be a string",
+    })
+    .trim()
+    .min(5, { message: "Logistics model must be at least 5 characters" })
+    .max(30, { message: "Logistics model cannot exceed 30 characters" }),
+
   plateNumber: carPlateSchema,
-  color: z.string({
-    description: "Logistics color",
-    required_error: "Logistics color is required",
-  }).trim().min(3, {message: "Logistics color should be at least 3 characters"}).max(15, {message: "Logistics color cannot exceed 15 characters"}),
-})
+
+  color: z
+    .string({
+      description: "Logistics color",
+      required_error: "Logistics color is required",
+      invalid_type_error: "Logistics color must be a string",
+    })
+    .trim()
+    .min(3, { message: "Logistics color should be at least 3 characters" })
+    .max(15, { message: "Logistics color cannot exceed 15 characters" }),
+});
 module.exports = {
   ZBankSchema,
   ZSubscription,
