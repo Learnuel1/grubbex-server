@@ -1146,6 +1146,7 @@ exports.getAllOrders = async (req, res, next) => {
             "You are not authorized to perform this action, complete your profile",
           ),
         );
+        if(kyc && kyc.onBoarded === false) return next(APIError.unauthorized("You have not completed onboarding process"));
       if (!kyc.isVerified && userInfo.isVerified === false)
         return next(
           APIError.unauthorized(
@@ -1159,7 +1160,7 @@ exports.getAllOrders = async (req, res, next) => {
           ),
         );
       const { locationData } = userInfo;
-
+      if(locationData.lat === 0 || locationData.lng === 0 ) return next(APIError.badRequest("Provide Location info"));
       const riderLat = parseFloat(locationData.lat);
       const riderLng = parseFloat(locationData.lng);
       if (isNaN(riderLat) || isNaN(riderLng))
