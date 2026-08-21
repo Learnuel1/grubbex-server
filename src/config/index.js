@@ -2,7 +2,7 @@ exports.CONFIG = {
   APP_NAME: "Grubbex",
 };
 
-exports.CORS_WHITELISTS = [ `${process.env.FRONTEND_ORIGIN_URL}`,`http://127.0.0.1:4000`, `http://127.0.0.1:3000`, `https://grubbex-dev.netlify.app`, `https://grubbex.netlify.app`,'https://grubbex.com.ng'];
+exports.CORS_WHITELISTS = [ `${process.env.FRONTEND_ORIGIN_URL}`,`http://127.0.0.1:4000`, `http://localhost:4000`,`http://127.0.0.1:3000`, `https://grubbex-dev.netlify.app`, `https://grubbex.netlify.app`,'https://grubbex.com.ng'];
 
 exports.CONSTANTS = {
   ACCOUNT_TYPE: ["shopper", "admin","rider","business", "dev"],

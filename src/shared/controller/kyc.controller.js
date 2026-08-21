@@ -539,7 +539,7 @@ exports.updateLogistics = async (req, res, next ) => {
 		if (Object.keys(newInfo).length > 7) return next(APIError.badRequest("Logistics has more fields than required"));
 		infoToUpdate.push(newInfo)
 		details.logistics =infoToUpdate;
-		if(!details.logistics?.vehicleRegistration && !details.logistics?.insurance) return next(APIError.badRequest("Provide vehicle document"));
+		if(!req.body?.vehicleRegistration && !req.body?.insurance) return next(APIError.badRequest("Provide vehicle document"));
 		const save = await KYCUpdate(details);
 		if(!save) return next(APIError.badRequest("Vehicle registration failed, try again"));
 		if(save?.error) return next (APIError.badRequest(save.error));
