@@ -14,9 +14,11 @@ exports.create = async (shippingAddress) => {
     return {error: error.message || "Failed to create shipping address"};
   }
 }
-exports.findByUserId = async (query) => {
+exports.findByUserId = async (query, skip, limit) => {
     try {
-        return await ShippingAddressModel.find(query).sort({ createdAt: -1, status: 1 }).lean().select("-__v -account -_id -createdAt -updatedAt");
+      const totalCount = await ShippingAddressModel.countDocuments(query);
+        const address = await ShippingAddressModel.find(query).sort({ createdAt: -1, status: 1 }).skip(skip).limit(limit).lean().select("-__v -account -_id -createdAt -updatedAt");
+        return {address, total:totalCount}
     } catch (error) {
         return {error: error.message || "Failed to retrieve shipping addresses"};
     }

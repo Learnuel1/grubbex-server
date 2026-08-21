@@ -98,7 +98,7 @@ exports.updateFAQ = async (id, details) => await FAQModule.updateFAQ(id, details
 
 // SHIPPING ADDRESS SECTION
 exports.createShippingAddress = async (shippingAddress) => await ShippingAddressModule.create(shippingAddress);
-exports.getShippingAddressByUserId = async (query) => await ShippingAddressModule.findByUserId(query);
+exports.getShippingAddressByUserId = async (query, skip=0, limit =0) => await ShippingAddressModule.findByUserId(query, skip, limit);
 exports.deleteShippingAddressById = async (addressId, userId) => await ShippingAddressModule.deleteById(addressId, userId);
 exports.updateShippingAddressById = async (addressId, userId, updateData) => await ShippingAddressModule.updateById(addressId, userId, updateData);
 

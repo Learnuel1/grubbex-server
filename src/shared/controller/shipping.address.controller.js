@@ -28,11 +28,25 @@ exports.getShippingAddress = async (req, res, next) => {
         const {addressId } = req.query;
         const query = {userId: req.userId}
         if(addressId) query.addressId = addressId;
-        const address = await getShippingAddressByUserId(query);
+      
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+     const skip = (page - 1) * limit;
+        const {address, total} = await getShippingAddressByUserId(query, skip, limit);
         if(!address || address.length === 0) return next(APIError.notFound("Shipping address not found"));
         if(address?.error) return next(APIError.badRequest(address.error));
+            const totalPages = total > 0 ? Math.ceil(total / limit) : 0;  
         logger.info("Shipping address retrieved successfully", {service:META.SHIPPING_ADDRESS});
-        res.status(200).json({success: true, msg: "Found", data: address});
+        res.status(200).json({success: true, msg: "Found", data: address,  total, 
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1
+    }
+    });
     } catch (error) {
         next(error);
     }
