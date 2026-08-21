@@ -41,15 +41,18 @@ const ZSubscription = z.object({
   .email(),
 });
 
-const carPlateSchema = z.string({
-   description: "Vehicle license plate number",
+const carPlateSchema = z
+  .string({
+    description: "Vehicle license plate number",
     required_error: "Plate number is required",
     invalid_type_error: "Plate number must be a string",
-}).toUpperCase().regex(
-  /^(?:[A-Z0-9]{3}-[A-Z0-9]{3}[A-Z]{3}|[A-Z]{1,3}[0-9]{1,4}-[A-Z]{1,3}|[A-Z0-9]{1,7}|(FG|SG)[0-9]{2,3}[A-Z]{1,2})$/,
-  // /^(?:[A-Z0-9]{5}[A-Z0-9]{3}[0-9]{1,3}|[A-Z0-9]{1,7}|(FG|SG)[0-9]{2,3}[A-Z]{1,2})$/,
-  'Invalid car plate number format (e.g., KJA-123AB)'
-);
+  })
+  .trim()
+  .toUpperCase()
+  .regex(
+    /^(?:[A-Z]{3}-?\d{3}[A-Z]{2}|(FG|SG)\d{2,3}[A-Z]{1,2}|[A-Z0-9]{1,8})$/,
+    { message: "Invalid car plate number format (e.g., KJA-123AB)" }
+  );
 
 const ZLogisticsSchema = z.object({
   vehicleType: z
