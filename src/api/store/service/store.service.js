@@ -131,7 +131,6 @@ exports.nearByStore = async (longitude, latitude) => {
       location: {
         $near: {
           $geometry: { type: "Point", coordinates:[longitude, latitude] },
-          // $maxDistance: Number(10) *1000
           $maxDistance: Number(config.RIDER_RADIUS) *1000
         }
       }

@@ -1163,12 +1163,11 @@ exports.getAllOrders = async (req, res, next) => {
       if(locationData.lat === 0 || locationData.lng === 0 ) return next(APIError.badRequest("Provide Location info"));
       const riderLat = parseFloat(locationData.lat);
       const riderLng = parseFloat(locationData.lng);
-      if (isNaN(riderLat) || isNaN(riderLng))
-        return next(APIError.badRequest("Invalid coordinates"));
+      if (isNaN(riderLat) || isNaN(riderLng)) return next(APIError.badRequest("Invalid coordinates"));
 
       const nearByStores = await nearByStore(riderLng, riderLat);
-      if (!nearByStores)
-        return next(APIError.badRequest("No order in yor current location"));
+      if (!nearByStores || nearByStores?.length === 0)
+        return next(APIError.badRequest("No order in your current location"));
       if (nearByStores?.error)
         return next(APIError.badRequest(nearByStores.error));
       const storeIds = nearByStores.map((s) => s.storeId);
