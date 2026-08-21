@@ -112,8 +112,7 @@ exports.getAdminAccounts = async (req, res, next) => {
       return  res.status(200).json({
     success: true, 
     msg: "No record found", 
-    account, 
-    count: 0, 
+    account,  
     total, pagination: {
       page,
       limit,
@@ -126,8 +125,7 @@ exports.getAdminAccounts = async (req, res, next) => {
     res.status(200).json({
       success: true, 
       msg: "Found", 
-      account,
-      count: 0, 
+      account,  
     total, 
     pagination: {
       page,
@@ -169,8 +167,7 @@ exports.getAccounts = async (req, res, next) => {
       return  res.status(200).json({
     success: true, 
     msg: "No record found", 
-    account, 
-    count: 0, 
+    account,  
     total, pagination: {
       page,
       limit,
@@ -183,8 +180,7 @@ exports.getAccounts = async (req, res, next) => {
     res.status(200).json({
       success: true, 
       msg: "Found", 
-      account,
-      count: 0, 
+      account, 
     total, 
     pagination: {
       page,
