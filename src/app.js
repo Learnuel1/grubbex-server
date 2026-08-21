@@ -20,7 +20,7 @@ const limiter = rateLimit({
 });
 
 // Apply to all routes
-app.use(limiter);
+// app.use(limiter);
 
  
 app.use(
