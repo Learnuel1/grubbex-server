@@ -56,7 +56,7 @@ exports.KYCcheck = async (user) => await KYCModule.checkKYC(user);
 exports.getUserKYC = async (user) => await KYCModule.KYC(user);
 exports.getUserKYCByAccountId = async (user) => await KYCModule.KYCByAccountId(user);
 exports.updateUserKYCStatus = async (search, info) => await KYCModule.updateStatus(search, info);
-exports.searchUserKYC = async (search) => await KYCModule.KYCSearch(search);
+exports.searchUserKYC = async (search, skip = 0, limit = 0) => await KYCModule.KYCSearch(search, skip, limit);
 exports.cityInfoUpdate = async (info) => await KYCModule.updateCityInfo(info)
 exports.getCityInfo = async () => await KYCModule.cityInfo()
 exports.getTownInfo = async (cityId) => await KYCModule.townInfo(cityId);

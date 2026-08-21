@@ -215,9 +215,11 @@ exports.KYCByAccountId = async (userId) => {
     return {error};
   }
 }
-exports.KYCSearch = async (search) => {
+exports.KYCSearch = async (search, skip, limit) => {
   try{
-    return await KYCModel.find(search).select("-_id -__v -user -documents.id -documents.back.id -profile.logo.id -profile.banner.id -store.category._id -logistics.vehicleRegistration.id -logistics.insurance.id -rejection._id").exec();
+    const totalCount =  await KYCModel.countDocuments(search);
+    const kyc =  await KYCModel.find(search).skip(skip).limit(limit).select("-_id -__v -user -documents.id -documents.back.id -profile.logo.id -profile.banner.id -store.category._id -logistics.vehicleRegistration.id -logistics.insurance.id -rejection._id").exec();
+    return {kyc, total:totalCount };
   }catch(error) {
     return {error};
   }

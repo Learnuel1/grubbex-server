@@ -1168,8 +1168,7 @@ exports.getAllOrders = async (req, res, next) => {
       const nearByStores = await nearByStore(riderLng, riderLat);
       if (!nearByStores || nearByStores?.length === 0)
         return next(APIError.badRequest("No order in your current location"));
-      if (nearByStores?.error)
-        return next(APIError.badRequest(nearByStores.error));
+      if (nearByStores?.error) return next(APIError.badRequest(nearByStores.error));
       const storeIds = nearByStores.map((s) => s.storeId);
       if (nearByStores.length === 0) {
         return res.status(200).json({
