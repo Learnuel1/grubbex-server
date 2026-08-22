@@ -6,6 +6,6 @@ const { allowedRoles, validateRequestData } = require('../shared/middleware/data
 const LikeRatingRouter = require('express').Router();
 const LikeRatingRoute = require('express').Router();
 
-LikeRatingRoute.put("/like", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.like).put("/rate", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.rate).put("/review", validateRequestData("ZReviewSchema"), shared.Controllers.LikeRatingController.review);
+LikeRatingRoute.put("/like", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.like).put("/rate", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.rate).put("/review", validateRequestData("ZReviewSchema"), shared.Controllers.LikeRatingController.review).put("/follow", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.follow);
 LikeRatingRouter.use("/", userRequired, allowedRoles(CONSTANTS.ACCOUNT_TYPE_OBJ.shopper), LikeRatingRoute);
 module.exports = {LikeRatingRouter};

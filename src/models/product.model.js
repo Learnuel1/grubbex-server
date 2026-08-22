@@ -149,6 +149,11 @@ const ProductSchema = new Schema({
     required: true,
     default: 0,
   },
+  followers: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
   likers: [{
     type: Schema.Types.ObjectId,
     ref: "Like",
@@ -157,10 +162,11 @@ const ProductSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "Like",
   }],
-  reviews: [{
-    type: Schema.Types.ObjectId,
-    ref: "Review",
-  }],
+  reviews: {
+    type: Number,
+    default: 0,
+    required: true,
+  },
   vat: {
     type: Number,
     required: true,

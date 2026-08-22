@@ -116,11 +116,12 @@ exports.CONSTANTS = {
     low: "low",
     high: "high",
   },
-  ENDORSEMENT_TYPE: [ "rating", "like","review"],
+  ENDORSEMENT_TYPE: [ "rating", "like","review", "follower"],
   ENDORSEMENT_TYPE_OBJ: {
     rating: "rating",
     like: "like",
     review: "review",
+    follower: "follower"
   },
   PROMOTION_STATUS: ["active", "inactive"],
   PROMOTION_STATUS_OBJ: {

@@ -191,20 +191,9 @@ Product
   - createdAt         -> Date
   - updatedAt         -> Date
 
-Ratings:
-  - _id                   -> ObjectId 
-  - prodId                -> String
-  - storeId               -> String
-  - riderId               -> String
-  - product               -> Product(_id);
-  - store                 -> Store(_id)
-  - rider                 -> Account(_id)
-  - rating                -> number
-  - account              -> Account(_id) 
-  - createdAt             -> Date    
-  - updatedAt             -> Date 
+ 
 
-Likes:
+Like:
   - _id                   -> ObjectId 
   - prodId                -> String
   - storeId               -> String
@@ -256,17 +245,7 @@ FAQ
   - createdAt             -> Date
   - updatedAt              -> Date
 
- Review 
-  - _id                     -> ObjectId
-  - id                      -> String
-  - storeId                 -> String
-  - store                   -> Store(_id)
-  - prodId                  -> String
-  - product                 -> Product(_id)
-  - review                  -> String
-  - shopper                 -> Account(_id);
-  - createdAt               -> Date    
-  - updatedAt               -> Date     
+   
 
 Promotion
   - _id                      -> ObjectId
@@ -352,27 +331,6 @@ MutedOrder
   - createdAt     -> Date
   - updatedAt     -> Date
 
-Booking:
-  - _id               -> ObjectId
-  - name              -> String
-  - address             -> String
-  - phone               -> String
-  - alternatePhone      -> String
-  - landMark            -> String
-  - location     -> String
-  - note                -> String
-  - images              -> [Object] 
-  - items               -> [Object] 
-  - recipient           -> Object
-  - bookId               -> String
-  - recipient            -> [Object]
-  - muva                 -> Account(_id)
-  - others               ->[Object]
-  - paymentRef           -> String
-  - user                -> ObjectId
-  - status              -> enum ["active", "cancelled", "paid"]
-  - isAvailable           -> Boolean
-
 
 WalletHistory
   - _id           -> ObjectId
@@ -427,3 +385,12 @@ Setting
         admin:       [String]
         service:     [String]
   }
+
+  LikeRateFollowReview 
+   - _id            -> ObjectId
+   - like           -> Number
+   - rating           -> Number
+   - follow         -> Number
+   - review         -> String
+   - createdAt      -> Date
+   - updateAt       -> Date

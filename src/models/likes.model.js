@@ -1,4 +1,4 @@
-const { model,Schema } = require('mongoose');
+const { model,Schema, Types } = require('mongoose');
 const { CONSTANTS } = require('../config');
 
 const LikeSchema = new Schema({
@@ -53,13 +53,7 @@ const LikeSchema = new Schema({
         maxlength: [10, "User ID cannot exceed 10 characters"],
         description: "User ID",
     },
-    rating: {
-        type: Number,
-        default: 0,
-        required: true,
-        minlength: [1, "Rating must be between 1 and 5"],
-        maxlength: [5, "Rating must be between 1 and 5"],
-    },
+     
     ratingWeight: {
         type: Number,
         default: 0.0,
@@ -70,6 +64,11 @@ const LikeSchema = new Schema({
         enum: CONSTANTS.ENDORSEMENT_TYPE,
         required: true,
     },
+    event: {
+        type: Types.ObjectId,
+        required: true,
+        ref: "LikeRateFollowReview"
+    }
      
 }, {timestamps: true});
 

@@ -7,9 +7,25 @@ exports.like = async (req, res, next ) => {
         delete req.body.createdBy;
         req.body.type = CONSTANTS.ENDORSEMENT_TYPE_OBJ.like;
         req.body.userId = req.userId;
-        const like = await likeItem(req.body);
+        req.body.like =1;
+        // const like = await likeItem(req.body);
+        const like = await rateItem(req.body);
         if(!like) return next(APIError.notFound("Operation failed, try again"));
         if (like?.error) return next(APIError.badRequest(like?.error));
+        res.status(200).json({success: true, msg: "Operation successful"});
+    } catch (error) { 
+        next (error);
+    }
+}
+exports.follow = async (req, res, next ) => {
+    try {
+        delete req.body.createdBy;
+        req.body.type = CONSTANTS.ENDORSEMENT_TYPE_OBJ.follower;
+        req.body.userId = req.userId;
+        req.body.follow =1; 
+        const follow = await rateItem(req.body);
+        if(!follow) return next(APIError.notFound("Operation failed, try again"));
+        if (follow?.error) return next(APIError.badRequest(follow?.error));
         res.status(200).json({success: true, msg: "Operation successful"});
     } catch (error) { 
         next (error);

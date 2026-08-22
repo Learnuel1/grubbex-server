@@ -5,8 +5,7 @@ const BookingModule = require("./booking.service");
 const KYCModule = require("./kyc.services");
 const NotificationModule = require("../shared/services/notification.service");
 const PreferenceModule = require("./preference.service");
-const LikeModule = require("./likes.rating.service");
-const ReviewModule = require("./review.service");
+const LikeModule = require("./likes.rating.service"); 
 const PromotionModule = require("./promotion.service");
 const SettingModule = require("./setting.service");
 
@@ -88,9 +87,9 @@ exports.createCategoryPreference = async(info) => await PreferenceModule.createC
 exports.getCategoryPreference = async (account) => await PreferenceModule.getCategory(account);
 
 // LIKE SECTION
-exports.likeItem = async (info) => await LikeModule.like(info);
+
 exports.rateItem = async (info) => await LikeModule.rate(info);
-exports.reviewItem = async (info) => await ReviewModule.review(info);
+exports.reviewItem = async (info) => await LikeModule.review(info);
 exports.getShopperLikedProducts = async (query) => await LikeModule.searchLikedProduct(query);
 exports.getShopperLikedStore = async (query) => await LikeModule.searchLikedStore
 (query);

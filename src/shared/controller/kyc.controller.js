@@ -369,6 +369,9 @@ exports.getKYCByAccountId = async (req, res, next) => {
 exports.searchKYC = async (req, res, next) => {
   try{ 
     const {search} = req.query;
+	 const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
     let queryString = {
       $or:[
         {userId: new RegExp(search, "i")},
@@ -377,12 +380,22 @@ exports.searchKYC = async (req, res, next) => {
       ]
     }; 
 	if(!search) queryString = {}
-    let kyc = await searchUserKYC(queryString);
+    let {kyc, total } = await searchUserKYC(queryString, skip, limit);
     if (!kyc) kyc = [];
     if (kyc?.error) return next(APIError.badRequest(kyc.error));
+	  const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
     logger.info("KYC info retrieved successfully", {service: META.KYC});
     const response =  buildRes.reqResponse("Found", kyc, "kyc");
-    res.status(200).json(response)
+    res.status(200).json({...response, 
+		total,
+		 pagination: {
+          page,
+          limit,
+          total,
+          hasNext: page < totalPages,
+          hastPrev: page > 1,
+        },
+	})
   }catch(error){
     next(error);
   }

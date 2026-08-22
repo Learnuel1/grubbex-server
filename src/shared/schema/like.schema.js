@@ -33,5 +33,4 @@ exports.ZLikeRatingSchema = z.object({
     .max(5, {message: "Rating must be between 1 and 5"})
     .optional(),
     account: z.instanceof(Types.ObjectId)
-});
-  
+}); 
