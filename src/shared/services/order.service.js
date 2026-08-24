@@ -43,8 +43,15 @@ exports.updateOrderDetails = async (info, reference) => {
 }
 exports.allOrders = async (query, skip=0, limit=0) => {
     try {
-        const totalCount = await OrderModel.countDocuments(query);
-          const orders = await OrderModel.find(query).populate([{
+        let search  ={};
+        if(query?.orderId) {
+            search = {
+                orderId: query.orderId.length === 8? { $regex: `^${query.orderId}` } : query.orderId,
+            }; 
+        }else search = query;
+
+        const totalCount = await OrderModel.countDocuments(search);
+          const orders = await OrderModel.find(search).populate([{
             model: "Account",
             path:"destinationAddress.account",
             select: "firstName lastName email picture -_id"
@@ -233,7 +240,20 @@ exports.findOrderByQRInfo = async (info) => {
 
 exports.findOrderForQRCodeGeneration = async (orderId, info) => {
     try {
-        return await OrderModel.findOne({orderId, ...info });
+        // match orders whose first 8 characters of orderId match 
+        let  query = {};
+        if(orderId.length === 8) {
+            query = {
+                orderId: { $regex: `^${orderId}` },
+                ...info
+            };
+        } else if(orderId.length === 20) {
+            query = {
+                orderId: orderId,
+                ...info
+            };
+        } 
+        return await OrderModel.findOne(query);
     } catch (error) {
         return { error: error.message || "Failed to fetch order for QR code generation" };
     }

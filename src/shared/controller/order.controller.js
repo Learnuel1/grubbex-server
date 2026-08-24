@@ -1066,7 +1066,7 @@ exports.payStackVerifyTransaction = async (req, res, next) => {
 };
 exports.getAllOrders = async (req, res, next) => {
   try {
-    const { search, status, type } = req.query;
+    const { search, status, type, orderId } = req.query;
     const query = {};
     // 2. Pagination params
     const page = Math.max(1, parseInt(req.query.page) || 1);
@@ -1195,7 +1195,9 @@ exports.getAllOrders = async (req, res, next) => {
         { type: {$ne: CONSTANTS.ORDER_STATUS_OBJ.pickup }},
       ];
     }
-
+    if(orderId) {
+      if(orderId.length !== 8 && orderId.length !== 20) return next (APIError.badRequest("Invalid Order ID"));
+      query.orderId = orderId}
     // get order
     const {orders, totalCount} = await storeOrders(query, skip, limit);
    
@@ -1641,6 +1643,7 @@ exports.getOrderQRCode = async (req, res, next) => {
   try {
     const { orderId } = req.params;
     if (!orderId) return next(APIError.badRequest("Order ID is required"));
+    if(orderId.length !== 8 && orderId.length !== 20) return next(APIError.badRequest("Invalid Order ID"));
     const query = {};
     if (req.userType === CONSTANTS.ACCOUNT_ROLE_OBJ.business) {
       query.storeId = req.storeId;
@@ -1652,7 +1655,7 @@ exports.getOrderQRCode = async (req, res, next) => {
       query.orderId = orderId;
     }
 
-    const order = await findOrderForQRCodeGeneration(orderId, query);
+    const order = await findOrderForQRCodeGeneration(orderId.toLowerCase(), query);
     if (!order) return next(APIError.notFound("Order not Found"));
     if (order?.error) return next(APIError.badRequest(order.error));
     if(order.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup && req.userType !== CONSTANTS.ACCOUNT_TYPE_OBJ.shopper) return next(APIError.badRequest("Order has been pickup already"))
@@ -1713,7 +1716,7 @@ exports.getOrderQRCode = async (req, res, next) => {
     };
      const data = {
       _id: order._id,
-      orderId,
+      orderId:order.orderId,
       storeId: order.storeId,
       auth:info.auth,
       qrCode:info.qrCode,
