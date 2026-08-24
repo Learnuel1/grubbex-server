@@ -59,3 +59,62 @@ exports.review = async (req, res, next ) => {
         next (error);
     }
 }
+exports.getLikes = async (req, res, next ) => {
+    try{
+        const {search, prodId, storeId, riderId} = req.query;
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit)) || 10);
+    const skip = (page - 1) * limit;
+    let searchQuery;
+    req.body.type = CONSTANTS.ENDORSEMENT_TYPE_OBJ.like
+    if(prodId) {
+            if(search) {
+        searchQuery = {
+              $or:[ 
+                {rating: new RegExp(search, 'i')},
+                {followers: new RegExp(search, 'i')},
+                {likes: new RegExp(search, 'i')},
+                {reviews: new RegExp(search, 'i')},
+              ],
+              $and:[
+                {status: CONSTANTS.CATEGORY_STATUS_OBJ.published},
+               {prodId:prodId}
+    
+              ]
+             }
+            }else {
+                searchQuery = {
+                status: CONSTANTS.CATEGORY_STATUS_OBJ.published
+            } 
+              
+            }
+            }else if(storeId) {
+            if(search) {
+            searchQuery = {
+              $or:[ 
+                {rating: new RegExp(search, 'i')},
+                {followers: new RegExp(search, 'i')},
+                {likes: new RegExp(search, 'i')},
+                {reviews: new RegExp(search, 'i')},
+              ],
+              $and:[
+               {storeId:storeId}
+    
+              ]
+             }
+            }else {
+                searchQuery = {
+                status: CONSTANTS.CATEGORY_STATUS_OBJ.published
+            } 
+              
+            }
+            }
+            
+
+
+             const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+
+    } catch (error) {
+        next(error);
+    }
+}

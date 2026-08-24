@@ -23,17 +23,17 @@ exports.updateLocationAndAvailability = async ( accountId,info) => {
     }
 }
 
-exports.getRiderLocation = async (accountId) => {
+exports.getRiderLocation = async (_id) => {
     try{
-        return await AccountModel.findById(accountId).select("locationData availability -_id");
+        return await AccountModel.findById(_id).select("locationData availability -_id");
     } catch (error) {
         return {error: error.message};
     }
 }
 exports.getOrderLocation = async (orderId, accountId) => {
     try {
-        let order = await OrderModel.findOne({orderId, riderId: accountId}).select("destinationAddress riderCurrentLocation -_id");
-        if(!order) order = await OrderModel.findOne({orderId, shopperId: accountId}).select("destinationAddress riderCurrentLocation -_id");
+        let order = await OrderModel.findOne({orderId, rider: accountId}).select("destinationAddress riderCurrentLocation -_id ");
+        if(!order) order = await OrderModel.findOne({orderId, shopper: accountId}).select("destinationAddress riderCurrentLocation -_id ");
 return order || {error: "No order found"};
     } catch (error) {
         return {error: error.message };

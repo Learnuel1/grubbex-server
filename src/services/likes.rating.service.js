@@ -150,7 +150,6 @@ exports.rate = async (info) => {
          info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
           storeInfo.save({session})  
            
-
          await session.commitTransaction();
          session.endSession();
             return remove;
@@ -170,7 +169,6 @@ exports.rate = async (info) => {
         ],
         { session }
       );
-         
        if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating){
          
          const normal =  await normalRating(info);
@@ -178,7 +176,8 @@ exports.rate = async (info) => {
          storeInfo.rating = await switchingRating(normal, bayesian, 6, storeInfo.raters.length);;
         }
         const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}).session(session); 
-         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
+        info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
+        
          await storeInfo.save({ session });
 
         await session.commitTransaction();
@@ -295,7 +294,7 @@ exports.review = async (info) => {
         return like;
     }
     // ----------------------------------------------------
-    // 2. STORE RATING
+    // 2. STORE REVIEWING
     // ----------------------------------------------------
     if(info?.storeId) {
      const rated = await LikeModel.findOne({account: info.account, storeId: info.storeId,type: info.type}).session(session);
@@ -338,7 +337,7 @@ exports.review = async (info) => {
           return rate;
     }
     // ----------------------------------------------------
-    // 3. RIDER RATING
+    // 3. RIDER REVIEWING
     // ----------------------------------------------------
     if(info?.riderId) {
      const rated = await LikeModel.findOne({account: info.account, riderId: info.riderId,type: info.type}).session(session);
@@ -430,4 +429,139 @@ exports.deleteReview = async(reviewId, shopper) => {
     } catch ( error ) {
         return { error : error.message };
     }
+}
+
+exports.searchRatings = async (info, query, skip, limit) => {
+ 
+  try { 
+     
+    if(info?.prodId) {
+       const rated = await LikeModel.findOne({prodId: info.prodId, type: info.type}).populate("event");
+       
+        if (rated && rated !== null) { 
+          const productInfo = await ProductModel.findOne(query).session(session);
+          const count = await   LikeModel.countDocuments({prodId: info.prodId, type: info.type}).session(session); 
+  
+          return {data:productInfo, total:count};
+        }else { 
+          return {error: "No Likes on this product"}
+        } 
+    }
+    // ----------------------------------------------------
+    // 2. STORE RATING
+    // ----------------------------------------------------
+    if(info?.storeId) {
+     const rated = await LikeModel.findOne({account: info.account, storeId: info.storeId,type: info.type}).session(session);
+     const storeInfo = await StoreModel.findOne({storeId: info.storeId }).session(session);
+        if (!storeInfo) {
+          await session.abortTransaction();
+          session.endSession();
+          return {error: "Store not found"}
+        };
+
+        if (rated && rated !== null) { 
+           if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) return {error: "You already rated this Store"}
+
+            await LikeModel.findByIdAndDelete(rated._id).session(session);
+          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event).session(session);
+          const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}).session(session); 
+         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
+          storeInfo.save({session})  
+           
+
+         await session.commitTransaction();
+         session.endSession();
+            return remove;
+          };
+            const [opt] = await LikeRateFollowReview.create([{...info}], {session}) ;
+          // like the product
+          const [rate] = await LikeModel.create(
+        [
+          {
+            storeId: info.storeId,
+            account: info.account,
+            store: storeInfo._id,
+            type: info.type, 
+            userId: info.userId,
+            event: opt._id,
+          },
+        ],
+        { session }
+      );
+         
+       if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating){
+         
+         const normal =  await normalRating(info);
+         const bayesian = await bayesianAverageRating(info);
+         storeInfo.rating = await switchingRating(normal, bayesian, 6, storeInfo.raters.length);;
+        }
+        const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}).session(session); 
+         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
+         await storeInfo.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+          return rate;
+    }
+    // ----------------------------------------------------
+    // 3. RIDER RATING
+    // ----------------------------------------------------
+    if(info?.riderId) {
+     const rated = await LikeModel.findOne({account: info.account, riderId: info.riderId,type: info.type}).session(session);
+     const riderInfo = await AccountModel.findOne({userId: info.riderId}).session(session);
+        if (!riderInfo) {
+          await session.abortTransaction();
+          session.endSession();
+          return {error: "Account not found"}
+        };
+        if (rated && rated !== null) {
+          if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) return {error: "You already rated this Rider"}
+            
+           await LikeModel.findByIdAndDelete(rated._id).session(session);
+          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event).session(session);
+          const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}).session(session); 
+            info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? riderInfo[info.type.concat("s")]  = count : riderInfo[info.type]  = count ;
+        await riderInfo.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+          return rated; 
+        }
+         const [opt] = await LikeRateFollowReview.create([{...info}], {session}) ;
+          // rate the rider
+          const [rate] = await LikeModel.create(
+        [
+          {
+            riderId: info.riderId,
+            account: info.account,
+            rider: riderInfo._id,
+            type: info.type, 
+            userId: info.userId,
+            event: opt._id,
+          },
+        ],
+        { session }
+      );
+          if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) {
+
+            const normal =  await normalRating(info);
+            const bayesian = await bayesianAverageRating(info);
+            riderInfo.rating = await switchingRating(normal, bayesian, 6, riderInfo.raters.length);
+          }  
+            const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}).session(session); 
+         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? riderInfo[info.type.concat("s")]  = count : riderInfo[info.type]  = count ;
+          await riderInfo.save({ session });
+
+        await session.commitTransaction();
+      session.endSession();
+          return rate;
+    }
+    await session.abortTransaction();
+    session.endSession();
+    return { error: "Invalid rating payload target" };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    return {error: error.message};
+  }
 } 

@@ -26,6 +26,11 @@ const StoreSchema = new Schema({
     default: 0,
     indexed: true,
   },
+  followers: {
+    type: Number,
+    default: 0,
+    indexed: true,
+  },
   rating: {
     type: Number,
     default: 0.0,
@@ -44,10 +49,11 @@ const StoreSchema = new Schema({
     ref: "Account",
     required: [true, 'User is required']
   },
-  reviews: [{
-    type: Schema.Types.ObjectId,
-    ref: "Review",
-  }],
+  reviews: {
+    type: Number,
+     default: 0,
+    indexed: true,
+  },
   address: [],
   location: {
     type: { type: String, enum: ['Point'] },

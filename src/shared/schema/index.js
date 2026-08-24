@@ -11,7 +11,7 @@ const { ZChatSchema } = require("./chat.schema");
 const { ZTicketSchema } = require("./ticket.schema");
 const { ZTicketChatSchema } = require("./ticket.chat.schema");
 const { ZFaqSchema } = require("./faq.schema");
-const { ZLikeRatingSchema } = require("./like.schema");
+const { ZLikeRatingSchema, ZSearchLikeRatingSchema } = require("./like.schema");
 const { ZReviewSchema } = require("./review.schema");
 const { ZPromotionSchema } = require("./promotion.schema");
 const { ZShippingAddressSchema } = require("./shipping.address.schema");
@@ -48,5 +48,6 @@ module.exports = {
   ZShopperUpdateSchema,
   ZOrderIdSchema,
   ZReturnOrderSchema,
-  ZProductIDSchema
+  ZProductIDSchema,
+  ZSearchLikeRatingSchema,
 }

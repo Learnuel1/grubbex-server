@@ -72,6 +72,7 @@ exports.updateOrderStatus = async (query,status) => {
             return { error: "Order already has this status" };
         }
         if(status.hasOwnProperty("storeStatus")) {
+            if(data.isAvailable === false && status === CONSTANTS.ORDER_STATUS_OBJ.pending) return{ error: "Order has been accepted by a rider"};
             if(data.status.toLowerCase() === CONSTANTS.ORDER_STATUS_OBJ.pending.toLowerCase() && data.status.toLowerCase() === CONSTANTS.ORDER_STATUS_OBJ.pickup.toLowerCase()) return {error: "Order is yet to be accepted by a rider"}
             data.storeStatus = status.storeStatus;
         }

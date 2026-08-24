@@ -180,6 +180,12 @@ module.exports = {
         Schemas[schema].parse({prodId});
 
     }
+    if(schema === "ZSearchLikeRatingSchema"){
+      if(req?.query)
+        Schemas[schema].parse(req.query);
+      if(req?.params) 
+        Schemas[schema].parse(req.params);
+    }
     Schemas[schema].parse(req.body); 
      next();
    }catch(error){

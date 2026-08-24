@@ -5,7 +5,12 @@ const { allowedRoles, validateRequestData } = require('../shared/middleware/data
 
 const LikeRatingRouter = require('express').Router();
 const LikeRatingRoute = require('express').Router();
+const LikeRatingViewer = require('express').Router();
 
 LikeRatingRoute.put("/like", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.like).put("/rate", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.rate).put("/review", validateRequestData("ZReviewSchema"), shared.Controllers.LikeRatingController.review).put("/follow", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.follow);
-LikeRatingRouter.use("/", userRequired, allowedRoles(CONSTANTS.ACCOUNT_TYPE_OBJ.shopper), LikeRatingRoute);
+
+LikeRatingViewer.get("/review", validateRequestData("ZSearchLikeRatingSchema"), shared.Controllers.LikeRatingController.getLikes)
+
+LikeRatingRouter.use("/shopper", userRequired, allowedRoles(CONSTANTS.ACCOUNT_TYPE_OBJ.shopper), LikeRatingRoute);
+LikeRatingRouter.use("/view", LikeRatingViewer)
 module.exports = {LikeRatingRouter};

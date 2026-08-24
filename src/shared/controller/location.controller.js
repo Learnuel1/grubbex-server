@@ -57,10 +57,12 @@ exports.getOrderCurrentLocation = async (req, res, next ) => {
         const {orderId} = req.query;
         if(!orderId) return next(APIError.badRequest("Order ID is required"));
         const location = await getOrderLocation(orderId, req.user);
+        const {destinationAddress, ...rest} = location.toObject();
+        delete destinationAddress.account;
         if(!location) return next(APIError.badRequest("Order location retrieval failed, try again"));
         if(location?.error) return next(APIError.badRequest(location.error));
         logger.info("Retrieved order location successfully", {service: META.LOCATION});
-        res.status(200).json({success: true, msg: "Found", data:location});
+        res.status(200).json({success: true, msg: "Found", data:{destinationAddress: destinationAddress, ...rest}});
     } catch (error ) {
         next (error);
     }

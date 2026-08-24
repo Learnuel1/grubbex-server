@@ -1,6 +1,6 @@
-const mongoose = require("mongoose");
+const {Schema, model} = require("mongoose");
 
-const likeRateFollowReviewSchema = new mongoose.Schema(
+const likeRateFollowReviewSchema = new Schema(
   {
     id: {
         type: String,
@@ -42,7 +42,7 @@ const likeRateFollowReviewSchema = new mongoose.Schema(
   }
 );
 
-const LikeRateFollowReview = mongoose.model(
+const LikeRateFollowReview = model(
   "LikeRateFollowReview",
   likeRateFollowReviewSchema
 );
