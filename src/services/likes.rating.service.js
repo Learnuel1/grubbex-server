@@ -433,16 +433,20 @@ exports.deleteReview = async(reviewId, shopper) => {
 
 exports.searchRatings = async (info, query, skip, limit) => {
  
-  try { 
-     
+  try {  
     if(info?.prodId) {
-       const rated = await LikeModel.findOne({prodId: info.prodId, type: info.type}).populate("event");
+       const rated = await LikeModel.find({prodId: info.prodId, type: info.type}).populate([
+          {
+        model: "Account",
+        path: "account",
+        select: "firstName lastName userId picture.url -_id"
+      }]).select("-_id -__v -account -createdAt -updatedAt -store -product -barcode -ratingWeight -event").skip(skip).limit(limit).lean();
        
         if (rated && rated !== null) { 
-          const productInfo = await ProductModel.findOne(query).session(session);
-          const count = await   LikeModel.countDocuments({prodId: info.prodId, type: info.type}).session(session); 
+          const productInfo = await ProductModel.findOne(query).select("prodId name description price rating likes reviews -_id");
+          const count = await   LikeModel.countDocuments({prodId: info.prodId, type: info.type})
   
-          return {data:productInfo, total:count};
+          return {data:rated, total:count, extraData: productInfo};
         }else { 
           return {error: "No Likes on this product"}
         } 
@@ -451,26 +455,20 @@ exports.searchRatings = async (info, query, skip, limit) => {
     // 2. STORE RATING
     // ----------------------------------------------------
     if(info?.storeId) {
-     const rated = await LikeModel.findOne({account: info.account, storeId: info.storeId,type: info.type}).session(session);
-     const storeInfo = await StoreModel.findOne({storeId: info.storeId }).session(session);
+     const rated = await LikeModel.findOne({account: info.account, storeId: info.storeId,type: info.type}) 
+     const storeInfo = await StoreModel.findOne({storeId: info.storeId }) 
         if (!storeInfo) {
-          await session.abortTransaction();
-          session.endSession();
+          
           return {error: "Store not found"}
         };
 
         if (rated && rated !== null) { 
            if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) return {error: "You already rated this Store"}
 
-            await LikeModel.findByIdAndDelete(rated._id).session(session);
-          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event).session(session);
-          const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}).session(session); 
-         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
-          storeInfo.save({session})  
-           
-
-         await session.commitTransaction();
-         session.endSession();
+            await LikeModel.findByIdAndDelete(rated._id) 
+          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event) 
+          const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}) 
+          
             return remove;
           };
             const [opt] = await LikeRateFollowReview.create([{...info}], {session}) ;
@@ -495,12 +493,7 @@ exports.searchRatings = async (info, query, skip, limit) => {
          const bayesian = await bayesianAverageRating(info);
          storeInfo.rating = await switchingRating(normal, bayesian, 6, storeInfo.raters.length);;
         }
-        const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}).session(session); 
-         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? storeInfo[info.type.concat("s")]  = count : storeInfo[info.type]  = count ;
-         await storeInfo.save({ session });
-
-        await session.commitTransaction();
-        session.endSession();
+        const count = await   LikeModel.countDocuments({storeId: info.storeId, type: info.type}) 
           return rate;
     }
     // ----------------------------------------------------
@@ -508,23 +501,20 @@ exports.searchRatings = async (info, query, skip, limit) => {
     // ----------------------------------------------------
     if(info?.riderId) {
      const rated = await LikeModel.findOne({account: info.account, riderId: info.riderId,type: info.type}).session(session);
-     const riderInfo = await AccountModel.findOne({userId: info.riderId}).session(session);
+     const riderInfo = await AccountModel.findOne({userId: info.riderId}) 
         if (!riderInfo) {
-          await session.abortTransaction();
-          session.endSession();
+         
           return {error: "Account not found"}
         };
         if (rated && rated !== null) {
           if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) return {error: "You already rated this Rider"}
             
-           await LikeModel.findByIdAndDelete(rated._id).session(session);
-          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event).session(session);
-          const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}).session(session); 
-            info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? riderInfo[info.type.concat("s")]  = count : riderInfo[info.type]  = count ;
-        await riderInfo.save({ session });
+           await LikeModel.findByIdAndDelete(rated._id) 
+          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event) 
+          const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}) 
+            
 
-        await session.commitTransaction();
-        session.endSession();
+        
           return rated; 
         }
          const [opt] = await LikeRateFollowReview.create([{...info}], {session}) ;
@@ -548,20 +538,17 @@ exports.searchRatings = async (info, query, skip, limit) => {
             const bayesian = await bayesianAverageRating(info);
             riderInfo.rating = await switchingRating(normal, bayesian, 6, riderInfo.raters.length);
           }  
-            const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}).session(session); 
-         info.type !== CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating ? riderInfo[info.type.concat("s")]  = count : riderInfo[info.type]  = count ;
-          await riderInfo.save({ session });
+            const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}) 
+         
+          
 
-        await session.commitTransaction();
-      session.endSession();
+         
           return rate;
     }
-    await session.abortTransaction();
-    session.endSession();
+    
     return { error: "Invalid rating payload target" };
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+     
     return {error: error.message};
   }
 } 

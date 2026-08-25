@@ -93,6 +93,7 @@ exports.reviewItem = async (info) => await LikeModule.review(info);
 exports.getShopperLikedProducts = async (query) => await LikeModule.searchLikedProduct(query);
 exports.getShopperLikedStore = async (query) => await LikeModule.searchLikedStore
 (query);
+exports.searchRatings = async (info, query, skip, limit) => await LikeModule.searchRatings(info, query, skip, limit);
 
 // PROMOTION SECTION
 exports.newPromotion = async (details) => await PromotionModule.create(details);

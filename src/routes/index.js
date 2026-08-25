@@ -13,7 +13,7 @@ const AdminModule = require("./admin.route");
 const ChatModule = require("./chat.route");
 const RiderModule = require("./rider.route");
 const { FAQController } = require("../shared/controller");
-const { LikeRatingRouter } = require("./like.rating.route");
+const { LikeRatingRouter, LikeRatingViewerRouter } = require("./like.rating.route");
 const { AdvertRoute } = require("./promotion.route");
 const OrderModule = require("./order.route");
 const { TransactionRouter } = require("./transaction.route");
@@ -54,6 +54,7 @@ MobileRouter.use("/transaction", TransactionRouter);
 MobileRouter.use("/location", Location.LocationRouter);
 MobileRouter.use("/payout", PayoutModule.PayoutRouter);
 MobileRouter.use("/return", ReturnedOrderRouter)
+MobileRouter.use("/view", LikeRatingViewerRouter)
 module.exports = {
   Router,
   MobileRouter,

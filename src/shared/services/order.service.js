@@ -205,8 +205,7 @@ exports.completedOrderByIdForAuth = async (info, othersParam) => {
             { session }
         );
 
-        // 5. Create wallet history – again use the object from othersParam
-        //    If you need to create history for each state, adjust accordingly.
+        // 5. Create wallet history – again use the object from othersParam 
         await WalletHistoryModel.create([othersParam], { session });
 
         // 6. Save the order document within the transaction

@@ -1,5 +1,5 @@
 const { CONSTANTS } = require("../../config");
-const { likeItem, rateItem, reviewItem } = require("../../services");
+const { likeItem, rateItem, reviewItem, searchRatings } = require("../../services");
 const { APIError } = require("../utils/apiError");
 
 exports.like = async (req, res, next ) => {
@@ -68,6 +68,7 @@ exports.getLikes = async (req, res, next ) => {
     let searchQuery;
     req.body.type = CONSTANTS.ENDORSEMENT_TYPE_OBJ.like
     if(prodId) {
+        req.body.prodId = prodId;
             if(search) {
         searchQuery = {
               $or:[ 
@@ -84,7 +85,8 @@ exports.getLikes = async (req, res, next ) => {
              }
             }else {
                 searchQuery = {
-                status: CONSTANTS.CATEGORY_STATUS_OBJ.published
+                status: CONSTANTS.CATEGORY_STATUS_OBJ.published,
+                prodId:prodId
             } 
               
             }
@@ -111,8 +113,11 @@ exports.getLikes = async (req, res, next ) => {
             }
             
 
-
-             const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+            const {total, data} = await searchRatings(req.body, searchQuery, skip, limit);
+            if(!data) return next(APIError.notFound("No data found"));
+            if (data?.error) return next(APIError.badRequest(data?.error));
+            const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
+            res.status(200).json({success: true, msg: "Found", data:{total, page, limit, data}});
 
     } catch (error) {
         next(error);
