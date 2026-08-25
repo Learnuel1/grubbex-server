@@ -1669,7 +1669,7 @@ exports.getOrderQRCode = async (req, res, next) => {
       });
     }
     //const logoPath = path.join(__dirname, "../assets/img/GrubbexLogo.png");
-    const expiresAt = new Date(Date.now() + 1 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 1000);
     // const qrCode = await qrcodeService.generateQRCodeWithLogo(
     //   order.qrText.concat(expiresAt),
     //   logoPath,
@@ -1706,7 +1706,7 @@ exports.getOrderQRCode = async (req, res, next) => {
     const token = jwt.sign(
       { data: `${order.orderId}-${order.storeId}:${expiresAt}` },
       config.TOKEN_SECRETE,
-      { expiresIn: "1m" },
+      { expiresIn: "1d" },
     );
      
     info.token = token;
