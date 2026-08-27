@@ -49,8 +49,8 @@ exports.walletHistory = async (req, res, next) => {
 exports.walletHistoryByDateRange = async (req, res, next) => {
     try {
         const { startDate, endDate } = req.query;
-        const page = Math.max(1, parseInt(req.query.page) || 1);          // default page = 1
-        const limit = Math.max(1, parseInt(req.query.limit) || 10);       // default limit = 10
+        const page = Math.max(1, parseInt(req.query.page) || 1);          
+        const limit = Math.max(1, parseInt(req.query.limit) || 10);       
         const skip = (page - 1) * limit;
         let start, end;
         if (!startDate ) return next(APIError.badRequest("Start date is required"));

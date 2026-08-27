@@ -4,6 +4,7 @@ const shared = require("../shared");
 HistoryRoute
 .get("/", shared.Controllers.WalletController.walletHistory)
 .get("/date-range", shared.Controllers.WalletController.walletHistoryByDateRange)
+.get("/all", shared.Controllers.WalletController.walletHistory)
 TransactionHistoryRouter.use("/",  HistoryRoute);
 module.exports = {
     TransactionHistoryRouter
