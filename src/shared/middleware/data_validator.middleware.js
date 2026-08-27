@@ -99,8 +99,8 @@ module.exports = {
     if(!store) return next(APIError.notFound("Product does not exist"));
     if(store?.error) return next(APIError.badRequest(store.error));
     // use the store to get the store address from kyc
-    const storeKYC = await searchUserKYC({"store.storeId":store.storeId});
-  
+    const {kyc:storeKYC} = await searchUserKYC({"store.storeId":store.storeId});
+      
     if(!storeKYC ?? storeKYC.length === 0) return next(APIError.badRequest("Order store info failed, try again"));
     if(storeKYC?.error) return next(APIError.badRequest(storeKYC.error));
     const info = {
