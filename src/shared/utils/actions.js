@@ -23,6 +23,7 @@ exports.META = {
   LOCATION: "location",
   PAYOUT: "payout",
   SETTING: "setting",
+  REPORT: "report",
 }
 
 exports.ERROR_FIELD = {

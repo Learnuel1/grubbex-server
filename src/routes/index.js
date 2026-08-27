@@ -20,6 +20,7 @@ const { TransactionRouter } = require("./transaction.route");
 const Location = require("./location.route");
 const PayoutModule = require("./payout.route"); 
 const { ReturnedOrderRouter } = require("./return.order.router");
+const { ReportsRouter } = require("./report.route");
 
 Router.use("/user", UserModule.userRoute);
 Router.use("/auth", AuthModule.authRoute); 
@@ -35,6 +36,7 @@ Router.use("/transaction", TransactionRouter);
 Router.use("/location", Location.LocationRouter);
 Router.use("/payout", PayoutModule.PayoutRouter);
 Router.use("/return", ReturnedOrderRouter)
+Router.use("/report", ReportsRouter)
 
 
 MobileRouter.use("/user", UserModule.userRoute);

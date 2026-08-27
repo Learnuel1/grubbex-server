@@ -21,6 +21,7 @@ const PayoutController = require("./controller/payout.controller");
 const LocationController = require("./controller/location.controller");
 const buildRes = require("./utils/seedData");
 const ReturnedOrderController = require("./controller/returned.order.controller");
+const ReportController = require("./controller/report.controller");
 module.exports =  {
   Controllers: {
     TempController,
@@ -39,7 +40,8 @@ module.exports =  {
     WalletController,
     PayoutController,
     LocationController,
-    ReturnedOrderController
+    ReturnedOrderController,
+    ReportController
   },
   Modules: {
     ProductModule,

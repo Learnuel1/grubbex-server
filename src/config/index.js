@@ -284,5 +284,10 @@ exports.CONSTANTS = {
     success: 'success',
     failed: 'failed',
     reversed: 'reversed'
+   },
+   REPORT_DURATION_OBJ: {
+    daily: "daily",
+    weekly: "weekly",
+    monthly: "monthly",
    }
 };  

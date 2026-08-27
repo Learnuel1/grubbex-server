@@ -18,6 +18,7 @@ const PayoutModule = require("./payout.service");
 const LocationModule = require("./location.service");
 const ReturnOrderModule = require("./returned.order.service");
 const TemporalTransferModule = require("./temporal.payout.service");
+const ReportModule = require("./report.service");
 
 exports.temporalAccExist =async (email) => await TemporalModules.findTemAccount(email);
 exports.temporalAccExistByToken =async (token) => await TemporalModules.findTemAccountByToken(token);
@@ -187,3 +188,11 @@ exports.updateReturnedOrderVerificationInfo =  async (info)  => await ReturnOrde
 exports.findReturnedOrderForQRCodeGeneration = async (orderId, info) => await ReturnOrderModule.findOrderForQRCodeGeneration(orderId, info);
 exports.returnedOrderStatusUpdate = async (query, info) => await ReturnOrderModule.updateReturnOrderStatus(query, info);
 exports.getReturnedOrderForPayout = async (query) => await ReturnOrderModule.getReturnedOrderForPayout(query);
+
+
+// REPORT SECTION
+exports.platFormPerformance = async (userType) => await ReportModule.platFormPerformance(userType);
+exports.getSalesTrend = async (duration, startDate, endDate) => await ReportModule.getSalesTrend(duration, startDate, endDate);
+exports.getCategoryShare = async (duration, startDate, endDate) => await ReportModule.getCategoryShare(duration, startDate, endDate);
+exports.getSalesTrendByCity = async (duration, startDate, endDate, city) => await ReportModule.getSalesTrendByCity(duration, startDate, endDate, city);
+exports.getTopSellingProducts = async (duration, startDate, endDate) => await ReportModule.getTopSellingProducts(duration, startDate, endDate);

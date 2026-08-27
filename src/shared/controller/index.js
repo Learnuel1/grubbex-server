@@ -13,6 +13,7 @@ const WalletController = require("./wallet.controller");
 const PayoutController = require("./payout.controller");
 const LocationController = require("./location.controller");
 const ReturnedOrderController = require("./returned.order.controller");
+const ReportController = require("./report.controller");
 module.exports = {
   TempController,
   AccController,

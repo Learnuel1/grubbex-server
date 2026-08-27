@@ -2,7 +2,6 @@ const { z } = require("zod");
 const { CONSTANTS } = require("../../config");
 const { Types } = require("mongoose");
 
-// Replace with your actual Product schema
 const ZProductSchema = z.object({
     prodId: z.string({
         description: "Product ID",
