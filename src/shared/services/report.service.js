@@ -334,3 +334,140 @@ exports.getTopSellingProducts = async (duration = 'monthly', limit = 5, startDat
         return { error: error.message || "Failed to fetch top selling products" };
     }
 };
+
+exports.getPeakOrderTimes = async (duration = 'weekly', startDate, endDate) => {
+    try {
+        const matchStage = { status: "completed" };
+
+        // Determine date range filter based on duration if custom dates aren't provided
+        if (startDate || endDate) {
+            matchStage.createdAt = {};
+            if (startDate) matchStage.createdAt.$gte = new Date(startDate);
+            if (endDate) matchStage.createdAt.$lte = new Date(endDate);
+        } else {
+            const now = new Date();
+            let fromDate = new Date();
+
+            switch (duration) {
+                case 'daily':
+                    fromDate.setHours(0, 0, 0, 0); // Today starting at 00:00
+                    break;
+                case 'weekly':
+                    fromDate.setDate(now.getDate() - 7); // Last 7 days
+                    break;
+                case 'monthly':
+                default:
+                    fromDate.setMonth(now.getMonth() - 1); // Last 30 days
+                    break;
+            }
+            matchStage.createdAt = { $gte: fromDate, $lte: now };
+        }
+        matchStage.type = {$lte: CONSTANTS.ORDER_TYPE_OBJ.delivery}; // Only consider delivery orders for peak times
+        const peakOrderData = await OrderModel.aggregate([
+            { $match: matchStage },
+            {
+                $project: {
+                    totalAmount: 1,
+                    // Extract Day of Week in local time (1 = Sun, 2 = Mon, ..., 7 = Sat)
+                    dayOfWeek: { $dayOfWeek: { date: "$createdAt", timezone: "Africa/Lagos" } },
+                    // Extract Hour in 24-hour format (0 to 23) in local time
+                    hour: { $hour: { date: "$createdAt", timezone: "Africa/Lagos" } }
+                }
+            },
+            {
+                $project: {
+                    dayOfWeek: 1,
+                    totalAmount: 1,
+                    // Bucket hours into matching chart time slots
+                    timeSlot: {
+                        $switch: {
+                            branches: [
+                                {
+                                    case: { $and: [{ $gte: ["$hour", 6] }, { $lt: ["$hour", 9] }] },
+                                    then: "06:00 AM - 08:00 AM"
+                                },
+                                {
+                                    case: { $and: [{ $gte: ["$hour", 9] }, { $lt: ["$hour", 12] }] },
+                                    then: "09:00 AM - 11:00 AM"
+                                },
+                                {
+                                    case: { $and: [{ $gte: ["$hour", 12] }, { $lt: ["$hour", 15] }] },
+                                    then: "12:00 PM - 02:00 PM"
+                                },
+                                {
+                                    case: { $and: [{ $gte: ["$hour", 15] }, { $lt: ["$hour", 18] }] },
+                                    then: "03:00 PM - 05:00 PM"
+                                },
+                                {
+                                    case: { $and: [{ $gte: ["$hour", 18] }, { $lt: ["$hour", 21] }] },
+                                    then: "06:00 PM - 08:00 PM"
+                                }
+                            ],
+                            default: "Other"
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        dayOfWeek: "$dayOfWeek",
+                        timeSlot: "$timeSlot"
+                    },
+                    count: { $sum: 1 },
+                    totalSales: { $sum: "$totalAmount" }
+                }
+            },
+            { $sort: { "_id.dayOfWeek": 1 } },
+            {
+                $group: {
+                    _id: "$_id.dayOfWeek",
+                    timeSlots: {
+                        $push: {
+                            slot: "$_id.timeSlot",
+                            count: "$count"
+                        }
+                    },
+                    totalDayOrders: { $sum: "$count" },
+                    totalDayRevenue: { $sum: "$totalSales" }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        // Days mapping (MongoDB 1 = Sun, 2 = Mon ... 7 = Sat)
+        const dayMap = { 1: "Sun", 2: "Mon", 3: "Tue", 4: "Wed", 5: "Thu", 6: "Fri", 7: "Sat" };
+
+        let totalRevenue = 0;
+        let totalOrders = 0;
+
+        const formattedChartData = peakOrderData.map(item => {
+            totalRevenue += item.totalDayRevenue;
+            totalOrders += item.totalDayOrders;
+
+            // Transform timeSlots array into a clean object key-value pair for stacked charts
+            const slotsObj = {};
+            item.timeSlots.forEach(s => {
+                slotsObj[s.slot] = s.count;
+            });
+
+            return {
+                day: dayMap[item._id],
+                totalDayOrders: item.totalDayOrders,
+                ...slotsObj
+            };
+        });
+
+        return {
+            success: true,
+            summary: {
+                totalRevenue,
+                totalOrders
+            },
+            data: formattedChartData
+        };
+
+    } catch (error) {
+        return { error: error.message || "Failed to fetch peak order times" };
+    }
+};
