@@ -17,15 +17,15 @@ exports.createProduct = async (req, res, next) => {
     delete req.body.additionalInfo;
     delete req.body.variation;
      const mainImage = {};
-    if(additionalInfo)
-      additionalInfo = JSON.parse(JSON.stringify(additionalInfo.trim()));
-    if(variation && variation.hasOwnProperty("type")) {
-      const variationObjects = [];
-      variation.forEach((cur) =>{
-        variationObjects.push(JSON.parse(JSON.stringify(cur.trim())))
-      });
-      req.body.variation = [variation];
-    }
+    // if(additionalInfo)
+    //   additionalInfo = JSON.parse(JSON.stringify(additionalInfo.trim()));
+    // if(variation && variation.hasOwnProperty("type")) {
+    //   const variationObjects = [];
+    //   variation.forEach((cur) =>{
+    //     variationObjects.push(JSON.parse(JSON.stringify(cur.trim())))
+    //   });
+    //   req.body.variation = [variation];
+    // }
     req.body.prodId = shortIdGen(20);
     const { price, discountPrice, discountCode } = req.body;
     delete req.body.price;
