@@ -68,10 +68,12 @@ exports.platFormPerformance = async (userType) => {
 }
  
 
-exports.getSalesTrend = async (duration = 'weekly', startDate, endDate) => {
+exports.getSalesTrend = async (duration = 'weekly', startDate, endDate, user) => {
     try {
         const matchStage = { status: "completed" };
-
+        if(user) {
+            matchStage.store = user;
+        }
         if (startDate || endDate) {
             matchStage.createdAt = {};
             if (startDate) matchStage.createdAt.$gte = new Date(startDate);
@@ -126,10 +128,12 @@ exports.getSalesTrend = async (duration = 'weekly', startDate, endDate) => {
     }
 };
 
-exports.getCategoryShare = async (startDate, endDate) => {
+exports.getCategoryShare = async (startDate, endDate, user) => {
     try {
         const matchStage = { status: "completed" };
-
+        if(user) {
+            matchStage.store = user;
+        }
         if (startDate || endDate) {
             matchStage.createdAt = {};
             if (startDate) matchStage.createdAt.$gte = new Date(startDate);
@@ -188,10 +192,12 @@ exports.getCategoryShare = async (startDate, endDate) => {
         return { error: error.message || "Failed to fetch category breakdown" };
     }
 };
-exports.getSalesTrendByCity = async (duration = 'monthly', startDate, endDate) => {
+exports.getSalesTrendByCity = async (duration = 'monthly', startDate, endDate, user) => {
     try {
         const matchStage = { status: "completed" };
-
+        if(user) {
+            matchStage.store = user;
+        }
         // Determine date range automatically based on duration if custom dates aren't provided
         if (startDate || endDate) {
             matchStage.createdAt = {};
@@ -264,10 +270,12 @@ exports.getSalesTrendByCity = async (duration = 'monthly', startDate, endDate) =
         return { error: error.message || "Failed to fetch sales trend by city" };
     }
 };
-exports.getTopSellingProducts = async (duration = 'monthly', limit = 5, startDate, endDate) => {
+exports.getTopSellingProducts = async (duration = 'monthly', limit = 5, startDate, endDate, user) => {
     try {
         const matchStage = { status: "completed" };
-
+        if(user) {
+            matchStage.store = user;
+        }
         // Determine date range automatically based on duration if custom dates aren't provided
         if (startDate || endDate) {
             matchStage.createdAt = {};
@@ -337,7 +345,7 @@ exports.getTopSellingProducts = async (duration = 'monthly', limit = 5, startDat
 
 exports.getPeakOrderTimes = async (duration = 'weekly', startDate, endDate) => {
     try {
-        const matchStage = { status: "completed" };
+        const matchStage = { status: "completed", type: CONSTANTS.ORDER_TYPE_OBJ.delivery }; // Only consider delivery orders for peak times
 
         // Determine date range filter based on duration if custom dates aren't provided
         if (startDate || endDate) {
@@ -362,7 +370,7 @@ exports.getPeakOrderTimes = async (duration = 'weekly', startDate, endDate) => {
             }
             matchStage.createdAt = { $gte: fromDate, $lte: now };
         }
-        matchStage.type = {$lte: CONSTANTS.ORDER_TYPE_OBJ.delivery}; // Only consider delivery orders for peak times
+        
         const peakOrderData = await OrderModel.aggregate([
             { $match: matchStage },
             {
@@ -469,5 +477,256 @@ exports.getPeakOrderTimes = async (duration = 'weekly', startDate, endDate) => {
 
     } catch (error) {
         return { error: error.message || "Failed to fetch peak order times" };
+    }
+};
+const calculatePercentageChange = (current, previous) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    const change = ((current - previous) / previous) * 100;
+    return Math.round(change); // Returns whole number (e.g. 40 for +40%, -20 for -20%)
+};
+
+exports.getDashboardOverviewStatsAdmin = async () => {
+    try {
+        const now = new Date();
+
+        // 1. Date Range Definitions (Africa/Lagos WAT boundaries)
+        const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        // -------------------------------------------------------------
+        // QUERY 1: User Metrics (Stores & Delivery Drivers Count)
+        // -------------------------------------------------------------
+        const [userStats] = await AccountModel.aggregate([
+            {
+                $match: {
+                    type: { $in: [CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, CONSTANTS.ACCOUNT_TYPE_OBJ.rider] } // Adjust userType values as per your schema
+                }
+            },
+            {
+                $facet: {
+                    // Stores (Vendors)
+                    currentStores: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        { $count: "count" }
+                    ],
+                    lastStores: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        { $count: "count" }
+                    ],
+                    // Delivery Drivers
+                    currentDrivers: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider, createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        { $count: "count" }
+                    ],
+                    lastDrivers: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        { $count: "count" }
+                    ]
+                }
+            }
+        ]);
+
+        // -------------------------------------------------------------
+        // QUERY 2: Order Metrics (Orders Processed & Gross Value)
+        // -------------------------------------------------------------
+        const [orderStats] = await OrderModel.aggregate([
+            {
+                $match: {
+                    status: CONSTANTS.ORDER_STATUS_OBJ.completed, // Only consider completed orders for metrics
+                    orderType: CONSTANTS.ORDER_TYPE_OBJ.delivery, // Only consider delivery orders for metrics
+                }
+            },
+            {
+                $facet: {
+                    currentMonthOrders: [
+                        { $match: { createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                                grossValue: { $sum: "$totalAmount" }
+                            }
+                        }
+                    ],
+                    lastMonthOrders: [
+                        { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                                grossValue: { $sum: "$totalAmount" }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+
+        // -------------------------------------------------------------
+        // Extracting Counts & Values
+        // -------------------------------------------------------------
+        const currentStoresCount = userStats.currentStores[0]?.count || 0;
+        const lastStoresCount = userStats.lastStores[0]?.count || 0;
+
+        const currentDriversCount = userStats.currentDrivers[0]?.count || 0;
+        const lastDriversCount = userStats.lastDrivers[0]?.count || 0;
+
+        const currentOrdersCount = orderStats.currentMonthOrders[0]?.count || 0;
+        const lastOrdersCount = orderStats.lastMonthOrders[0]?.count || 0;
+
+        const currentGrossValue = orderStats.currentMonthOrders[0]?.grossValue || 0;
+        const lastGrossValue = orderStats.lastMonthOrders[0]?.grossValue || 0;
+
+        // -------------------------------------------------------------
+        // Structure Final Output Object
+        // -------------------------------------------------------------
+        return { 
+            data: {
+                totalStores: {
+                    value: currentStoresCount,
+                    percentageChange: calculatePercentageChange(currentStoresCount, lastStoresCount)
+                },
+                totalDeliveryDrivers: {
+                    value: currentDriversCount,
+                    percentageChange: calculatePercentageChange(currentDriversCount, lastDriversCount)
+                },
+                ordersProcessed: {
+                    value: currentOrdersCount,
+                    percentageChange: calculatePercentageChange(currentOrdersCount, lastOrdersCount)
+                },
+                grossValue: {
+                    value: currentGrossValue,
+                    percentageChange: calculatePercentageChange(currentGrossValue, lastGrossValue)
+                }
+            }
+        };
+
+    } catch (error) {
+        return { error: error.message || "Failed to fetch dashboard overview metrics" };
+    }
+};
+
+exports.getDashboardOverviewStats = async (user) => {
+    try {
+        const now = new Date();
+
+        // 1. Date Range Definitions (Africa/Lagos WAT boundaries)
+        const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        // -------------------------------------------------------------
+        // QUERY 1: User Metrics (Stores & Delivery Drivers Count)
+        // -------------------------------------------------------------
+        const [userStats] = await AccountModel.aggregate([
+            {
+                $match: {
+                    type: { $in: [CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, CONSTANTS.ACCOUNT_TYPE_OBJ.rider] },
+                    storeId: user // Adjust userType values as per your schema
+                }
+            },
+            {
+                $facet: {
+                    // Stores (Vendors)
+                    currentStores: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        { $count: "count" }
+                    ],
+                    lastStores: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        { $count: "count" }
+                    ],
+                    // Delivery Drivers
+                    currentDrivers: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider, createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        { $count: "count" }
+                    ],
+                    lastDrivers: [
+                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        { $count: "count" }
+                    ]
+                }
+            }
+        ]);
+
+        // -------------------------------------------------------------
+        // QUERY 2: Order Metrics (Orders Processed & Gross Value)
+        // -------------------------------------------------------------
+        const [orderStats] = await OrderModel.aggregate([
+            {
+                $match: {
+                    status: CONSTANTS.ORDER_STATUS_OBJ.completed, // Only consider completed orders for metrics
+                    orderType: CONSTANTS.ORDER_TYPE_OBJ.delivery,
+                    storeId: user, // Only consider delivery orders for metrics
+                }
+            },
+            {
+                $facet: {
+                    currentMonthOrders: [
+                        { $match: { createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                                grossValue: { $sum: "$totalAmount" }
+                            }
+                        }
+                    ],
+                    lastMonthOrders: [
+                        { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        {
+                            $group: {
+                                _id: null,
+                                count: { $sum: 1 },
+                                grossValue: { $sum: "$totalAmount" }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+
+        // -------------------------------------------------------------
+        // Extracting Counts & Values
+        // -------------------------------------------------------------
+        const currentStoresCount = userStats.currentStores[0]?.count || 0;
+        const lastStoresCount = userStats.lastStores[0]?.count || 0;
+
+        const currentDriversCount = userStats.currentDrivers[0]?.count || 0;
+        const lastDriversCount = userStats.lastDrivers[0]?.count || 0;
+
+        const currentOrdersCount = orderStats.currentMonthOrders[0]?.count || 0;
+        const lastOrdersCount = orderStats.lastMonthOrders[0]?.count || 0;
+
+        const currentGrossValue = orderStats.currentMonthOrders[0]?.grossValue || 0;
+        const lastGrossValue = orderStats.lastMonthOrders[0]?.grossValue || 0;
+
+        // -------------------------------------------------------------
+        // Structure Final Output Object
+        // -------------------------------------------------------------
+        return { 
+            data: {
+                totalStores: {
+                    value: currentStoresCount,
+                    percentageChange: calculatePercentageChange(currentStoresCount, lastStoresCount)
+                },
+                totalDeliveryDrivers: {
+                    value: currentDriversCount,
+                    percentageChange: calculatePercentageChange(currentDriversCount, lastDriversCount)
+                },
+                ordersProcessed: {
+                    value: currentOrdersCount,
+                    percentageChange: calculatePercentageChange(currentOrdersCount, lastOrdersCount)
+                },
+                grossValue: {
+                    value: currentGrossValue,
+                    percentageChange: calculatePercentageChange(currentGrossValue, lastGrossValue)
+                }
+            }
+        };
+
+    } catch (error) {
+        return { error: error.message || "Failed to fetch dashboard overview metrics" };
     }
 };

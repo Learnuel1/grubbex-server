@@ -289,5 +289,6 @@ exports.CONSTANTS = {
     daily: "daily",
     weekly: "weekly",
     monthly: "monthly",
+    yearly: "yearly",
    }
 };  

@@ -192,7 +192,9 @@ exports.getReturnedOrderForPayout = async (query) => await ReturnOrderModule.get
 
 // REPORT SECTION
 exports.platFormPerformance = async (userType) => await ReportModule.platFormPerformance(userType);
-exports.getSalesTrend = async (duration, startDate, endDate) => await ReportModule.getSalesTrend(duration, startDate, endDate);
-exports.getCategoryShare = async (duration, startDate, endDate) => await ReportModule.getCategoryShare(duration, startDate, endDate);
-exports.getSalesTrendByCity = async (duration, startDate, endDate, city) => await ReportModule.getSalesTrendByCity(duration, startDate, endDate, city);
-exports.getTopSellingProducts = async (duration, startDate, endDate) => await ReportModule.getTopSellingProducts(duration, startDate, endDate);
+exports.getSalesTrend = async (duration,   startDate, endDate, user) => await ReportModule.getSalesTrend(duration,  startDate, endDate, user);
+exports.getCategoryShare = async (duration, startDate, endDate, user) => await ReportModule.getCategoryShare(duration, startDate, endDate);
+exports.getSalesTrendByCity = async (duration, startDate, endDate, user) => await ReportModule.getSalesTrendByCity(duration, startDate, endDate, user);
+exports.getTopSellingProducts = async (duration, startDate, endDate, user) => await ReportModule.getTopSellingProducts(duration, startDate, endDate, user);
+exports.getDashboardOverviewStatsAdmin = async (user) => await ReportModule.getDashboardOverviewStatsAdmin();
+exports.getDashboardOverviewStats = async (storeId) => await ReportModule.getDashboardOverviewStats(storeId);

@@ -1,6 +1,6 @@
 const { CONSTANTS } = require("../../config");
 const logger = require("../../logger");
-const { platFormPerformance, getSalesTrend, getCategoryShare,getSalesTrendByCity, getTopSellingProducts } = require("../services/interface");
+const { platFormPerformance, getSalesTrend, getCategoryShare,getSalesTrendByCity, getTopSellingProducts, getDashboardOverviewStats, getDashboardOverviewStatsAdmin, getUserKYCByAccountId } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 
@@ -31,7 +31,7 @@ exports.getAllReports = async (req, res, next) => {
 }
 exports.getPlatformPerformanceReport = async (req, res, next) => {
     try {
-        const { userType } = req.query; // Optional query parameter to filter by user type
+      
         const shopper = await platFormPerformance(CONSTANTS.ACCOUNT_TYPE_OBJ.shopper);
         if(shopper?.error) return next(APIError.badRequest(shopper.error));
         logger.info("Platform performance report fetched successfully", {service: META.REPORT});
@@ -57,10 +57,20 @@ exports.getSalesTrendReport = async (req, res, next) => {
         if(duration && !Array.from(Object.values(CONSTANTS.REPORT_DURATION_OBJ)).includes(duration)) {
             return next(APIError.badRequest("Invalid duration specified"));
         }
-        const salesTrend = await getSalesTrend(duration, startDate, endDate);
+        let salesTrend ;
+        if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business) {
+            salesTrend = await getSalesTrend(duration,  startDate, endDate,req.user,);
+        } else {
+            salesTrend = await getSalesTrend(duration, startDate, endDate);
+        }
         if(salesTrend?.error) return next(APIError.badRequest(salesTrend.error));
         logger.info("Sales trend report fetched successfully", {service: META.REPORT});
-        const saleCategoryShare = await getCategoryShare(duration, startDate, endDate);
+        let  saleCategoryShare ;
+        if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business) {
+            saleCategoryShare = await getCategoryShare(duration, startDate, endDate, req.user);
+        } else {
+            saleCategoryShare = await getCategoryShare(duration, startDate, endDate);
+        }
         if(saleCategoryShare?.error) return next(APIError.badRequest(saleCategoryShare.error));
         logger.info("Sales category share report fetched successfully", {service: META.REPORT});
         const report = { salesTrend: salesTrend, categoryShare: saleCategoryShare.data };
@@ -108,4 +118,25 @@ exports.getTopSellingProductsReport = async (req, res, next) => {
     } catch (error) {
         next(error);
     }   
+}
+exports.getDashboardOverviewStatsReport = async (req, res, next) => {
+    try {
+        let dashboardOverviewStats;
+        if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.admin ) {
+            dashboardOverviewStats = await getDashboardOverviewStatsAdmin();
+        } else {
+            const {store} = await getUserKYCByAccountId(req.userId);
+           if(!store || store.length === 0) return next(APIError.badRequest("Store not found for the user"));
+            dashboardOverviewStats = await getDashboardOverviewStats(store[0].storeId);
+        }
+        if(dashboardOverviewStats?.error) return next(APIError.badRequest(dashboardOverviewStats.error));
+        logger.info("Dashboard overview stats report fetched successfully", {service: META.REPORT});
+        return res.status(200).json({
+            success: true,
+            message: "Dashboard overview stats report fetched successfully",
+            report: dashboardOverviewStats.data
+        });
+    } catch (error) {
+        next(error);
+    }
 }
