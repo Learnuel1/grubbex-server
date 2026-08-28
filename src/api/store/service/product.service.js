@@ -65,7 +65,7 @@ exports.removeProduct = async (prodId, store) => {
 }
 exports.searchProductsForShopper = async (query, skip =0, limit=20) =>{
   try{
-
+    console.log(query)
     const populateOptions = [
   {
     model: "Store",
@@ -73,21 +73,7 @@ exports.searchProductsForShopper = async (query, skip =0, limit=20) =>{
     select: "-_id -__v -createdAt -updatedAt -category -user",
     sort: { rating: 1, likes: 1 }
   },
-  {
-    model: "Like",
-    path: "likers",
-    select: "userId -_id"
-  },
-  {
-    model: "Review",
-    path: "reviews",
-    select: "userId -_id"
-  },
-  {
-    model: "Like",
-    path: "raters",
-    select: "userId -_id"
-  }
+   
 ];
 const selectedFields = "-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id";
   let [products, totalCount] = await Promise.all([

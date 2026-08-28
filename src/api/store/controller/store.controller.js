@@ -95,13 +95,12 @@ exports.getProductForShopperHome = async (req, res, next) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const skip = (page - 1) * limit;
     const preference = await getCategoryPreference(req.user);
-    if(preference) {
+    if(preference) { 
       const regEx = new RegExp(preference.category.join('|'), 'i');
       let  query = { "category.name": regEx, status: CONSTANTS.CATEGORY_STATUS_OBJ.published } 
       const {products, totalCount} =  await getShopperFilteredProducts(query, skip, limit);
-      // check if you have liked the product
       const totalPages = Math.ceil(totalCount / limit);
-      const response = reqResponse("Found", products);
+      const response =  reqResponse( products.length > 0 ? "Found": "No product", products);
       logger.info("Preference Products retrieved successfully", {service: META.STORE});
       res.status(200).json({ 
     response,

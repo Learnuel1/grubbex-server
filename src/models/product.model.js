@@ -154,14 +154,8 @@ const ProductSchema = new Schema({
     required: true,
     default: 0,
   },
-  likers: [{
-    type: Schema.Types.ObjectId,
-    ref: "Like",
-  }],
-  raters: [{
-    type: Schema.Types.ObjectId,
-    ref: "Like",
-  }],
+  likers: [],
+  raters: [],
   reviews: {
     type: Number,
     default: 0,
