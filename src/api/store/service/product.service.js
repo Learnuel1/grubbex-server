@@ -65,7 +65,6 @@ exports.removeProduct = async (prodId, store) => {
 }
 exports.searchProductsForShopper = async (query, skip =0, limit=20) =>{
   try{
-    console.log(query)
     const populateOptions = [
   {
     model: "Store",
@@ -75,7 +74,7 @@ exports.searchProductsForShopper = async (query, skip =0, limit=20) =>{
   },
    
 ];
-const selectedFields = "-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id";
+const selectedFields = "-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id -barcode._id -barcode.id";
   let [products, totalCount] = await Promise.all([
     ProductModel.find(query)
       .populate(populateOptions)
@@ -98,56 +97,7 @@ const selectedFields = "-_id -__v -createdAt -updatedAt -user -status -storeId -
     ProductModel.countDocuments(query)
       ]);
    } 
-    // const data = await ProductModel.find(query).populate([
-    //  { 
-    //   model: "Store",
-    //   path: "store",
-    //   select: "-_id -__v -createdAt -updatedAt -category -user",
-    //   sort: {rating: 1, likes: 1},
-      
-    // },
-    //  {
-    //     model: "Like",
-    //     path: "likers",
-    //     select: "userId -_id"  
-    //    },
-    //    {
-    //     model: "Review",
-    //     path: "reviews",
-    //     select: "userId -_id"  
-    //    },
-    //    {
-    //     model: "Like",
-    //     path: "raters",
-    //     select: "userId -_id"  
-    //    }
-    // ]).sort({rating:1, likes:1}).select("-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id").skip(skip).limit(limit).exec();
-    // if( data?.length === 0){
-    // return  await ProductModel.find({status: CONSTANTS.CATEGORY_STATUS_OBJ.published}).populate([
-    //     { 
-    //      model: "Store",
-    //      path: "store",
-    //      select: "-_id -__v -createdAt -updatedAt -category -user ",
-    //      sort: {rating: 1, likes: 1}
-    //    },
-    //    {
-    //     model: "Like",
-    //     path: "likers",
-    //     select: "userId -_id"  
-    //    },
-    //    {
-    //     model: "Review",
-    //     path: "reviews",
-    //     select: "userId -_id"  
-    //    },
-    //    {
-    //     model: "Like",
-    //     path: "raters",
-    //     select: "userId -_id"  
-    //    }
-        
-    //    ]).sort({rating:1, likes:1}).select("-_id -__v -createdAt -updatedAt -user -status -storeId -media.mainImage.id -media.others.id").skip(skip).limit(limit).exec();
-    // }
+     
     return { products, totalCount};
   } catch (error) {
     return {error : error.message};
