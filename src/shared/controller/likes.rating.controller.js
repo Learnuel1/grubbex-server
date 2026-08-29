@@ -66,7 +66,8 @@ exports.getLikes = async (req, res, next ) => {
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit)) || 10);
     const skip = (page - 1) * limit;
     let searchQuery;
-    req.body.type = CONSTANTS.ENDORSEMENT_TYPE_OBJ.like
+    req.body.type = CONSTANTS.ENDORSEMENT_TYPE_OBJ.like;
+
     if(prodId) {
         req.body.prodId = prodId;
             if(search) {
@@ -91,6 +92,7 @@ exports.getLikes = async (req, res, next ) => {
               
             }
             }else if(storeId) {
+                req.body.storeId = storeId;
             if(search) {
             searchQuery = {
               $or:[ 
@@ -106,18 +108,60 @@ exports.getLikes = async (req, res, next ) => {
              }
             }else {
                 searchQuery = {
-                status: CONSTANTS.CATEGORY_STATUS_OBJ.published
+                storeId:storeId
             } 
               
             }
             }
+            else if(riderId) {
+            if(search) {
+            searchQuery = {
+              $or:[ 
+                {rating: new RegExp(search, 'i')},
+                {followers: new RegExp(search, 'i')},
+                {likes: new RegExp(search, 'i')},
+                {reviews: new RegExp(search, 'i')},
+              ],
+              $and:[
+               {riderId:riderId}
+    
+              ]
+             }
+            }else {
+                searchQuery = {
+                status: CONSTANTS.ORDER_STATUS_OBJ.completed,
+                 riderId:riderId
+            } 
+              
+            }
+            } else {
+                searchQuery = {
+              $or:[ 
+                {rating: new RegExp(search, 'i')},
+                {followers: new RegExp(search, 'i')},
+                {likes: new RegExp(search, 'i')},
+                {reviews: new RegExp(search, 'i')},
+              ],
+            }
+        }
             
-
-            const {total, data} = await searchRatings(req.body, searchQuery, skip, limit);
+            const {total, data, extraData} = await searchRatings(req.body, searchQuery, skip, limit);
             if(!data) return next(APIError.notFound("No data found"));
             if (data?.error) return next(APIError.badRequest(data?.error));
             const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
-            res.status(200).json({success: true, msg: "Found", data:{total, page, limit, data}});
+            res.status(200).json({
+                success: true, 
+                msg: "Found", 
+                data, 
+                extraData,
+                pagination :{
+                    total,
+                    totalPages, 
+                    page, 
+                    limit,
+                    hasNext: page < totalPages,
+                    hasPrev: page > 1 
+                }});
 
     } catch (error) {
         next(error);

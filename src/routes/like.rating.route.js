@@ -10,7 +10,7 @@ const LikeRatingViewerRouter = require('express').Router();
 LikeRatingRoute.put("/like", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.like).put("/rate", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.rate).put("/review", validateRequestData("ZReviewSchema"), shared.Controllers.LikeRatingController.review).put("/follow", validateRequestData("ZLikeRatingSchema"), shared.Controllers.LikeRatingController.follow);
 
 LikeRatingViewerRouter.get("/product/:productId/review", validateRequestData("ZSearchLikeRatingSchema"), shared.Controllers.LikeRatingController.getLikes);
-LikeRatingViewerRouter.get("/product/likes", validateRequestData("ZSearchLikeRatingSchema"), shared.Controllers.LikeRatingController.getLikes);
+LikeRatingViewerRouter.get("/likes", validateRequestData("ZSearchLikeRatingSchema"), shared.Controllers.LikeRatingController.getLikes);
 
 LikeRatingRouter.use("/shopper", userRequired, allowedRoles(CONSTANTS.ACCOUNT_TYPE_OBJ.shopper), LikeRatingRoute);
  

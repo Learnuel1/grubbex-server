@@ -21,7 +21,7 @@ const StoreSchema = new Schema({
   category: {
     type: [ ]
   },
-  like: {
+  likes: {
     type: Number,
     default: 0,
     indexed: true,
