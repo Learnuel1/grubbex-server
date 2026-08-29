@@ -31,11 +31,17 @@ exports.update = async(info) => {
     }
     if(info.kyc === CONSTANTS.KYC_TYPE_INFO.profile ){
       const KYC = await KYCModel.findOne({user:info.user}).exec();
-      if(!KYC )
+      if(!KYC ){
       update = await KYCModel.create({...info,  $set: {
           profile: info.profile
       }
-   })
+     
+    
+   });
+    if(update && info.profile?.logo){
+      await StoreModel.findOneAndUpdate({user: info.user}, {logo:info.profile.logo});
+      }
+  }
       else{
         update = await KYCModel.findOneAndUpdate({user:info.user},{
           $set: {
@@ -44,7 +50,7 @@ exports.update = async(info) => {
           
         }, {returnOriginal: false}).exec();
       }
-      await StoreModel.findOneAndUpdate({user: info.user}, {
+      await StoreModel.findOneAndUpdate({user: info.user}, { ...info.profile.logo,
         $set: { 
           address: info.profile.address
         }

@@ -609,76 +609,47 @@ exports.getDashboardOverviewStatsAdmin = async () => {
 
 exports.getDashboardOverviewStats = async (user) => {
     try {
-        const now = new Date();
+         const now = new Date();
 
-        // 1. Date Range Definitions (Africa/Lagos WAT boundaries)
+        // 1. Month range boundaries (Africa/Lagos WAT)
         const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-        // -------------------------------------------------------------
-        // QUERY 1: User Metrics (Stores & Delivery Drivers Count)
-        // -------------------------------------------------------------
-        const [userStats] = await AccountModel.aggregate([
+        // 2. Single Aggregation Pipeline on OrderModel
+        const [stats] = await OrderModel.aggregate([
             {
                 $match: {
-                    type: { $in: [CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, CONSTANTS.ACCOUNT_TYPE_OBJ.rider] },
-                    storeId: user // Adjust userType values as per your schema
+                    status: CONSTANTS.ORDER_STATUS_OBJ.completed,
+                    orderType: CONSTANTS.ORDER_STATUS_OBJ.delivery,
+                    storeId: user,
+                    createdAt: { $gte: startOfLastMonth, $lte: now }
                 }
             },
             {
                 $facet: {
-                    // Stores (Vendors)
-                    currentStores: [
-                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
-                        { $count: "count" }
-                    ],
-                    lastStores: [
-                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.vendor, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
-                        { $count: "count" }
-                    ],
-                    // Delivery Drivers
-                    currentDrivers: [
-                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider, createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
-                        { $count: "count" }
-                    ],
-                    lastDrivers: [
-                        { $match: { type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider, createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
-                        { $count: "count" }
-                    ]
-                }
-            }
-        ]);
-
-        // -------------------------------------------------------------
-        // QUERY 2: Order Metrics (Orders Processed & Gross Value)
-        // -------------------------------------------------------------
-        const [orderStats] = await OrderModel.aggregate([
-            {
-                $match: {
-                    status: CONSTANTS.ORDER_STATUS_OBJ.completed, // Only consider completed orders for metrics
-                    orderType: CONSTANTS.ORDER_TYPE_OBJ.delivery,
-                    storeId: user, // Only consider delivery orders for metrics
-                }
-            },
-            {
-                $facet: {
-                    currentMonthOrders: [
+                    // Current Month Aggregations
+                    currentMonth: [
                         { $match: { createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
                         {
                             $group: {
                                 _id: null,
-                                count: { $sum: 1 },
+                                activeStores: { $addToSet: "$storeId" },     // Unique stores with completed orders
+                                activeDrivers: { $addToSet: "$riderId" },   // Unique drivers with completed orders (adjust field name if riderId)
+                                totalOrders: { $sum: 1 },
                                 grossValue: { $sum: "$totalAmount" }
                             }
                         }
                     ],
-                    lastMonthOrders: [
+                    // Last Month Aggregations
+                    lastMonth: [
                         { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
                         {
                             $group: {
                                 _id: null,
-                                count: { $sum: 1 },
+                                activeStores: { $addToSet: "$storeId" },
+                                activeDrivers: { $addToSet: "$riderId" },
+                                totalOrders: { $sum: 1 },
                                 grossValue: { $sum: "$totalAmount" }
                             }
                         }
@@ -687,24 +658,23 @@ exports.getDashboardOverviewStats = async (user) => {
             }
         ]);
 
-        // -------------------------------------------------------------
-        // Extracting Counts & Values
-        // -------------------------------------------------------------
-        const currentStoresCount = userStats.currentStores[0]?.count || 0;
-        const lastStoresCount = userStats.lastStores[0]?.count || 0;
+        // 3. Extract & count array lengths for unique entities
+        const currentData = stats.currentMonth[0] || {};
+        const lastData = stats.lastMonth[0] || {};
 
-        const currentDriversCount = userStats.currentDrivers[0]?.count || 0;
-        const lastDriversCount = userStats.lastDrivers[0]?.count || 0;
+        const currentStoresCount = currentData.activeStores ? currentData.activeStores.length : 0;
+        const lastStoresCount = lastData.activeStores ? lastData.activeStores.length : 0;
 
-        const currentOrdersCount = orderStats.currentMonthOrders[0]?.count || 0;
-        const lastOrdersCount = orderStats.lastMonthOrders[0]?.count || 0;
+        const currentDriversCount = currentData.activeDrivers ? currentData.activeDrivers.length : 0;
+        const lastDriversCount = lastData.activeDrivers ? lastData.activeDrivers.length : 0;
 
-        const currentGrossValue = orderStats.currentMonthOrders[0]?.grossValue || 0;
-        const lastGrossValue = orderStats.lastMonthOrders[0]?.grossValue || 0;
+        const currentOrdersCount = currentData.totalOrders || 0;
+        const lastOrdersCount = lastData.totalOrders || 0;
 
-        // -------------------------------------------------------------
-        // Structure Final Output Object
-        // -------------------------------------------------------------
+        const currentGrossValue = currentData.grossValue || 0;
+        const lastGrossValue = lastData.grossValue || 0;
+
+        // 4. Return payload structured for the frontend cards
         return { 
             data: {
                 totalStores: {
@@ -728,5 +698,49 @@ exports.getDashboardOverviewStats = async (user) => {
 
     } catch (error) {
         return { error: error.message || "Failed to fetch dashboard overview metrics" };
+    }
+};
+exports.getRecentTransactions = async ( query, page = 1, limit = 10) => {
+    try {
+        const skip = (page - 1) * limit;
+
+        const orders = await OrderModel.find(query)
+            .populate("shopper", "email")
+            .populate("store", "name logo")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit))
+            .lean();
+
+        const totalRecords = await OrderModel.countDocuments(query);
+        const data = orders.map(order => {
+            const rawCategories = order.items ? order.items.map(item => item.category) : [];
+            const uniqueCategories = [...new Set(rawCategories)];
+
+            return {
+                orderId: order.orderId,
+                storeName: order.store?.name ,
+                storeLogo: order.store?.logo || order?.logo,
+                customerEmail: order.shopper?.email  ,
+                categories: uniqueCategories.slice(0, 2),
+                additionalCategoriesCount: uniqueCategories.length > 2 ? uniqueCategories.length - 2 : 0,
+                status: order.orderStates.length > 0 ? order.orderStates[order.orderStates.length -1].currentState : order.status,
+                createdAt: order.createdAt
+            };
+        });
+
+        return { 
+            data,
+            pagination: {
+                totalRecords,
+                totalPages: Math.ceil(totalRecords / limit),
+                currentPage: Number(page),
+                limit: Number(limit),
+                hasNex: page < Math.ceil(totalRecords / limit),
+                hasPrev: page > 1
+            },
+        };
+    } catch (error) {
+        return { error: error.message || "Failed to fetch transactions" };
     }
 };

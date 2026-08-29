@@ -36,14 +36,8 @@ const StoreSchema = new Schema({
     default: 0.0,
     indexed: true,
   },
-  likers: [{
-      type: Schema.Types.ObjectId,
-      ref: "Like",
-    }],
-    raters: [{
-      type: Schema.Types.ObjectId,
-      ref: "Like",
-    }],
+  likers: [ ],
+    raters: [ ],
   user:{
     type: Schema.Types.ObjectId,
     ref: "Account",
@@ -70,6 +64,11 @@ const StoreSchema = new Schema({
       indexed: true,
      },
      formattedAddress: { type: String }
+  },
+  logo: {
+    url: {
+      type: String
+    },
   },
   locationStatus: {
     type: String,

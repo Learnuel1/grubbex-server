@@ -258,6 +258,7 @@ exports.initializeOrderWithPayStack = async (req, res, next) => {
       qrText += `prodId:${product.prodId}-`;
       product.media = productExists[0].media;
       product.name = productExists[0].title;
+      product.category = productExists[0].category;
       items.push(product);
     }
     req.body.items = items;

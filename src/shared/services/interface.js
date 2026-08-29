@@ -198,3 +198,4 @@ exports.getSalesTrendByCity = async (duration, startDate, endDate, user) => awai
 exports.getTopSellingProducts = async (duration, startDate, endDate, user) => await ReportModule.getTopSellingProducts(duration, startDate, endDate, user);
 exports.getDashboardOverviewStatsAdmin = async (user) => await ReportModule.getDashboardOverviewStatsAdmin();
 exports.getDashboardOverviewStats = async (storeId) => await ReportModule.getDashboardOverviewStats(storeId);
+exports.getRecentTransactions = async (query, page, limit) => await ReportModule.getRecentTransactions(query, page, limit);

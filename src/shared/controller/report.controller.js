@@ -1,6 +1,6 @@
 const { CONSTANTS } = require("../../config");
 const logger = require("../../logger");
-const { platFormPerformance, getSalesTrend, getCategoryShare,getSalesTrendByCity, getTopSellingProducts, getDashboardOverviewStats, getDashboardOverviewStatsAdmin, getUserKYCByAccountId } = require("../services/interface");
+const { platFormPerformance, getSalesTrend, getCategoryShare,getSalesTrendByCity, getTopSellingProducts, getDashboardOverviewStats, getDashboardOverviewStatsAdmin, getUserKYCByAccountId, getRecentTransactions } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 
@@ -138,5 +138,27 @@ exports.getDashboardOverviewStatsReport = async (req, res, next) => {
         });
     } catch (error) {
         next(error);
+    }
+}
+exports.getRecentTransactionInfo = async (req, res, next ) => {
+    try{
+          const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+        const query = {};
+        if(req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.business) {
+             const {store} = await getUserKYCByAccountId(req.userId);
+           if(!store || store.length === 0) return next(APIError.badRequest("Store not found for the user"));
+            query.storeId = store[0].storeId;
+        }
+        const  info = await getRecentTransactions(query, page, limit)
+        if(info?.error) return next(APIError.badRequest(info.error));
+         logger.info("Recent transactions fetched successfully", {service: META.REPORT});
+         return res.status(200).json({
+            success: true,
+            message: "Recent Transaction fetched successfully",
+             info
+        });
+    } catch (error) {
+        next(error)
     }
 }
