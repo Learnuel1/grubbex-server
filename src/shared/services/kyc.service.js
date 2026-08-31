@@ -238,6 +238,10 @@ exports.updateStatus = async (search, info)=> {
      let doc ;
     const findKYC = await  KYCModel.findOne(search).populate("user").select("-__v -createdAt -updatedAt ").exec(); 
     if(!findKYC) return {error: "Record does not exist"}
+    if(info.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.admin){
+
+      if(findKYC.onBoarded === false) return {error: "Onboarding is not completed by the user"}
+    }
     doc = findKYC.documents.find(x => x.docId === info.docId);
     if(doc) docFoundIn = CONSTANTS.KYC_TYPE_INFO.documents ;
     if(!doc) {

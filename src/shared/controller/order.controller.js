@@ -1134,12 +1134,13 @@ exports.getAllOrders = async (req, res, next) => {
     } else if (
       req.userType.toLowerCase() === CONSTANTS.ACCOUNT_ROLE_OBJ.rider
     ) {
+      const userInfo = await userExistById(req.user);
+      if(userInfo.availability === CONSTANTS.RIDER.ACC_STATUS_OBJ.offline) return next(APIError.badRequest("Turn On availability to update location"));
       const mutedOrders = await findMutedByUser(req.userId);
       if (mutedOrders?.error)
         return next(APIError.badRequest(mutedOrders.error));
       // get user kyc:
       const kyc = await getUserKYC(req.user);
-      const userInfo = await userExistById(req.user);
       if (!kyc || !kyc?.profile)
         return next(
           APIError.unauthorized(

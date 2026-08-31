@@ -414,7 +414,7 @@ exports.updateKYCStatus = async (req, res, next) => {
 		if (!exist) return next(APIError.badRequest('Account does not exist'));
 		if(exist?.error) return next(APIError.badRequest(exist.error));
 		const field = exist.accountType === CONSTANTS.ACCOUNT_TYPE_OBJ.business ? "store.storeId" : "userId";
-		const info = { docId, status:statusUpdate };
+		const info = { docId, status:statusUpdate , userType: req.userType};
 		const search = {
 			$or:[
 				{userId: id},

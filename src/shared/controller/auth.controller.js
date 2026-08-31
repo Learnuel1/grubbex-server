@@ -288,7 +288,7 @@ exports.m2FA_login = async (req, res, next) => {
 		exist.refreshToken = [...newRefreshTokenArray, token];
 
 		// connections.push({activeId: activeId, userId: payload.id});
-
+       exist.availability = CONSTANTS.RIDER.ACC_STATUS_OBJ.offline;
 		exist.save();
 		const data = buildRes.removeAuth(exist.toObject());
 		 if(exist.type.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper){
@@ -334,6 +334,7 @@ exports.logout = async (req, res, next) => {
 		} else {
 			const refreshTokenArr = isUser.refreshToken.filter((rt) => rt !== token);
 			isUser.refreshToken = [...refreshTokenArr];
+			isUser.availability = CONSTANTS.RIDER.ACC_STATUS_OBJ.offline;
 			isUser.save();
 		}
 		logger.info('Logout successful', { service: META.AUTH });
@@ -379,6 +380,7 @@ exports.handleRefreshToken = async (req, res, next) => {
 		async (err, decoded) => {
 			if (err) {
 				foundUser.refreshToken = [...newRefreshTokenArr];
+				foundUser.availability = CONSTANTS.RIDER.ACC_STATUS_OBJ.offline;
 				foundUser.save();
 			}
 			if (err || foundUser._id.toString() !== decoded.id)
