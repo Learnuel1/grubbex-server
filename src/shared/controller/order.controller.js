@@ -1535,111 +1535,7 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
     else next(error);
   }
 };
-// exports.verifyPickUpByQRCode = async (req, res, next) => {
-//   let sectionUsed;
-//   try {
-//     const {id} = req.params;
-//     const auth = {};
-//     let data;
-//     let orderExist;
-//     if (!id )
-//       return next(
-//         APIError.badRequest("Scan QR Code"),
-//       );
-      
-//       auth.qrcode = id.slice(0, id.lastIndexOf('-')); 
-//       auth.pickUpCode = id.slice(id.lastIndexOf('-'));
-//       console.log(auth)
-//       orderExist = await getOrderByQRData(auth);
-//       if (!orderExist || orderExist.length === 0)
-//         return next(APIError.notFound("Order not Found"));
-//       if (orderExist?.error) return next(APIError.badRequest(orderExist.error));
-//       // verify token
-//       const token = orderExist.auth?.token;
-//       if (!token) return next(APIError.badRequest("Fake Pickup Detected"));
-//       const decoded = jwt.verify(token, config.TOKEN_SECRETE);
-//       if (!decoded)
-//         return next(APIError.badRequest("Pickup Code Expired"));
-//       data = decoded.data;
-//       logger.info("QR CODE verified successfully", { service: META.ORDER });
-//     if (orderExist.storeStatus === CONSTANTS.ORDER_STATUS_OBJ.pickup)
-//       return next(APIError.badRequest("Order has been Picked up already"));
-//     if (orderExist.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.ready)
-//       return next(APIError.badRequest("Order is not ready for pick up"));
-//     if (orderExist.orderId !== data.split("-")[0])
-//       return next(APIError.badRequest("Unverified Order"));
-//     if (
-//       req.userId !== orderExist.riderId &&
-//       orderExist.orderId !== data.split("-")[0]
-//     )
-//       return next(APIError.unauthorized("Fake Rider for the Pickup"));
-//     logger.info("Rider and Order authenticated successfully", {
-//       service: META.ORDER,
-//     });
-//  const storeKYC = await getStoreAddress(orderExist.storeId);
-//     const {location} = storeKYC;
-    
-//     const info = {
-//       _id: orderExist._id,
-//       orderId: orderExist.orderId,
-//       storeId: orderExist.storeId,
-//       auth: { pickedUpdAt: Date.now() },
-//       status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
-//       storeStatus:CONSTANTS.ORDER_STATUS_OBJ.pickup,
-//     };
-//     const orderState = {
-//       status: CONSTANTS.ORDER_STATUS_OBJ.pickup,
-//       by:req.user,
-//       type: req.userType,
-//       currentState: CONSTANTS.ORDER_STATUS_OBJ.pickup,
-//     }
-//     info.riderCurrentLocation = location;
-//     info.orderState = orderState;
-//     const updateOrderAuth = await updateOrderVerificationInfo(info);
-//     if (!updateOrderAuth)
-//       return next(
-//         APIError.badRequest(
-//           "Failed to authenticate order pick up code, try again",
-//         ),
-//       );
-//     if (updateOrderAuth?.error)
-//       return next(APIError.badRequest(updateOrderAuth.error));
-//     logger.info("Order pick up completed successfully", {
-//       service: META.ORDER,
-//     }); 
-//   // get order owner 
-//     const shopper = await findUserByCustomId(orderExist.shopperId);
-//     if(!shopper) return next(APIError.badRequest("Account not found"));
-//     if(shopper?.error) return next(APIError.badRequest(shopper.error));
-//     // send email to notify user // app notification
-//     const options = {
-//       to: shopper.email,
-//       subject: `Order Pick up by Rider`,
-//       name: `${shopper.firstName} ${shopper.lastName}`,
-//       event: "orderPickup",
-//     }
-//      notification.emit("emailer", options)
-
-//     // notification
-//     const notifyData = {
-//       userId: orderExist.shopperId,
-//       title: "Order Picked Up",
-//       account: orderExist.shopper,
-//       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
-//       info: `Your order with Order ID: ${orderExist.orderId} has been picked up by the rider`,
-//     }; 
-//     notification.emit("notify", notifyData)
-    
-//     res
-//       .status(200)
-//       .json({ success: true, msg: "Pick up completed successfully" });
-//   } catch (error) {
-  
-//     if (error.message === ERROR_FIELD.JWT_EXPIRED)
-//       next(APIError.badRequest("Pick up QR CODE expired"));
-//     else next(error);
-//   }
-// };
+ 
 exports.getOrderQRCode = async (req, res, next) => {
   try {
     const { orderId } = req.params;
@@ -1707,7 +1603,7 @@ exports.getOrderQRCode = async (req, res, next) => {
     const token = jwt.sign(
       { data: `${order.orderId}-${order.storeId}:${expiresAt}` },
       config.TOKEN_SECRETE,
-      { expiresIn: "1d" },
+      { expiresIn: "60" },
     );
      
     info.token = token;
