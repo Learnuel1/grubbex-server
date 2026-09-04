@@ -609,8 +609,7 @@ exports.getDashboardOverviewStatsAdmin = async () => {
 
 exports.getDashboardOverviewStats = async (user) => {
     try {
-         const now = new Date();
-
+         const now = new Date();   
         // 1. Month range boundaries (Africa/Lagos WAT)
         const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -620,7 +619,7 @@ exports.getDashboardOverviewStats = async (user) => {
         const [stats] = await OrderModel.aggregate([
             {
                 $match: {
-                    status: CONSTANTS.ORDER_STATUS_OBJ.completed,
+                    status: CONSTANTS.ORDER_STATUS_OBJ.delivered,
                     orderType: CONSTANTS.ORDER_STATUS_OBJ.delivery,
                     storeId: user,
                     createdAt: { $gte: startOfLastMonth, $lte: now }
@@ -742,5 +741,122 @@ exports.getRecentTransactions = async ( query, page = 1, limit = 10) => {
         };
     } catch (error) {
         return { error: error.message || "Failed to fetch transactions" };
+    }
+};
+
+ 
+exports.getStoreDashboardStats  = async (storeId) => {
+    try {
+        const now = new Date();
+
+        // Month range boundaries (Africa/Lagos WAT)
+        const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+        const [stats] = await OrderModel.aggregate([
+            {
+                $match: {
+                    // Filter by store if querying for a specific vendor dashboard
+                    ...(storeId && { storeId: storeId }),
+                    status:{$in: [CONSTANTS.ORDER_STATUS_OBJ.completed, CONSTANTS.ORDER_STATUS_OBJ.delivered]},
+                    createdAt: { $gte: startOfLastMonth, $lte: now }
+                }
+            },
+            {
+                $facet: {
+                    // Current Month
+                    currentMonth: [
+                        { $match: { createdAt: { $gte: startOfCurrentMonth, $lte: now } } },
+                        {
+                            $group: {
+                                _id: null,
+                                totalOrders: { $sum: 1 },
+                                grossValue: { $sum: "$totalAmount" }
+                            }
+                        }
+                    ],
+                    // Last Month
+                    lastMonth: [
+                        { $match: { createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth } } },
+                        {
+                            $group: {
+                                _id: null,
+                                totalOrders: { $sum: 1 },
+                                grossValue: { $sum: "$totalAmount" }
+                            }
+                        }
+                    ]
+                }
+            }
+        ]);
+
+        // Extract aggregated totals
+        const currentData = stats.currentMonth[0] || {};
+        const lastData = stats.lastMonth[0] || {};
+
+        const currentOrdersCount = currentData.totalOrders || 0;
+        const lastOrdersCount = lastData.totalOrders || 0;
+
+        const currentGrossValue = currentData.grossValue || 0;
+        const lastGrossValue = lastData.grossValue || 0;
+
+        return {
+            success: true,
+            data: {
+                ordersProcessed: {
+                    value: currentOrdersCount,
+                    percentageChange: calculatePercentageChange(currentOrdersCount, lastOrdersCount)
+                },
+                grossValue: {
+                    value: currentGrossValue,
+                    percentageChange: calculatePercentageChange(currentGrossValue, lastGrossValue)
+                }
+            }
+        };
+
+    } catch (error) {
+        return { error: error.message || "Failed to fetch store dashboard metrics" };
+    }
+};
+
+exports.getCurrentMonthDeliveries = async (storeId) => {
+    try {
+        const now = new Date();
+
+        // Start of the current month (WAT timezone)
+        const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        const [result] = await OrderModel.aggregate([
+            {
+                $match: {
+                    // Match completed or delivered orders
+                    status: {$in: [CONSTANTS.ORDER_STATUS_OBJ.completed, CONSTANTS.ORDER_STATUS_OBJ.delivered]}, // adjust if your status field uses "completed"
+                    createdAt: { $gte: startOfCurrentMonth, $lte: now },
+                    storeId: storeId }
+                
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalDeliveriesCount: { $sum: 1 }, // Total count of delivered orders
+                    totalDeliveryEarnings: { $sum: "$subTotal" } // Total revenue from delivery fees (if applicable)
+                }
+            }
+        ]);
+
+        return {
+            success: true,
+            data: {
+                totalDeliveries: result?.totalDeliveriesCount || 0,
+                totalDeliveryEarnings: result?.totalDeliveryEarnings || 0
+            }
+        };
+
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message || "Failed to calculate current month deliveries"
+        };
     }
 };
