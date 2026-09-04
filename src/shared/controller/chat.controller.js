@@ -17,7 +17,10 @@ exports.sendChatToReceiver = async (req, res, next) => {
 }
 exports.getSentAndReceivedChats = async (req, res, next) => {
     try{
-        const chats = await getSentAndReceivedChats(req.user);
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+        const chats = await getSentAndReceivedChats(req.user, skip, limit);
         if(!chats) return next(APIError.notFound("Chat does not exist"));
         if(chats?.error) return next(APIError.badRequest(chats.error));
         logger.info("Chat messages list successfully", {service: META.CHAT})
@@ -28,7 +31,10 @@ exports.getSentAndReceivedChats = async (req, res, next) => {
 }
 exports.getNewReceivedChats = async (req, res, next) => {
     try{
-        const newChats = await getNewChats(req.user);
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+        const newChats = await getNewChats(req.user, skip, limit);
         if(!newChats) return next(APIError.notFound("Chat does not exist"));
         if(newChats?.error) return next(APIError.badRequest(newChats.error));
         logger.info("New Chats retrieved successfully", {service: META.CHAT});
@@ -71,4 +77,18 @@ exports.deleteSentUserChat = async (req, res, next) => {
     } catch (error) {
         next (error);
     }
+}
+exports.getChatHistoryByUser = async (req, res, next ) => {
+     try{
+         const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+    const chats = await getSentAndReceivedChats(req.user, skip, limit);
+        if(!chats) return next(APIError.notFound("Chat does not exist"));
+        if(chats?.error) return next(APIError.badRequest(chats.error));
+        logger.info("Chat messages list successfully", {service: META.CHAT})
+        res.status(200).json({success: true, msg: "Chats retrieved successfully", data: chats})
+     } catch (error ) {
+        next (error)
+     }
 }

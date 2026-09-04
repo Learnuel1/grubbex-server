@@ -2,7 +2,6 @@ const SavedItemModel = require("../../models/saved.item.model");
 
 exports.save = async (info) => {
     try{
-        console.log(info)
         if(info?.storeId) {
             const exist = await SavedItemModel.findOne({ storeId: info.storeId, shopperId: info.shopperId});
             if(exist) return {error: "Store has been already saved"};
@@ -63,7 +62,6 @@ exports.getSavedProducts = async (query, skip, limit) => {
         const savedItems = await SavedItemModel.find(query).populate(populateOptions).select(selectedFields).skip(skip).limit(limit).exec();
         return {  savedItems, totalCount   };
     } catch (error) {
-        console.log("Error fetching saved products:", error);
         return {error: error.message}
     }
 }

@@ -68,9 +68,9 @@ exports.getStoreAddressWithId = async (storeId) => await KYCModule.getStoreAddre
  
  // NOTIFICATION SECTION
 exports.getUserNotifications = async (account) => await NotificationModule.notifications(account);
-exports.getUserNotificationByStatus = async (account, query) => await NotificationModule.NotificationByStatus(account, query)
+exports.getUserNotificationByStatus = async (account, query, skip, limit) => await NotificationModule.NotificationByStatus(account, query, skip, limit);
 exports.createUserNotification = async (info) => await NotificationModule.create(info);
-exports.searchUseNotification = async (search) => await NotificationModule.searchNotification(search);
+exports.searchUserNotification = async (search, skip, limit) => await NotificationModule.searchNotification(search, skip, limit);
 exports.viewNotification = async (id, viewed=true) => await NotificationModule.viewNotification(id, viewed);
 exports.markAllAsRead = async (account, viewed = true) => await NotificationModule.markAllAsRead(account, viewed);
 exports.removeNotification = async (notificationId, account) => await NotificationModule.remove(notificationId, account);
@@ -78,8 +78,8 @@ exports.removeNotification = async (notificationId, account) => await Notificati
 // CHAT SECTION
 exports.sendChat = async (info) => await ChatModule.send(info);
 exports.chatsByReceiver = async (receiver, sender) => await ChatModule.chatsByReceiver(receiver, sender);
-exports.getSentAndReceivedChats = async (receiver) => await ChatModule.sentAndReceivedChats(receiver);
-exports.getNewChats = async (receiver) => await ChatModule.newChats(receiver);
+exports.getSentAndReceivedChats = async (receiver, skip, limit) => await ChatModule.sentAndReceivedChats(receiver, skip, limit);
+exports.getNewChats = async (receiver, skip, limit) => await ChatModule.newChats(receiver, skip, limit);
 exports.updateReceivedChat = async (info) => await ChatModule.updateChatStatus(info);
 exports.deleteSentChat = async (sender, chatId) => await ChatModule.deleteChat(sender, chatId);
 

@@ -16,16 +16,20 @@ exports.notifications = async (account) => {
     return {error};
   }
 }
-exports.NotificationByStatus = async (account, query) => {
+exports.NotificationByStatus = async (account, query, skip, limit) => {
   try{
-    return await NotificationModel.find({account, ...query}).select("-__v -account  -_id");
+    const totalCount = await NotificationModel.countDocuments ({account, ...query})
+    const notifications = await NotificationModel.find({account, ...query}).select("-__v -account  -_id").skip(skip).limit(limit).lean().exec();
+    return { notifications, totalCount };
   }catch(error) {
     return {error};
   }
 }
-exports.searchNotification = async (search) => {
+exports.searchNotification = async (search, skip, limit) => {
   try{
-    return await NotificationModel.find(search).select("-__v -account -_id");
+     const totalCount = await NotificationModel.countDocuments (search)
+    const notifications = await NotificationModel.find(search).select("-__v -account -_id").skip(skip).limit(limit).lean().exec();
+    return { notifications, totalCount };
   }catch(error){
     return {error};
   }

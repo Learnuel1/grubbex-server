@@ -15,7 +15,7 @@ exports.chatsByReceiver = async (receiver, sender) => {
         return {error: error.message};
     }
 }
-exports.sentAndReceivedChats = async (receiver) => {
+exports.sentAndReceivedChats = async (receiver, skip, limit) => {
     try{
         return await ChatModel.find({$or: [{receiver}, {sender: receiver}]}).sort({createdAt:-1}).populate([
             {
@@ -23,14 +23,14 @@ exports.sentAndReceivedChats = async (receiver) => {
                 path: "sender",
                 select: "firstName lastName picture.url -_id",
             }
-        ]).select("-_id -__v -sender -receiver");
+        ]).select("-_id -__v -sender -receiver").skip(skip).limit(limit);
     } catch (error) {
         return {error: error.message}
     }
 }
-exports.newChats = async (receiver) => {
+exports.newChats = async (receiver, skip, limit) => {
     try{
-        return await ChatModel.find({receiver, status: CONSTANTS.CHAT_STATUS_OBJ.sent}).select("-_id -__v -sender -receiver").exec();
+        return await ChatModel.find({receiver, status: CONSTANTS.CHAT_STATUS_OBJ.sent}).select("-_id -__v -sender -receiver").skip(skip).limit(limit).exec();
     } catch (error) {
         return {error: error.message}
     }

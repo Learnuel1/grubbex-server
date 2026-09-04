@@ -8,6 +8,9 @@ const { CONSTANTS } = require("../../config");
 exports.getNotification = async (req, res, next) => {
   try {
     const {status, category} = req.query;
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
     let query ={}
  
     if(status && status.toLowerCase() === "unread"){
@@ -20,9 +23,19 @@ exports.getNotification = async (req, res, next) => {
       if(!Array.from(Object.values(CONSTANTS.NOTIFICATION_TYPE_OBJ)).includes(query.category)) return next(APIError.badRequest("Invalid notification category")); 
       query.account = req.user;
     }
-    let notifications = await getUserNotificationByStatus(req.user, query)
+   
+    const {notifications, totalCount} = await getUserNotificationByStatus(req.user, query, skip, limit); 
     if(!notifications || notifications.length === 0) return res.status(200).json({notifications});
-      const response = buildRes.reqResponse("Found", notifications, "notification");
+    const totalPages = Math.ceil(totalCount / limit);
+      const response = buildRes.reqResponse("Found", notifications, "notification" );
+      response.pagination = {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      }
       res.status(200).json(response)
   } catch (error) {
     next(error);
