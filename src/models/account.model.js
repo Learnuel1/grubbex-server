@@ -120,18 +120,27 @@ const AccountSchema = new Schema({
       required: [true, "Account link is required"],
       default: `${config.FRONTEND_ORIGIN_URL}-${shortIdGen(12)}`,
     },
-    likers: [{
-        type: Schema.Types.ObjectId,
-        ref: "Like",
-      }],
-      raters: [{
-        type: Schema.Types.ObjectId,
-        ref: "Like",
-      }],
-      reviews: [{
-        type: Schema.Types.ObjectId,
-        ref: "Review",
-      }],
+    likers: [],
+      raters: [],
+      reviews: {
+    type: Number,
+    default: 0,
+    required: true,
+  }, 
+      rating: {
+    type: Number,
+    default: 0.0,
+  },
+  likes: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  followers: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
       locationData: {
         lat: {
           type: Number,

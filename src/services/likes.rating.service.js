@@ -431,7 +431,7 @@ exports.deleteReview = async(reviewId, shopper) => {
     }
 }
 
-exports.searchRatings = async (info, query, skip, limit) => {
+exports.searchRatings = async (info, query, skip, limit, userId) => {
   try {  
     if(info?.prodId) {
        const rated = await LikeModel.find({prodId: info.prodId, type: info.type}).populate([
@@ -439,15 +439,27 @@ exports.searchRatings = async (info, query, skip, limit) => {
         model: "Account",
         path: "account",
         select: "firstName lastName picture.url -_id"
-      }]).select("-_id -__v -account -createdAt -updatedAt -store -product -barcode -ratingWeight -event -storeId -userId").skip(skip).limit(limit).lean();
-       
+      }, {
+        model: "LikeRateFollowReview",
+        path: "event",
+        select: "rating review -_id"
+      }]).select("-_id -__v -account -createdAt -updatedAt -store -product -barcode -ratingWeight -event -storeId ").skip(skip).limit(limit).lean();
+       let extraData ;
         if (rated && rated !== null) { 
           const productInfo = await ProductModel.findOne(query).select("prodId name description price rating likes reviews -_id");
           const count = await   LikeModel.countDocuments({prodId: info.prodId, type: info.type})
-  
-          return {data:rated, total:count, extraData: productInfo};
+          const liked = await LikeModel.findOne({prodId: info.prodId, userId, type: info.type});
+          extraData = productInfo.toObject();
+          if(liked && liked !== null) {
+            extraData[info.type] = true;
+            extraData.userId = liked.userId;
+          }
+           if(info.type === CONSTANTS.ENDORSEMENT_TYPE_OBJ.follower) {
+            extraData.followers = rated.length;
+          }
+          return {data:rated, total:count, extraData};
         }else { 
-          return {error: `"No ${info.type} on this product"`}
+          return {error: `"No ${info.type} on this Product"`}
         } 
     }
     // ----------------------------------------------------
@@ -459,13 +471,28 @@ exports.searchRatings = async (info, query, skip, limit) => {
         model: "Account",
         path: "account",
         select: "firstName lastName picture.url userId -_id"
-      }]).select("-_id -__v -account -createdAt -updatedAt -store -product -barcode -ratingWeight -event -storeId -userId").skip(skip).limit(limit).lean(); 
+      },{
+        model: "LikeRateFollowReview",
+        path: "event",
+        select: "rating review -_id"
+      }]).select("-_id -__v -account -createdAt -updatedAt -store -product -barcode -ratingWeight -event -storeId ").skip(skip).limit(limit).lean(); 
+       let extraData ;
         if (rated && rated !== null) { 
              const storeInfo = await StoreModel.findOne(query).select("storeId name  category.name rating likes reviews followers -_id"); 
           const count = await   LikeModel.countDocuments({storeId: info.storeId,type: info.type})
-           return {data:rated, total:count, extraData: storeInfo};
+           const liked = await LikeModel.findOne({prodId: info.prodId, userId, type: info.type});
+         
+           extraData = storeInfo.toObject();
+          if(liked && liked !== null) {
+            extraData[info.type] = true;
+            extraData.userId = liked.userId;
+          }
+          if(info.type === CONSTANTS.ENDORSEMENT_TYPE_OBJ.follower) {
+            extraData.followers = rated.length;
+          }
+          return {data:rated, total:count, extraData};
           }else{
-            return {error: `"No ${info.type} on this product"`}
+            return {error: `"No ${info.type} on this Store"`}
           }
             
     }
@@ -473,50 +500,36 @@ exports.searchRatings = async (info, query, skip, limit) => {
     // 3. RIDER RATING
     // ----------------------------------------------------
     if(info?.riderId) {
-     const rated = await LikeModel.findOne({account: info.account, riderId: info.riderId,type: info.type}).session(session);
-     const riderInfo = await AccountModel.findOne({userId: info.riderId}) 
-        if (!riderInfo) {
-         
-          return {error: "Account not found"}
-        };
-        if (rated && rated !== null) {
-          if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) return {error: "You already rated this Rider"}
-            
-           await LikeModel.findByIdAndDelete(rated._id) 
-          const remove =  await LikeRateFollowReview.findByIdAndDelete(rated.event) 
-          const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}) 
-            
-
-        
-          return rated; 
-        }
-         const [opt] = await LikeRateFollowReview.create([{...info}], {session}) ;
-          // rate the rider
-          const [rate] = await LikeModel.create(
-        [
+    const rated = await LikeModel.find({riderId: info.riderId,type: info.type}).populate([
           {
-            riderId: info.riderId,
-            account: info.account,
-            rider: riderInfo._id,
-            type: info.type, 
-            userId: info.userId,
-            event: opt._id,
-          },
-        ],
-        { session }
-      );
-          if(info.type ===  CONSTANTS.ENDORSEMENT_TYPE_OBJ.rating) {
-
-            const normal =  await normalRating(info);
-            const bayesian = await bayesianAverageRating(info);
-            riderInfo.rating = await switchingRating(normal, bayesian, 6, riderInfo.raters.length);
-          }  
-            const count = await   LikeModel.countDocuments({riderId: info.riderId, type: info.type}) 
+        model: "Account",
+        path: "account",
+        select: "firstName lastName picture.url userId -_id"
+      },{
+        model: "LikeRateFollowReview",
+        path: "event",
+        select: "rating review -_id"
+      }]).select("-_id -__v -account -createdAt -updatedAt -store -product -barcode -ratingWeight -event -storeId ").skip(skip).limit(limit).lean();  
+        let extraData ;
+        if (rated && rated !== null) { 
+             const riderInfo = await AccountModel.findOne(query).select("riderId name  rating likes reviews followers -_id"); 
+          const count = await   LikeModel.countDocuments({riderId: info.riderId,type: info.type})
+          const liked = await LikeModel.findOne({prodId: info.prodId, userId, type: info.type});
          
-          
-
+          extraData = riderInfo.toObject();
+          if(liked && liked !== null) {
+            extraData[info.type] = true;
+            extraData.userId = liked.userId;
+          }
+          if(info.type === CONSTANTS.ENDORSEMENT_TYPE_OBJ.follower) { 
+            extraData.followers = rated.length;
+          }
+          return {data:rated, total:count, extraData };
+          }else{
+            return {error: `"No ${info.type} on this Rider"`}
+          }
          
-          return rate;
+           
     }
     
     return { error: "Invalid rating payload target" };
