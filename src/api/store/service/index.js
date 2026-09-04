@@ -38,3 +38,4 @@ exports.getStorByProductIdArray = async ( prodIdArr) => await ProductModule.stor
 exports.getStoreByProductIdSync = (prodId) =>  ProductModule.storeInfoByProductIdSync(prodId);
 exports.removeSoldProductQuantity = async (prodId, storeId, qty) => await ProductModule.decreaseProductQuantity(prodId, storeId, qty);
 exports.getProductByProId = async ( prodId) => await ProductModule.productByProId(prodId);
+exports.getProductForSaveItemByProId = async ( prodId) => await ProductModule.productForSaveItemByProId(prodId);

@@ -21,6 +21,7 @@ const Location = require("./location.route");
 const PayoutModule = require("./payout.route"); 
 const { ReturnedOrderRouter } = require("./return.order.router");
 const { ReportsRouter } = require("./report.route");
+const { SavedItemRouter } = require("./saved.items.route");
 
 Router.use("/user", UserModule.userRoute);
 Router.use("/auth", AuthModule.authRoute); 
@@ -57,6 +58,7 @@ MobileRouter.use("/location", Location.LocationRouter);
 MobileRouter.use("/payout", PayoutModule.PayoutRouter);
 MobileRouter.use("/return", ReturnedOrderRouter)
 MobileRouter.use("/view", LikeRatingViewerRouter)
+MobileRouter.use("/saved-item", SavedItemRouter)
 module.exports = {
   Router,
   MobileRouter,

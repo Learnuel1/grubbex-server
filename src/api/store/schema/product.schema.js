@@ -272,6 +272,24 @@ exports.ZProductIDSchema = z.object({
     }).trim()
         .min(20, { message: "Product ID must be 20 characters" })
         .max(20, { message: "Product ID cannot exceed 20 characters" })
-        .min(1)
         .optional()
+});
+
+exports.ZSaveItemSchema = z.object({
+    prodId: z.string({
+        description: "Product ID",
+        required_error: "Product ID is required",
+        validation_error: "Product ID is invalid",
+    }).trim()
+        .min(20, { message: "Product ID must be 20 characters" })
+        .max(20, { message: "Product ID cannot exceed 20 characters" })
+        .optional(),
+    storeId: z.string({
+      description: "Store ID",
+      required_error: "Store ID is required",
+      validation_type_error: "Store ID must be 15 characters"
+    })
+    .trim() 
+    .length(15)
+    .optional(),
 });

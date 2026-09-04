@@ -177,8 +177,22 @@ module.exports = {
       else if(req?.params?.prodId) 
         Schemas[schema].parse(req.params);
       else if(req?.body?.prodId)
-        Schemas[schema].parse({prodId});
+        Schemas[schema].parse({prodId: req.body.prodId});
 
+    }
+    if(schema === "ZSaveItemSchema"){
+      if(req?.query?.prodId)
+        Schemas[schema].parse(req.query);
+      else if(req?.params?.prodId) 
+        Schemas[schema].parse(req.params);
+      else if(req?.body?.prodId)
+        Schemas[schema].parse(req.body);
+      else if(req?.query?.storeId)
+        Schemas[schema].parse(req.query);
+      else if(req?.params?.storeId)
+        Schemas[schema].parse(req.params);
+      else if(req?.body?.storeId)
+        Schemas[schema].parse(req.body);
     }
     if(schema === "ZSearchLikeRatingSchema"){
       if(req?.query)

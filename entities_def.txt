@@ -394,3 +394,12 @@ Setting
    - review         -> String
    - createdAt      -> Date
    - updateAt       -> Date
+
+SavedItem
+  - _id             -> ObjectId
+  - prodId          -> String
+  - product         -> Product(ObjectId)
+  - storeId         -> String
+  - store           -> Store(ObjectId)
+  - createdAt       -> Date
+  - updateAt        -> Date

@@ -335,6 +335,8 @@ exports.getAccountsForChat = async (senderInfo) => {
 }
 exports.updateContact= async ( _id, phoneNumber) => {
   try{
+      const exist = await AccountModel.findOne({phoneNumber});
+      if(exist) return {error: "Phone number is not available"};
         return await AccountModel.findByIdAndUpdate({_id}, {phoneNumber});
   } catch (error) {
     if(error.name === "ValidationError" || error.name === "CastError") return {error: "Invalid data"};

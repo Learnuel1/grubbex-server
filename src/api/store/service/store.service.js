@@ -137,7 +137,6 @@ exports.nearByStore = async (longitude, latitude) => {
     }).select("storeId").lean();
     return nearBy;
   } catch (error ){
-    console.log(error)
     return {error:error.message}
   }
 }

@@ -184,3 +184,10 @@ exports.productByProId = async (prodId) => {
     return {error: error.message}
   }
 }
+exports.productForSaveItemByProId = async (prodId) => {
+  try{
+    return await ProductModel.findOne({prodId}).select("-__v -store -barcode.id -barcode._id -media.mainImage.id -media.others.id").exec();
+  }  catch (error) {
+    return {error: error.message}
+  }
+}

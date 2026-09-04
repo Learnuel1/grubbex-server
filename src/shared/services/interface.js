@@ -19,6 +19,7 @@ const LocationModule = require("./location.service");
 const ReturnOrderModule = require("./returned.order.service");
 const TemporalTransferModule = require("./temporal.payout.service");
 const ReportModule = require("./report.service");
+const SavedItemService = require("./saved.item.service");
 
 exports.temporalAccExist =async (email) => await TemporalModules.findTemAccount(email);
 exports.temporalAccExistByToken =async (token) => await TemporalModules.findTemAccountByToken(token);
@@ -64,7 +65,7 @@ exports.getTownInfo = async (cityId) => await KYCModule.townInfo(cityId);
 exports.getStoreInfo = async (query) => await KYCModule.storeAddress(query);
 exports.getStoreAddress = async (storeId) => await KYCModule.getStoreAddress(storeId);
 exports.getStoreAddressWithId = async (storeId) => await KYCModule.getStoreAddressWithId(storeId);
-
+ 
  // NOTIFICATION SECTION
 exports.getUserNotifications = async (account) => await NotificationModule.notifications(account);
 exports.getUserNotificationByStatus = async (account, query) => await NotificationModule.NotificationByStatus(account, query)
@@ -199,3 +200,10 @@ exports.getTopSellingProducts = async (duration, startDate, endDate, user) => aw
 exports.getDashboardOverviewStatsAdmin = async (user) => await ReportModule.getDashboardOverviewStatsAdmin();
 exports.getDashboardOverviewStats = async (storeId) => await ReportModule.getDashboardOverviewStats(storeId);
 exports.getRecentTransactions = async (query, page, limit) => await ReportModule.getRecentTransactions(query, page, limit);
+
+
+//SAVED ITEMS SECTION
+exports.saveItem = async (info) => await SavedItemService.save(info);
+exports.removeSavedItem = async (info) => await SavedItemService.remove(info);
+exports.getSavedStoreItems = async (query, skip, limit) => await SavedItemService.getSavedStoreItems(query, skip, limit);
+exports.getSavedProducts = async (query, skip, limit) => await SavedItemService.getSavedProducts(query, skip, limit);
