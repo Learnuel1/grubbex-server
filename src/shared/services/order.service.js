@@ -288,7 +288,6 @@ exports.acceptOrRejectOrder = async (info, orderId) => {
        order.save();
         return order;
     } catch (error) {
-        console.log(error)
         return {error: error.message}
     }
 }

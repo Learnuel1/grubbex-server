@@ -165,7 +165,6 @@ exports.deleteAccount = async (req, res, next) => {
     const { action } = req.query; 
     let  query = { };
     let account ;
-     account.event = "Account Deletion";
     if (!action)
       return next(APIError.badRequest("Command to delete account is required"));
     if(action !== "deletemyaccount")  return next(APIError.badRequest("Invalid Command to delete account, try again"));
@@ -201,8 +200,7 @@ exports.deleteAccount = async (req, res, next) => {
         logger.info("Account Deleted Successfully", {service: META.ACCOUNT});
     }
      else if (req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.admin) return next(APIError.badRequest("Contact admin to delete the account"));
-     account.event = "Account Deletion";
-      notify.emit('deleteAccount', account);
+      notify.emit('deleteAccount', {event: "Account Deletion", ...account});
     logger.info("Deleted account successfully", { service:META.ACCOUNT});
     res
       .status(200)

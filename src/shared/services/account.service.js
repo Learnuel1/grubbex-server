@@ -141,7 +141,7 @@ exports.delete = async (userId, userType) => {
 
       data.email = account.email;
       data.userName = account.firstName;
-      data.orderCount = await OrderModel.countDocuments({ rider: userId }).session(session);
+      data.orderCount = await OrderModel.countDocuments({ riderId: userId }).session(session);
 
       // Delete KYC
       await KYCModel.deleteOne({ userId }).session(session);
@@ -150,7 +150,7 @@ exports.delete = async (userId, userType) => {
       // Delete account
       await AccountModel.deleteOne({ userId }).session(session);
       // Delete associated orders (if any)
-      await OrderModel.deleteMany({ rider: userId }).session(session);
+      await OrderModel.deleteMany({ riderId: userId }).session(session);
 
       await session.commitTransaction();
       session.endSession();
