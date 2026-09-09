@@ -121,17 +121,10 @@ exports.update = async(info) => {
     const {profile, documents, bankDetails, store, logistics, location} = update;
       if(profile.length > 0 && info.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper || info.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.rider){
         profile.forEach((cur) => {
-          if(cur.stateOfResidence && cur.address && cur.landMark) {
+          if(cur?.address?.state && cur?.address?.town && cur?.address?.landMark) {
             completed++; 
           }
-        })
-        if(completed === 0){
-          profile.forEach((cur) => {
-          if(cur.info.address.state && cur.info.address && cur.info.address.landMark) {
-            completed++; 
-          }
-        })
-        }
+        })  
       }
       let docCount = 0; 
       let docFound = false;
@@ -251,12 +244,16 @@ exports.updateStatus = async (search, info)=> {
     }
     doc = findKYC.documents.find(x => x.docId === info.docId);
     if(doc) docFoundIn = CONSTANTS.KYC_TYPE_INFO.documents ;
-    if(!doc) {
-      
+    if(!doc) { 
       let exist = findKYC.logistics.find(x => x?.vehicleRegistration?.docId === info.docId )
       if(!exist) exist = findKYC.logistics.find(x =>x?.insurance?.docId === info.docId);
       if(!exist) return {error: "Document does not exist"}
-      doc = findKYC.logistics.find(x => x?.vehicleRegistration?.docId !== info.docId || x?.insurance?.docId !== info.docId);
+      const {vehicleRegistration, insurance} = exist;
+      if(vehicleRegistration.docId === info.docId && vehicleRegistration.status === info.status)
+        return {error: `Document already ${info.status}`};
+      if(insurance.docId === info.docId && insurance.status === info.status)
+        return {error: `Document already ${info.status}`};
+      doc = findKYC.logistics.find(x => x?.vehicleRegistration?.docId !== exist.docId || x?.insurance?.docId !== exit.docId);
       if(doc) docFoundIn = CONSTANTS.KYC_TYPE_INFO.logistics ;
     }
     if(!doc) return {error: "Document does not exist"}
@@ -270,8 +267,7 @@ exports.updateStatus = async (search, info)=> {
     otherDoc.push(doc);
     }
     if(docFoundIn === CONSTANTS.KYC_TYPE_INFO.logistics ){
-      if(doc?.vehicleRegistration.status === info.status && doc?.insurance.status === info.status) return {error: `"Document already ${info.status}"`}
-      
+        
       findKYC.logistics.forEach((cur) => {
         if(cur?.vehicleRegistration?.docId !== info.docId && cur?.insurance?.docId !== info.docId )  otherDoc.push(cur); 
           })
@@ -344,11 +340,20 @@ exports.updateStatus = async (search, info)=> {
             completed++; 
           }
         })
-      } 
+      }
+       if(logistics.length > 0) {
+        logistics.forEach((cur)=> {
+          docFound = true;
+          if(cur?.vehicleRegistration && cur.vehicleRegistration?.url) docCount++;
+          if(cur?.insurance && cur.insurance?.url) docCount++;
+
+        })
+        if(docFound == true) completed ++;
+        docFound = false;
+       }
       // check for location
       if(location && location.hasOwnProperty("latitude") && location?.latitude !== 0  && location.hasOwnProperty("formattedAddress")) completed++;
       let onBoarded = false 
-     
       // verify user
       let verified = false;
       otherDoc.forEach((cur) => {
@@ -381,7 +386,7 @@ exports.updateStatus = async (search, info)=> {
         } 
       }) 
       if(completed >= 5 && docCount >= 1 && user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.business )  onBoarded = true;
-     else if(completed >= 5 && docCount >= 3 && user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.rider )  onBoarded = true;
+     else if(completed >= 5 && docCount >= 3 && user.type === CONSTANTS.ACCOUNT_TYPE_OBJ.rider )    onBoarded = true;
      let update;
 
      if(docFoundIn === CONSTANTS.KYC_TYPE_INFO.documents){ 
