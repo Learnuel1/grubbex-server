@@ -1603,7 +1603,7 @@ exports.getOrderQRCode = async (req, res, next) => {
     const token = jwt.sign(
       { data: `${order.orderId}-${order.storeId}:${expiresAt}` },
       config.TOKEN_SECRETE,
-      { expiresIn: "60" },
+      { expiresIn: "1m" },
     );
      
     info.token = token;

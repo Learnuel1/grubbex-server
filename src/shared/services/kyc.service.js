@@ -125,6 +125,13 @@ exports.update = async(info) => {
             completed++; 
           }
         })
+        if(completed === 0){
+          profile.forEach((cur) => {
+          if(cur.info.address.state && cur.info.address && cur.info.address.landMark) {
+            completed++; 
+          }
+        })
+        }
       }
       let docCount = 0; 
       let docFound = false;
