@@ -105,16 +105,7 @@ const AccountSchema = new Schema({
     birthDate: {
       type: Date,
     },
-    // card: [
-    //   {
-    //     name: { type: String, minlength: 1 },
-    //     cardNumber: { type: String, minlength: 16, maxlength: 16 },
-    //     expiryDate: { type: String },
-    //     cvv: { type: String, minlength: 3, maxlength: 3 },
-    //     cardType: { type: String, enum: Object.values(CONSTANTS.CARD_TYPE_OBJ) },
-    //     pin: { type: String, minlength: 4, maxlength: 4 },
-    //   }
-    // ], 
+    
     link: {
       type: String,
       required: [true, "Account link is required"],

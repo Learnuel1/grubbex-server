@@ -91,6 +91,7 @@ exports.updateProfile = async (req, res, next) => {
 					id: bannerUpload.public_id,
 					url: bannerUpload.secure_url,
 				};
+				req.body.picture = req.body.banner;
 			}
 	// profile object
 			const details = {
@@ -116,7 +117,7 @@ exports.updateProfile = async (req, res, next) => {
 			banner: req.userType !== CONSTANTS.ACCOUNT_TYPE_OBJ.business ? null : req.body.banner,
 			logo: req.body.logo,
 		 };
-
+		 if(req.body?.picture) details.picture = req.body.picture;
 		 const cityInfo = {
 			city,
 			town,
@@ -656,6 +657,7 @@ exports.updateProfileImage = async (req, res, next) => {
 		details.profile = { 
 			logo: req.body.logo,
 		 };
+		 details.picture = req.body.logo;
 		const infoToUpdate = info.profile.filter(item => item?.logo?.id !== req.body.logo.id);
 		infoToUpdate.push(details.profile)
 		details.profile = infoToUpdate;

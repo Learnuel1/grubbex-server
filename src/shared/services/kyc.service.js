@@ -49,12 +49,14 @@ exports.update = async(info) => {
           }
           
         }, {returnOriginal: false}).exec();
+        await AccountModel.findOneAndUpdate({user: info.user}, {picture:info.profile.logo});
       }
       await StoreModel.findOneAndUpdate({user: info.user}, { ...info.profile.logo,
         $set: { 
           address: info.profile.address
         }
       }).exec();
+      await AccountModel.findOneAndUpdate({_id:info.user}, {picture:info.picture})
     }
     if(info.documents){
       const KYC = await KYCModel.findOne({user:info.user}).exec();
