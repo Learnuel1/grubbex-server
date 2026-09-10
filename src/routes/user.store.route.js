@@ -8,6 +8,7 @@ const userStoreRouter = express.Router();
 // Define your routes here
 userStoreRouter
   .get('/', Controller.StoreCtrl.getProductForShopperHome)
+  .get('/preference', Controller.StoreCtrl.getPreferenceProductForShopperHome)
   .get('/nearby', Controller.StoreCtrl.getNearbyStores)
   .get('/item/:liked', Controller.StoreCtrl.getShopperLikedItems)
   .get('/address', Controller.KYCController.getStoreAddress)

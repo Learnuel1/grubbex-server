@@ -94,6 +94,32 @@ exports.getProductForShopperHome = async (req, res, next) => {
      const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const skip = (page - 1) * limit;
+    
+      let {products, totalCount} =  await getShopperFilteredProducts({status: CONSTANTS.CATEGORY_STATUS_OBJ.published});
+     
+    const totalPages = Math.ceil(totalCount / limit); 
+      const response =  reqResponse( products.length > 0 ? "Found": "No product", products);
+      logger.info("Products retrieved successfully", {service: META.STORE})
+     return res.status(200).json({ 
+    response,
+    pagination: {
+      page,
+      limit,
+      total: totalCount,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  }) 
+  } catch( error ) {
+    next (error)
+  }
+}
+exports.getPreferenceProductForShopperHome = async (req, res, next) => {
+  try{
+     const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
     const preference = await getCategoryPreference(req.user);
     if(preference) { 
       const regEx = new RegExp(preference.category.join('|'), 'i');
@@ -187,6 +213,7 @@ exports.getStores = async (req, res, next ) => {
     const { search } = req.query;
     const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
     const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 10));
+      
     let query;
     
     if(search) {

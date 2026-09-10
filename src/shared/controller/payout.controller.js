@@ -229,3 +229,10 @@ notice.emit("notify", payload);
         next(error)
     }
 }
+exports.updatePayoutStatus = async (req, res, next ) => {
+    try{
+        const {id} = req.body;
+    } catch (error) {
+        next (error)
+    }
+}
