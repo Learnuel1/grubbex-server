@@ -307,3 +307,12 @@ exports.riderOrder = async (query, skip= 0, limit =10) => {
         return {error:error.message}
     }
 }
+exports.checkOrderState = async (orderId) => {
+    try{
+        const order = await OrderModel.findOne({orderId}).select("orderStates -_id -__v");
+        if(!order) return {error: "Order does not exist"};
+        return order;
+    } catch (error) {
+        return {error: error.message }
+    }
+}
