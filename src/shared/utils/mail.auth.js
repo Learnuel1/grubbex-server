@@ -4,7 +4,15 @@ const { BrevoClient } = require("@getbrevo/brevo");
 require("dotenv").config();
 // sgMail.setApiKey(config.SENDGRID_API_KEY)
 exports. mailAuth = {
-  service: `gmail`,
+//   service: `gmail`,
+//   auth: {
+//     user: config.MAIL_USER,
+//     pass: config.MAIL_PASS,
+//   },
+// };
+  host: `smtp.zoho.com`,
+  secure: true,
+   port: 465,
   auth: {
     user: config.MAIL_USER,
     pass: config.MAIL_PASS,
