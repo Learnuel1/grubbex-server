@@ -11,8 +11,9 @@ exports. mailAuth = {
 //   },
 // };
   host: `smtp.zoho.com`,
-  secure: true,
-   port: 465,
+ port: 587,
+  secure: false, // MUST be false for port 587
+  requireTLS: true,
   auth: {
     user: config.MAIL_USER,
     pass: config.MAIL_PASS,
