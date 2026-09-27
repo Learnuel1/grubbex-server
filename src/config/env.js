@@ -58,5 +58,7 @@ BREVO_KEY: process.env.BREVO_KEY,
 EMAIL_SERVICE: process.env.EMAIL_SERVICE,
 GRUBBEX_LOGO: process.env.GRUBBEX_LOGO,
 BASE_URL: process.env.BASE_URL,
+GOOGLE_RIDER_ACC_EMAIL: process.env.GOOGLE_RIDER_ACC_EMAIL,
+GOOGLE_SHOPPER_ACC_EMAIL: process.env.GOOGLE_SHOPPER_ACC_EMAIL,
 };
 module.exports = config;

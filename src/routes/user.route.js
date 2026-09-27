@@ -27,7 +27,8 @@ userRoute.get("/category_preference", userRequired,   Controller.PreferenceCtrl.
 userRoute.use("/notification", userRequired, notifyRouter)
 userRoute.use("/store", userRequired, userStoreRouter)
 userRoute.use("/ticket", userRequired, TicketRouter)
-userRoute.patch("/update_password", userRequired, checkRouteUsed, shared.Controllers.AccController.updatePassword); 
+userRoute.patch("/update_password", userRequired, checkRouteUsed, shared.Controllers.AccController.updatePassword);
+userRoute.delete("/account/:email", shared.Controllers.AccController.googleDeleteAccount) 
 module.exports = {
   userRoute,
   notifyRouter,
