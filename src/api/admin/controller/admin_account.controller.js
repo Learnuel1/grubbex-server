@@ -47,10 +47,11 @@ exports.defaultAdminAccount = async () => {
       service: META.ACCOUNT,
     }); 
     // create admin wallet
-    const wallet = await adminWalletUpdate({user: account._id, balance: 0});
-    if(!wallet) return logger.info("Admin wallet creation failed", {service: META.ACCOUNT});
-    if(wallet?.error) return logger.info(wallet.error, {service: META.ACCOUNT});
-    logger.info("Admin wallet created successfully", {service: META.ACCOUNT});
+    // const wallet = await adminWalletUpdate({user: account._id, balance: 0});
+    // if(!wallet) return logger.info("Admin wallet creation failed", {service: META.ACCOUNT});
+    // if(wallet?.error) return logger.info(wallet.error, {service: META.ACCOUNT});
+    // logger.info("Admin wallet created successfully", {service: META.ACCOUNT});
+    
      // email admin login info
      const result = await registrationMailHandler(info.email, "Account creation", CONFIG.APP_NAME, "admin", `Admin Password:${password}`);
      if (result.error) {
@@ -77,63 +78,38 @@ exports.defaultAdminAccount = async () => {
     throw new Error(error);
   }
 };
-exports.defaultGoogleAccount = async () => {
+exports.defaultGoogleAccount = async (email, password, phoneNumber, type) => {
   try {   
-    const exist = await userExist({email:config.GOOGLE_RIDER_ACC_EMAIL})
-    
-    if(exist) return logger.info(`${exist.type} already exist`, {
+    const exist = await userExist({email})
+    if(exist && exist !== null) return logger.info(`${exist.email} already exist`, {
       service: META.ACCOUNT,
     }); 
    
-     
+     if(!CONSTANTS.ACCOUNT_TYPE.includes(type)) return next(APIError.badRequest("Invalid account type"));
     const info = {
-      password: hashSync("GrubX000000", 10),
-      email:config.ADMIN_MAIL,
+      password: hashSync(password, 10),
+      email:email,
       firstName: "Grubex",
-      lastName: "Rider",
-      phoneNumber: config.ADMIN_NUMBER,
-      type: CONSTANTS.ACCOUNT_TYPE_OBJ.rider,
-      role: CONSTANTS.ACCOUNT_ROLE_OBJ.rider,
+      lastName: "Test",
+      phoneNumber: phoneNumber,
+      type:type,
+      role: type,
       userId: `GBX${shortIdGen()}`,
       verified: true
     } 
-    let account = await createAccount(info);
-    if(!account) return logger.info("Admin Account creation failed", {
+    const account = await createAccount(info);
+    if(!account) return logger.info("Google Account creation failed", {
       service: META.ACCOUNT,
     })
     if(account.error) return logger.info(account.error, {
       service: META.ACCOUNT,
     });
-    logger.info('Admin Account created successfully', {
+    logger.info('Google Account created successfully', {
       service: META.ACCOUNT,
     }); 
-    // create admin wallet
-    const wallet = await adminWalletUpdate({user: account._id, balance: 0});
-    if(!wallet) return logger.info("Admin wallet creation failed", {service: META.ACCOUNT});
-    if(wallet?.error) return logger.info(wallet.error, {service: META.ACCOUNT});
-    logger.info("Admin wallet created successfully", {service: META.ACCOUNT});
-     // email admin login info
-     const result = await registrationMailHandler(info.email, "Account creation", CONFIG.APP_NAME, "admin", `Admin Password:${password}`);
-     if (result.error) {
-       await deleteUser(info.email);
-       return logger.info(ERROR_FIELD.REG_FAILED, {
-        service: META.ACCOUNT,
-      });
-     }
-     logger.info('Admin login mail sent successfully', {
-      service: META.ACCOUNT,
-    });  
-    const infoPermit = {
-      accountType: CONSTANTS.ACCOUNT_ROLE_OBJ.super,
-      permission: Array.from(Object.values( CONSTANTS.ADMIN.PERMISSION_OBJ)), createdBy:"default_system", 
-      target: CONSTANTS.SETTING_FIELDS_OBJ.TYPE.userManagement
-    };
-            const update = await updateNotificationSetting(infoPermit);
-            if(!update) return logger.info("User management setting failed, try again", { service: META.ACCOUNT})
-           if (update?.error) return  logger.error(update.error, {service: META.ACCOUNT});
-             logger.info('Admin permissions updated', {
-      service: META.ACCOUNT,
-    });  
+     
+  if (update?.error) return  logger.error(update.error, {service: META.ACCOUNT});
+            
   } catch (error) {
     throw new Error(error);
   }

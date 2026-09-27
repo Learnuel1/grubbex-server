@@ -7,11 +7,12 @@ const Routers = require("./src/routes/dual.route.js");
 const server = require("http").createServer(appServer);
 const { engine } = require ('express-handlebars'); 
 const { connections } = require("./src/shared/utils/socket.js");
-const { defaultAdminAccount } = require("./src/api/admin/controller/admin_account.controller.js");
+const { defaultAdminAccount, defaultGoogleAccount } = require("./src/api/admin/controller/admin_account.controller.js");
 const { sendEMail } = require("./src/utils/mailer.js");
 const expressWinston = require('express-winston');
 const Notification = require("./src/shared/utils/Notification.js");
 const loadSecrets = require("./secret.loader.js");
+const { CONSTANTS } = require("./src/config/index.js");
 const io = require("socket.io")(server);
 
 appServer.engine('.handlebars', engine({extname: '.handlebars'}));
@@ -40,6 +41,8 @@ const startServer = async () => {
   try {
     await dbConnect.MongoDB();
     await defaultAdminAccount();
+    await defaultGoogleAccount(config.GOOGLE_RIDER_ACC_EMAIL, "Grubex0000001","081234567880", CONSTANTS.ACCOUNT_TYPE_OBJ.rider);
+    await defaultGoogleAccount(config.GOOGLE_SHOPPER_ACC_EMAIL, "Grubex0000002","081234567899", CONSTANTS.ACCOUNT_TYPE_OBJ.shopper);
     const notice = new Notification(); 
     appLogger.info(`server running on port ${PORT}`, {service:"application"});
     // notice.emit("systemLoaded");
