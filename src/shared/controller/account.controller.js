@@ -211,11 +211,13 @@ exports.deleteAccount = async (req, res, next) => {
 };
 exports.googleDeleteAccount = async (req, res, next) => {
   try {
-    const { email } = req.params; 
+    const { email, name } = req.params; 
     let  query = { };
     let account; 
     if (!email)
       return next(APIError.badRequest("Provide email on the account"));
+    if (!name)
+      return next(APIError.badRequest("Provide the first name on the account"));
     if(email.toLowerCase() === config.GOOGLE_SHOPPER_ACC_EMAIL.toLowerCase()){
      const userInfo = await userExistByMail(email);
      if(!userInfo || userInfo?.error) return next(APIError.badRequest("Delete operation failed, try again"));
