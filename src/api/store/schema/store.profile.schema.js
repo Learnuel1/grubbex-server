@@ -59,7 +59,7 @@ exports.ZStoreProfileSchema = z.object({
     required_error: "Store resident number is required"
   })
   .trim()
-  .min(2,  {message: "House number must be at least 2 characters"})
+  .min(1,  {message: "House number must be at least 1 character"})
   .max(30, {message: "House number cannot exceed 30 characters"}),
   landMark: z.string({
     description: "Closes and popular place to the store location",
