@@ -3,7 +3,7 @@ const { CONSTANTS } = require("../../config");
 const config = require("../../config/env");
 const logger = require("../../logger");
 const { verifyLocation } = require("../services/google.service");
-const { updateLocationAndAvailability, getRiderLocation, getOrderLocation } = require("../services/interface");
+const { updateLocationAndAvailability, getRiderLocation, getOrderLocation, KYCcheck, getUserKYCByAccountId } = require("../services/interface");
 const { META } = require("../utils/actions");
 const { APIError } = require("../utils/apiError");
 const axios = require('axios');
@@ -17,6 +17,10 @@ exports.updateAVailability = async (req, res, next ) => {
         if(!Array.from(Object.values(CONSTANTS.RIDER.ACC_STATUS_OBJ)).includes(status)) return next(APIError.badRequest("Invalid status"));
     if(!lat || !lng) return next(APIError.badRequest("Provide location data"));
     if(isNaN(lat) || isNaN(lng)) return next(APIError.badRequest("Location data must be digits only"));
+    // Check if KYC is completed and approved 
+    const isVerified = await getUserKYCByAccountId(req.userId);
+    if(!isVerified || isVerified?.onBoarded === false) return next(APIError.badRequest("Complete onboarding first"));
+    if(isVerified.user.verified === false) return next(APIError.badRequest("KYC is under review")); 
     const data = await verifyLocation({latitude: lat, longitude: lng});
     if(data?.error) return next(APIError.badRequest(data.error));
      logger.info(`Verified location successfully`, {service: META.LOCATION});
@@ -26,7 +30,7 @@ exports.updateAVailability = async (req, res, next ) => {
     }
     // compute the riders orders in the vicinity
     // get orders that are available and within the radius of the rider, then compute the distance between the rider and the order, then sort the orders by distance and assign the closest order to the rider, then update the order with the rider's location and availability status
-    const radius = config.RIDER_RADIUS || 5;
+    const radius = config.RIDER_RADIUS || 15;
 
 
     

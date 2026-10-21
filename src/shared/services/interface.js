@@ -56,7 +56,7 @@ exports.searches = async (model, query, page, limit) => await PaginationModule.s
 exports.KYCUpdate = async (info) => await KYCModule.update(info);
 exports.KYCcheck = async (user) => await KYCModule.checkKYC(user);
 exports.getUserKYC = async (user) => await KYCModule.KYC(user);
-exports.getUserKYCByAccountId = async (user) => await KYCModule.KYCByAccountId(user);
+exports.getUserKYCByAccountId = async (userId) => await KYCModule.KYCByAccountId(userId);
 exports.updateUserKYCStatus = async (search, info) => await KYCModule.updateStatus(search, info);
 exports.searchUserKYC = async (search, skip = 0, limit = 0) => await KYCModule.KYCSearch(search, skip, limit);
 exports.cityInfoUpdate = async (info) => await KYCModule.updateCityInfo(info)
