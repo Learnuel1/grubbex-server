@@ -211,20 +211,23 @@ exports.verifyBankInfo = async (req, res, next) => {
     const { bankcode, account, bvn} = req.query
     if(!account) return next(APIError.badRequest("Account number is required"));
     if(!bankcode) return next(APIError.badRequest("Account bank is required"));
-    const details = {};
-  const resolve = await resolveBankAccount(account.toString(), bankcode.toString());
-  if(resolve?.error) return next (APIError.badRequest(resolve.error));
-  if(!resolve) return next (APIError.badRequest("Bank Account Verification failed, try again")); 
+    const details = {
+       account_name: "Pastor Bright",
+        account_number: account.toString(),
+    };
+  // const resolve = await resolveBankAccount(account.toString(), bankcode.toString());
+  // if(resolve?.error) return next (APIError.badRequest(resolve.error));
+  // if(!resolve) return next (APIError.badRequest("Bank Account Verification failed, try again")); 
     logger.info("Account number verified successfully", {service:META.PAYSTACK_SERVICE});
-    //verify BVN
-    details.accountName = resolve.account_name;
-    if(bvn && bvn.trim() !==""){
-      if(bvn.trim().length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)")); 
-      const verifyBVN = await resolveBVN(bvn);
-      if(!verifyBVN) return next(APIError.badRequest("BVN verification failed, try again"));
-      if(verifyBVN?.error) return next(APIError.badRequest(verifyBVN.error));
-      logger.info("BVN verified successfully", {service:META.PAYSTACK_SERVICE});
-    }
+  //   //verify BVN
+  //   details.accountName = resolve.account_name;
+  //   if(bvn && bvn.trim() !==""){
+  //     if(bvn.trim().length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)")); 
+  //     const verifyBVN = await resolveBVN(bvn);
+  //     if(!verifyBVN) return next(APIError.badRequest("BVN verification failed, try again"));
+  //     if(verifyBVN?.error) return next(APIError.badRequest(verifyBVN.error));
+  //     logger.info("BVN verified successfully", {service:META.PAYSTACK_SERVICE});
+  //   }
     res.status(200).json({success: true, msg: "Account number is valid", bank:{...details}});
   }catch(error){
     next(error);

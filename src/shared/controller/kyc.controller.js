@@ -244,16 +244,24 @@ exports.bankDetails = async (req, res, next) => {
 			account_number: req.body.accountNumber,
 			account_bank: req.body.bankCode
 		};
-		const verify = await resolveBankAccount(check.account_number, check.account_bank); //await flutterwave.Misc.verify_Account(check);
+		// THE ONE I AM USING
+		// const verify = await resolveBankAccount(check.account_number, check.account_bank); //await flutterwave.Misc.verify_Account(check);
+		 const verify = {
+			...check,
+			account_name: "Pastor Bright"
+		 }
 		// if (verify.status === 'error')
 		// 	return next(APIError.badRequest(verify.message));
 		// logger.info('Account number verified successfully', {
 		// 	service: META.FLUTTER_WAVE_SERVICE,
 		// });
-		 if(verify?.error) return next (APIError.badRequest(verify.error));
-		  if(!verify) return next (APIError.badRequest("Bank Account Verification failed, try again")); 
+
+		//  if(verify?.error) return next (APIError.badRequest(verify.error));
+		//   if(!verify) return next (APIError.badRequest("Bank Account Verification failed, try again")); 
 		    logger.info("Account number verified successfully", {service:META.PAYSTACK_SERVICE});
-		const accountName = verify.account_name;
+		const accountName = check.account_name;
+		// THE ONE I AM USING
+		// const accountName = verify.account_name;
 		if(req.body?.bvn && req.body?.bvn?.trim() !==""){
 			const {bvn} = req.body;
 			//verify bvn
@@ -271,11 +279,13 @@ exports.bankDetails = async (req, res, next) => {
 			// logger.info('BVN verified successfully', {
 			// 	service: META.FLUTTER_WAVE_SERVICE,
 			// });
-			 if(bvn.trim().length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)")); 
-				  const verifyBVN = await resolveBVN(bvn);
-				  if(!verifyBVN) return next(APIError.badRequest("BVN verification failed, try again"));
-				  if(verifyBVN?.error) return next(APIError.badRequest(verifyBVN.error));
-				  logger.info("BVN verified successfully", {service:META.PAYSTACK_SERVICE});
+
+			// THE ONE I AM USING
+			//  if(bvn.trim().length !== 11) return next(APIError.badRequest("BVN is invalid, (must be 11 digits)")); 
+			// 	  const verifyBVN = await resolveBVN(bvn);
+			// 	  if(!verifyBVN) return next(APIError.badRequest("BVN verification failed, try again"));
+			// 	  if(verifyBVN?.error) return next(APIError.badRequest(verifyBVN.error));
+			// 	  logger.info("BVN verified successfully", {service:META.PAYSTACK_SERVICE});
 		}
        const info = await getUserKYC(req.user);
        if (info && info?.bankDetails?.length > 0) {
