@@ -1705,8 +1705,14 @@ exports.acceptOrder = async (req, res, next) => {
     if (!status) return next(APIError.badRequest("Status is required"));
     if (status.toLowerCase() !== "accept" && status.toLowerCase() !== "reject")
       return next(APIError.badRequest("Invalid order status"));
+
+    // get the order information
+    const order = await getOrderByIdForVerification(orderId);
+    if (!order) return next(APIError.notFound("Order not found"));
+    if (order?.error) return next(APIError.badRequest(order.error));
     // get user location data
     const userInfo = await userExistById(req.user);
+    const shopperInfo = await userExistById(order.shopper);
     const kyc = await getUserKYC(req.user);
     if (!userInfo.verified)
       return next(
@@ -1756,16 +1762,20 @@ exports.acceptOrder = async (req, res, next) => {
       account: userInfo._id,
       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
       userId: userInfo.userId,
-      info: CONSTANTS.ORDER_STATUS_OBJ.accept ?`Your order delivery has been accept by a rider`: "Your order delivery has been cancelled by the rider",
-      userId: req.userId,
+      info: CONSTANTS.ORDER_STATUS_OBJ.accept ?`You accepted a delivery order`: "You cancelled a delivery order",
     };
+    notification.emit("notify", info);
+     
+    info.account = order.shopper;
+     info.userId= order.shopperId;
+      info.info =CONSTANTS.ORDER_STATUS_OBJ.accept ?`Your order delivery has been accept by a rider`: "Your order delivery has been cancelled by the rider";
     notification.emit("notify", info);
     // SEND NOTIFICATION MAIL
     logger.info("Notification created successfully", { service: META.ORDER });
     const payload = {
-      to: userInfo.email,
+      to: shopperInfo.email,
       subject: CONSTANTS.ORDER_STATUS_OBJ.accept ? "Order Acceptance by Rider": "Order Cancelled by Rider",
-      name: `${userInfo.firstName}`,
+      name: `${shopperInfo.firstName}`,
       event: CONSTANTS.EMAIL_TEMPLATES_OBJ.orderEmail,
     };
     notification.emit("emailer", payload);
