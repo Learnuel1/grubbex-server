@@ -63,11 +63,10 @@ Read more about it here [Commit Lint Doc](https://www.conventionalcommits.org/en
 ## FOLDER STRUCTURE
 ```
 grubbex-backend/ 
-s├── server.js                          # Application bootstrap, Socket.io setup, HTTP listener, DB init
+├── server.js                          # Application bootstrap, Socket.io setup, HTTP listener, DB init
 ├── secret.loader.js                   # Secret manager loader (AWS Secrets Manager)
 ├── entities_def.txt                   # High-level entity schema definitions reference
 ├── package.json                       # Dependencies & npm scripts
-│
 └── src/
     ├── app.js                         # Express app configuration, CORS whitelisting, rate limiting
     ├── config/                        # Configuration & constants
