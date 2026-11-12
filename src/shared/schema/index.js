@@ -18,6 +18,7 @@ const { ZShippingAddressSchema } = require("./shipping.address.schema");
 const { ZOrderSchema, ZOrderIdSchema, ZReturnOrderSchema } = require("./order.schema");
 const { ZPayoutSchema } = require("./payout.schema");
 const { ZShopperUpdateSchema } = require("./shopper.update.schema"); 
+const { ZLoginSchemaV2 } = require("../../routes/v2/schema/auth.schema");
 module.exports = {
   ZAccountSchema,
   ZProfileSchema,
@@ -51,5 +52,6 @@ module.exports = {
   ZProductIDSchema,
   ZSearchLikeRatingSchema,
   ZSaveItemSchema,
-  ZTemporalAccountSchemaV2
+  ZTemporalAccountSchemaV2,
+  ZLoginSchemaV2
 }

@@ -13,6 +13,7 @@ const expressWinston = require('express-winston');
 const Notification = require("./src/shared/utils/Notification.js");
 const loadSecrets = require("./secret.loader.js");
 const { CONSTANTS } = require("./src/config/index.js");
+const RouterV2 = require("./src/routes/v2/dual.route.js");
 const io = require("socket.io")(server);
 
 appServer.engine('.handlebars', engine({extname: '.handlebars'}));
@@ -20,6 +21,7 @@ appServer.set('view engine', '.handlebars');
 appServer.set('views', '../src/views');
 
 appServer.use("/api/v1", Routers); 
+appServer.use("/api/v2", RouterV2); 
  
 io.on("connection", (socket) => { 
   logger.info("Socket io connected successfully", {service: "socket io"});

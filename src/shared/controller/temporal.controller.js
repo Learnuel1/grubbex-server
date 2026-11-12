@@ -266,6 +266,7 @@ exports.createTemporalAccountV2 = async (req, res, next) => {
       email,
       otp:hashedOTP,
       refreshToken: token,
+      type:accountType
     };
     const createTemAccount = await createTemporalAccount(validateRequestData("ZTemporalAccountSchemaV2"),info);
     if(!createTemAccount) return next(APIError.badRequest("Registration process failed"))
@@ -299,6 +300,68 @@ exports.createTemporalAccountV2 = async (req, res, next) => {
     res
       .status(200)
       .json({ success: true, msg: 'OTP Sent Successfully', token ,expiryMin});
+  }catch(error){
+    next(error);
+  }
+}
+
+exports.renewOTPV2 = async (req, res, next) => {
+  try{
+    const email = req.email?.toLowerCase();
+    const otp = OTPGen().toString();
+    const hashedOTP = hashSync(otp, 10);
+    if(email && !isValidEmail(email)) return next(APIError.badRequest("Invalid email"))
+    const payload = {email,otp,accountType:req.userType};
+    const expiryMin=2;
+    const token = jwt.sign(payload, config.TOKEN_SECRETE, {expiresIn:`${expiryMin}m`});
+    const info = {
+      email,
+      otp:hashedOTP,
+      refreshToken: token,
+      isOTP: "checked",
+      accountType:req.accountType
+    }; 
+    const otpType = await userExistByMail(email, req.userType);
+    let mailTemplate = otpType ? "mfa" : "all_otp";
+    let mailTitle = otpType ? "Login OTP" : "Registration OTP";
+    let resend_OTP ;
+    if(otpType && otpType?.mfa){
+      resend_OTP = await send2FA_OTP(validateRequestData("ZTemporalAccountSchemaV2"), info); 
+      
+      if(!resend_OTP) return next(APIError.badRequest("2FA OTP failed to send"))
+        if(resend_OTP?.error) return next(APIError.badRequest(resend_OTP.error))
+        logger.info("2FA OTP created successfully", {service: META.MFA})
+    } else{
+      resend_OTP= await createTemporalAccount(validateRequestData("ZTemporalAccountSchemaV2"),info);
+      if(!resend_OTP) return next(APIError.badRequest("Registration process failed"))
+      if(resend_OTP.error) return next(APIError.badRequest(resend_OTP.error))
+      logger.info("Temporal Account created successfully", {service:META.ACCOUNT})
+    }
+    const title = "Complete Your Registration"
+    const message = " Please enter the code below on the registration page to complete the process."
+  //send OTP TO MAIL
+    const result = await registrationOTPMailHandler(
+      resend_OTP.email,
+      otp,
+      `${expiryMin} minutes`,
+      title,
+      message,
+      mailTemplate, 
+    );
+    if (result.error) {
+      return next(APIError.customError(ERROR_FIELD.FAILED_OTP));
+    }
+    logger.info('OTP resend successful', { service: META.MAIL });
+    res.cookie('grub_ex', token, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'none',
+      // maxAge: 7 * 60 * 60 * 1000,
+    });
+    res
+      .status(200)
+      .json({ success: true, msg: 'OTP Sent Successfully', token ,expiryMin});
+  
   }catch(error){
     next(error);
   }

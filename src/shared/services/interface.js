@@ -30,7 +30,7 @@ exports.mFA_status_update = async (id, status) => AccountModules.mFA_status(id, 
 
 exports.userExist = async (info) => await TemporalModules.findUser(info);
 exports.roleExist = async (info) => await TemporalModules.findByRole(info);
-exports.userExistByMail = async (email) => await TemporalModules.findUserByEmail(email);
+exports.userExistByMail = async (email, userType) => await TemporalModules.findUserByEmail(email, userType);
 exports.userExistToken = async (refreshToken) => await TemporalModules.findUserByToken(refreshToken);
 exports.userExistById = async (id) => await TemporalModules.findUserById(id);
 exports.saveOrderOTP = async(details) => await TemporalModules.createOrderOTP(details);

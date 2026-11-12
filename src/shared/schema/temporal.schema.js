@@ -44,7 +44,7 @@ exports.ZTemporalAccountSchemaV2 = z.object({
     description: "Temporal Account Token",
     required_error: "Temporal Account Token is required"
   }),
-  accountType: z.enum(CONSTANTS.ACCOUNT_TYPE, {
+  type: z.enum(CONSTANTS.ACCOUNT_TYPE, {
     description: "Account type",
     required_error: "Account type is required", 
     invalid_type_error: "Invalid account type",

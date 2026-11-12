@@ -3,9 +3,9 @@ const TemporalAccountModel = require ("../../models/temporal.account.model");
 
 exports.registerTempAccount = async (details) => {
   try {
-    const exist = await AccountModel.findOne({email:details.email, type:details.accountType}).exec();
+    const exist = await AccountModel.findOne({email:details.email, type:details.type}).exec();
     if(exist && !exist.mFA) return {error:"Account already exist", data:exist}
-     await this.findTemAccount(details.email, type = details.accountType);
+     await this.findTemAccount(details.email, type = details.type);
     const save = await TemporalAccountModel.create({...details});
     if (!save)
       return {error: "Account registration failed, try again"};
@@ -35,9 +35,9 @@ exports.findTemAccountByToken = async (refreshToken) => {
 exports.findUser = async (info) => {
   try{
     let data;
-    if(info?.email) data = await AccountModel.findOne({email:info.email, type:info.accountType}).exec();
+    if(info?.email) data = await AccountModel.findOne({email:info.email, type:info.type}).exec();
     if(data) data.field = info.email;
-    if(!data && info?.phoneNumber){ data =  await AccountModel.findOne({phoneNumber:info.phoneNumber, type:info.accountType}).exec()
+    if(!data && info?.phoneNumber){ data =  await AccountModel.findOne({phoneNumber:info.phoneNumber, type:info.type}).exec()
    if(data) data.field = info.phoneNumber;}
     
     return data;
@@ -77,8 +77,8 @@ exports.findUserById = async (id) => {
  
 exports.create2FA_OTP = async (details) => {
   try {
-    const exist = await TemporalAccountModel.findOne({email:details.email, type:details.accountType}).exec();
-    if(exist) return await TemporalAccountModel.findOneAndUpdate({email:details.email, type:details.accountType},{...details});
+    const exist = await TemporalAccountModel.findOne({email:details.email, type:details.type}).exec();
+    if(exist) return await TemporalAccountModel.findOneAndUpdate({email:details.email, type:details.type},{...details});
    const  save = await TemporalAccountModel.create({...details});
     if (!save)
       return {error: "2FA OTP failed to create"};
@@ -89,7 +89,7 @@ exports.create2FA_OTP = async (details) => {
 };
 exports.recoveryTempInfo = async (details) => {
   try { 
-    await TemporalAccountModel.findOneAndDelete({email:details.email, type:details.accountType});
+    await TemporalAccountModel.findOneAndDelete({email:details.email, type:details.type});
     const save = await TemporalAccountModel.create({...details});
     if (!save)
       return {error: "Account recovery failed, try again"};
@@ -101,7 +101,7 @@ exports.recoveryTempInfo = async (details) => {
 exports.createOrderOTP = async (details) => {
   try{
 
-    await TemporalAccountModel.findOneAndDelete({email: details.email, type: details.accountType});
+    await TemporalAccountModel.findOneAndDelete({email: details.email, type: details.type});
     return await TemporalAccountModel.create({...details});
   } catch (error) {
     return {error: error.message };
@@ -109,7 +109,7 @@ exports.createOrderOTP = async (details) => {
 }
 exports.orderOTP = async (details) => {
   try{
-    await TemporalAccountModel.findOneAndDelete({email: details.email, type: details.accountType, refreshToken: details.refreshToken});
+    await TemporalAccountModel.findOneAndDelete({email: details.email, type: details.type, refreshToken: details.refreshToken});
     
   } catch (error) {
     return {error: error.message };
