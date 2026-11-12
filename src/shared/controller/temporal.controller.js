@@ -259,7 +259,7 @@ exports.createTemporalAccountV2 = async (req, res, next) => {
     const otp = OTPGen().toString();
     const hashedOTP = hashSync( otp, 10);
     if(email && !isValidEmail(email)) return next(APIError.badRequest("Invalid email"))
-    const payload = {email,otp:hashedOTP, accountType};
+    const payload = {email,otp:hashedOTP, type: accountType};
     const expiryMin=2;
     const token = jwt.sign(payload, config.TOKEN_SECRETE, {expiresIn:`${expiryMin}m`});
     const info = {
@@ -311,7 +311,7 @@ exports.renewOTPV2 = async (req, res, next) => {
     const otp = OTPGen().toString();
     const hashedOTP = hashSync(otp, 10);
     if(email && !isValidEmail(email)) return next(APIError.badRequest("Invalid email"))
-    const payload = {email,otp,accountType:req.userType};
+    const payload = {email,otp, type:req.userType};
     const expiryMin=2;
     const token = jwt.sign(payload, config.TOKEN_SECRETE, {expiresIn:`${expiryMin}m`});
     const info = {
@@ -319,7 +319,7 @@ exports.renewOTPV2 = async (req, res, next) => {
       otp:hashedOTP,
       refreshToken: token,
       isOTP: "checked",
-      accountType:req.accountType
+      type:req.userType
     }; 
     const otpType = await userExistByMail(email, req.userType);
     let mailTemplate = otpType ? "mfa" : "all_otp";
