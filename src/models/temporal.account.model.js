@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const { CONSTANTS } = require("../config");
 
 const TemporalAccountSchema = new Schema({
   email: {
@@ -12,6 +13,11 @@ const TemporalAccountSchema = new Schema({
     ref: "Account",
     index: true,
     sparse: true, 
+  },
+  type: {
+    type: String,
+    enum:  CONSTANTS.ACCOUNT_TYPE,
+    required: true,
   },
   phone: {
     type: String,

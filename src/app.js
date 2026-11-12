@@ -44,5 +44,8 @@ app.use(express.urlencoded({ limit: "5mb", extended: true }));
 app.use("/api/v1/status", (_req, res) => {
   res.send({ msg: `Yes!... Welcome to ${CONFIG.APP_NAME} API` });
 });
+app.use("/api/v2/status", (_req, res) => {
+  res.send({ msg: `Yes!... Welcome to ${CONFIG.APP_NAME} API Version-2` });
+});
 app.use(errorHandler);
 module.exports = app;

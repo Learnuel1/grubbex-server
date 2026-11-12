@@ -23,4 +23,31 @@ exports.ZTemporalAccountSchema = z.object({
     required_error: "Temporal Account Token is required"
   }),
 });
+exports.ZTemporalAccountSchemaV2 = z.object({
+  email: z.string({
+    description: "Email to receive otp",
+    required_error:"Email is required",
+  })
+  .email("Invalid Email supplied"),
+  phone: z.string({
+    description: "Email to receive otp",
+    required_error:"Email is required",
+  })
+  .min(11)
+  .max(15)
+  .optional(),
+  otp: z.string({
+    description: "OTP value",
+    required_error: "OTP value is required",
+  }),
+  refreshToken: z.string({
+    description: "Temporal Account Token",
+    required_error: "Temporal Account Token is required"
+  }),
+  accountType: z.enum(CONSTANTS.ACCOUNT_TYPE, {
+    description: "Account type",
+    required_error: "Account type is required", 
+    invalid_type_error: "Invalid account type",
+  }),
+});
 

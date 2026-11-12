@@ -6,7 +6,7 @@ const { ZAccountSchema, ZLoginSchema , ZInvitationSchema} = require("./account.s
 const { ZBankSchema, ZSubscription, ZLogisticsSchema } = require("./bank.schema");
 const { ZNotificationSchema } = require("./notification.schema");
 const { ZProfileSchema } = require("./profile.schema");
-const { ZTemporalAccountSchema } = require("./temporal.schema");
+const { ZTemporalAccountSchema, ZTemporalAccountSchemaV2 } = require("./temporal.schema");
 const { ZChatSchema } = require("./chat.schema");  
 const { ZTicketSchema } = require("./ticket.schema");
 const { ZTicketChatSchema } = require("./ticket.chat.schema");
@@ -50,5 +50,6 @@ module.exports = {
   ZReturnOrderSchema,
   ZProductIDSchema,
   ZSearchLikeRatingSchema,
-  ZSaveItemSchema
+  ZSaveItemSchema,
+  ZTemporalAccountSchemaV2
 }

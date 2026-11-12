@@ -252,3 +252,54 @@ exports.verifyOTP = async (req, res, next) => {
     next(error)
   }
 }
+
+exports.createTemporalAccountV2 = async (req, res, next) => {
+  try{
+    const {email, accountType} = req.body;
+    const otp = OTPGen().toString();
+    const hashedOTP = hashSync( otp, 10);
+    if(email && !isValidEmail(email)) return next(APIError.badRequest("Invalid email"))
+    const payload = {email,otp:hashedOTP, accountType};
+    const expiryMin=2;
+    const token = jwt.sign(payload, config.TOKEN_SECRETE, {expiresIn:`${expiryMin}m`});
+    const info = {
+      email,
+      otp:hashedOTP,
+      refreshToken: token,
+    };
+    const createTemAccount = await createTemporalAccount(validateRequestData("ZTemporalAccountSchemaV2"),info);
+    if(!createTemAccount) return next(APIError.badRequest("Registration process failed"))
+    if(createTemAccount.error) return next(APIError.badRequest(createTemAccount.error))
+    logger.info("Temporal Account created successfully", {service:META.ACCOUNT})
+    const template = "all_otp";
+    const title = "Complete Your Registration"
+    const message = " Please enter the code below on the registration page to complete the process."
+    //send OTP TO MAIL
+    //registrationOTPMailHandler
+    const result = await registrationOTPMailHandler(
+      createTemAccount.email,
+      otp,
+      `${expiryMin} minutes`,
+      title,
+      message,
+      template,
+      "Grubby Team",
+      "Registration OTP",
+    );
+    if (result.error) {
+      return next(APIError.customError(result.error));
+    }
+    logger.info('OTP sent successfully', { service: META.MAIL });
+    res.cookie('grub_ex', token, {
+      httpOnly: false,
+      secure: true,
+      sameSite: 'none',
+      // maxAge: 7 * 60 * 60 * 1000,
+    });
+    res
+      .status(200)
+      .json({ success: true, msg: 'OTP Sent Successfully', token ,expiryMin});
+  }catch(error){
+    next(error);
+  }
+}

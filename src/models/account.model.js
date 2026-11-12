@@ -29,8 +29,7 @@ const AccountSchema = new Schema({
     type: String,
     required: [true, "Email address is required"],
     trim: true,
-    index: true,
-    unique: true,
+    index: true, 
   },
   password:{
     type: String,
@@ -39,8 +38,7 @@ const AccountSchema = new Schema({
   },
   phoneNumber: {
     type: String,
-    trim: true,
-    unique: true,
+    trim: true, 
      
   },
   status: {
