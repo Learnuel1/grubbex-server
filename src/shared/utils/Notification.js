@@ -7,7 +7,7 @@ const { shortIdGen } = require("./Generator");
 const {EventEmitter} = require("events"); 
 const { getNotificationSetting, emailTemplateSetting } = require("../../services");
 const { sendEMailHandler, DeleteAccountMailHandler } = require("./interface");
-const { OrderConfirmationMailer } = require("./email/google.mail");
+const { OrderConfirmationMailer, RiderTipPaymentMailer } = require("./email/google.mail");
 
 class Notification extends EventEmitter {
   constructor() {
@@ -172,6 +172,21 @@ class Notification extends EventEmitter {
         const {email, event, customerName, ...data} = payload;
         data.order.customerName = customerName;
             const send = await OrderConfirmationMailer(
+              email, 
+              data.order
+            );
+            if (send?.error) return logger.error(`'${event} Email notification failed to send, try again.'`, { service: META.MAIL});
+            logger.info(`'${event} Email sent successfully'`, { service: META.MAIL});
+
+  } catch (error) {
+      logger.error( error.message, { service: META.MAIL});
+  }
+    })
+    this.on("tipPayment", async(payload) => {
+      try {
+        const {email, event, customerName, ...data} = payload;
+        data.order.customerName = customerName;
+            const send = await RiderTipPaymentMailer(
               email, 
               data.order
             );

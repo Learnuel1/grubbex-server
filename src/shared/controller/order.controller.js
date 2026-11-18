@@ -1028,7 +1028,129 @@ exports.payStackConfirmTransaction = async (req, res, next) => {
 } else if (event.event === 'customeridentification.failed') {
       logger.info("BVN Verification failed", {service: META.PAYSTACK_SERVICE})
     // Verification failed – notify user, log reason
-  }
+  } else if (
+          transType.event === CONSTANTS.TRANSACTION_TYPE.riderTip &&
+          info.metadata.paymentEventType ===
+            CONSTANTS.TRANSACTION_TYPE.riderTip &&
+          info.metadata.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card
+        ) {
+          const order = await getOrderById(transType.phone);
+          if (!order) return next(APIError.notFound("Order not found"));
+          if (order?.error) return next(APIError.badRequest(order.error));
+          logger.info("Order found successfully", { service: META.PAYMENT });
+          if (info.amount > 0 ) 
+            {logger.info("Order total verified successfully", {
+            service: META.PAYMENT,
+          });
+        }
+
+      const admin = await userExistByMail(config.ADMIN_MAIL, CONSTANTS.ACCOUNT_ROLE_OBJ.super);
+          if (!admin) return next(APIError.notFound("Admin account not found"));
+          if (admin?.error) return next(APIError.badRequest(admin.error)); 
+          const adminBal = await walletBalance(admin._id); 
+          if (!adminBal) {
+            const wallet = await updateAdminWallet({
+              user: admin._id,
+              balance: info.amount/100,
+            });
+            if (!wallet)
+              return next(APIError.badRequest("Failed to update admin wallet"));
+            if (wallet?.error) return next(APIError.badRequest(wallet.error));
+            logger.info("Admin wallet created successfully", {
+              service: META.PAYMENT,
+            });
+          } else {
+            if (adminBal?.error)
+              return next(APIError.badRequest(adminBal.error));
+            const walletInfoUpdate = await updateWallet({
+              balance:admin.balance + info.amount/100,
+              user: admin._id,
+            });
+            if (!walletInfoUpdate)
+              return next(
+                APIError.badRequest("Failed to update grubbex wallet balance"),
+              );
+            if (walletInfoUpdate?.error)
+              return next(APIError.badRequest(walletInfoUpdate.error));
+            logger.info("Admin wallet updated successfully", {
+              service: META.PAYMENT,
+            });
+          }
+          const wallet = await getWalletBalance(order.rider);
+          if (wallet?.error) return next(APIError.badRequest(wallet.error));
+          // update transaction history
+          const details = {
+            balanceBefore: wallet.balance,
+            user: order.rider,
+            initiatedBy: info.metadata.user,
+            amount: info.amount / 100,
+            // credit: info.amount / 100,
+            description: `Tip for order ${order.orderId}`,
+            type: info.metadata.paymentEventType,
+             reference: info.reference,
+             currency: info.metadata.currency,
+             status: info.status,
+             order: order._id,
+             orderId: info.metadata.orderId,
+             ipAddress:info.ip_address,
+          };
+          if(transType.type === CONSTANTS.TRANSACTION_TYPE.credit){ 
+            details.balanceAfter= wallet.balance + details.credit;
+          }
+          if(transType.type === CONSTANTS.TRANSACTION_TYPE.debit) {
+            details.debit = info.amount/100;
+             details.balanceAfter = wallet.balance == 0 ? 0: wallet.balance - details.debit;
+            }
+
+          const createHistory = await createTransactionHistory(details);
+          if (!createHistory)
+            return next(
+              APIError.badRequest("Failed to create transaction history"),
+            );
+          if (createHistory?.error)
+            return next(APIError.badRequest(createHistory.error));
+          logger.info("Transaction history created and temporal transaction deleted successfully", {
+            service: META.PAYMENT,
+          });
+          details.user = admin._id;
+          details.balanceBefore = adminBal.balance;
+          details.balanceAfter =  adminBal.balance + info.amount/100
+          details.credit = info.amount/100;
+            const createAdminHistory = await createAdminTransactionHistory(details);
+          if (!createAdminHistory)
+            return next(
+              APIError.badRequest("Failed to create admin transaction history"),
+            );
+          if (createAdminHistory?.error)
+            return next(APIError.badRequest(createAdminHistory.error));
+          logger.info("Admin transaction history created successfully", {
+            service: META.PAYMENT,
+          });
+          
+
+          const notice = {
+            event: "Rider Tip Payment",
+            order,
+            email:info.metadata.email,
+            customerName: info.metadata.customerName,
+          };
+          notification.emit("tipPayment", notice);
+          notice.category = CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction;
+          notice.account = order.shopper;
+          notice.userId = order.shopperId;
+          notice.title = "Tip for order delivered";
+          notice.info = `Tip Payment to a rider ${order.orderId} was successful`;
+          notification.emit("notify", notice);
+
+          // send notification to rider
+          notice.category = CONSTANTS.NOTIFICATION_TYPE_OBJ.transaction;
+          notice.account = order.rider;
+          notice.userId = order.riderId;
+          notice.title = "Tip for order delivered";
+          notice.info = `Tip Payment for order ${order.orderId} was successful`;
+          notification.emit("notify", notice);
+
+        }
     }
   } catch (error) {
     next(error);
@@ -1517,7 +1639,7 @@ exports.verifyPickUpByQRCodeAndCode = async (req, res, next) => {
     // notification
     const notifyData = {
       userId: orderExist.shopperId,
-      title: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? "YOu picked up your Order" :"Order Picked Up",
+      title: req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper ? "You picked up your Order" :"Order Picked Up",
       account: orderExist.shopper,
       category: CONSTANTS.NOTIFICATION_TYPE_OBJ.order,
       info: `Your order with Order ID: ${orderExist.orderId} has been picked up by  ${req.userType === CONSTANTS.ACCOUNT_TYPE_OBJ.shopper? "you": "the rider"}`,
@@ -1919,7 +2041,7 @@ exports.getAccountOrders = async (req, res, next) => {
   try {
     const { search, status, type, userId, riderId } = req.query;
     const query = {};
-    if(!userId && !riderId) return next(APIError.badRequest("Targeted user ID is required (riderId/userId)"));
+    if(!userId && !riderId) return next(APIError.badRequest("Targeted user ID is required (riderId or userId)"));
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
     const skip = (page - 1) * limit;
@@ -2244,3 +2366,122 @@ exports.getReturnedOrderQRCode = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.tipCompletedOrderRider = async (req, res, next ) => {
+  try {
+    const {orderId, amount } = req.body;
+    if (!orderId) return next(APIError.badRequest("Order ID is required"));
+    if(!amount) return next(APIError.badRequest("Amount ID is required"));
+    if(!isNaN(amount)) return next(APIError.badRequest("Amount must be digits"));
+    if(amount <= 0) return next(APIError.badRequest("Amount cannot be negative or zero"));
+    const query = {shopper: req.user};
+    // 1. get the order
+    const order = await findOrderForQRCodeGeneration(orderId, query);
+    if (!order) return next(APIError.notFound("Order not Found"));
+    if (order?.error) return next(APIError.badRequest(order.error));
+
+    //2. Confirm the status is delivered
+     if(order.storeStatus !== CONSTANTS.ORDER_STATUS_OBJ.pickup) return next(APIError.badRequest("This Order has wasn't a delivery order"));
+    const lastOrderState = order.orderStates.find(cur => cur.currentState === CONSTANTS.ORDER_STATUS_OBJ.delivered); 
+    //3. Confirm it was delivered to the shopper
+      if(order.shopperId !== req.userId){
+      logger.info("A Rider Access another's Order to tip rider", {service: META.ORDER});
+      return next(APIError.customError("You cannot perform this operation", 403));
+    } 
+    //4. initial payment to rider 
+    const userInfo = await getAccountByGrubbexId(req.userId);
+    const phoneNumber = `${userInfo.countryCode}${userInfo.phoneNumber.slice(1)}`;
+    let cardPayload = {};
+
+    if (req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.card) {
+      cardPayload = {
+        currency: "NGN",
+        amount: req.body.total.toFixed(2),
+        email: req.email,
+        phone_number: phoneNumber,
+        callback_url: `${config.PAYSTACK_CALL_BACK_URL}`,
+        paymentEventType: CONSTANTS.TRANSACTION_TYPE.checkout,
+        paymentType: CONSTANTS.PAYMENT_TYPE_OBJ.card,
+        orderId,
+        user: req.user,
+        customerName: `${userInfo.firstName} ${userInfo.lastName}`,
+         userType: req.userType,
+      };
+    } else if (req.body.paymentType === CONSTANTS.PAYMENT_TYPE_OBJ.wallet) {
+      cardPayload = {
+        amount: req.body.total.toFixed(2),
+        email: req.email,
+        phone_number: phoneNumber,
+        paymentEventType: CONSTANTS.TRANSACTION_TYPE.checkout,
+        paymentType: CONSTANTS.PAYMENT_TYPE_OBJ.wallet,
+        orderId,
+        user: req.user,
+        customerName: `${userInfo.firstName} ${userInfo.lastName}`,
+        userType: req.userType,
+      };
+      const userBal = await walletBalance(req.user);
+      if (userBal?.error) return next(APIError.badRequest(userBal.error));
+      if (userBal.balance < req.body.total)
+        return next(APIError.badRequest("Insufficient wallet balance"));
+    }
+    qrText += `userId:${req.userId}-totalItems:${order.items.length}-storeId:${order.storeId}`;
+    req.body.qrText = qrText;
+    req.body.orderId = orderId;
+    const initializeCardCharge = await payStackPayWithCard(cardPayload);
+
+    if (initializeCardCharge?.error)
+      return next(APIError.badRequest(initializeCardCharge.error));
+    if (initializeCardCharge?.status === true) {
+      // save the REFERENCE INFORMATION FOR THE CUSTOMER
+      const info = {
+        user: req.user,
+        email: req.email,
+        refreshToken: initializeCardCharge.data.access_code,
+        otp: initializeCardCharge.data.reference,
+        phone:orderId,
+     
+      };
+      req.body.reference = initializeCardCharge.data.reference;
+      // save order as draft
+      req.body.status = CONSTANTS.ORDER_STATUS_OBJ.draft;
+      const createOrderOTP = await saveOrderOTP(info);
+      if (!createOrderOTP)
+        return next(APIError.badRequest("Failed to create order OTP"));
+      if (createOrderOTP?.error)
+        return next(APIError.badRequest(createOrderOTP.error));
+      logger.info("Order OTP created successfully", { service: META.ORDER });
+      const tempTrans = await createTempTransaction({
+        id: qrText,
+        reference: req.body.reference,
+        event: CONSTANTS.TRANSACTION_TYPE.riderTip,
+        type: CONSTANTS.TRANSACTION_TYPE.credit
+      });
+      if (!tempTrans)
+        return next(APIError.badRequest("Order Transaction Failed. try again"));
+      if (tempTrans?.error) return next(APIError.badRequest(tempTrans.error));
+      logger.info("Temporal Order Transaction created successfully", {
+        service: META.PAYMENT,
+      });
+   
+      const paymentInfo = {
+        amount: req.body.amount,
+        status: CONSTANTS.ORDER_PAYMENT_STATUS.pending,
+        date: new Date(),
+      };
+      req.body.payment = [paymentInfo];
+       
+      return res.status(200).json({
+        status: "success",
+        msg: initializeCardCharge.message,
+        data: {
+          ...initializeCardCharge.data,
+          orderId,
+        },
+      });
+    } else
+      return next(APIError.badRequest("Failed to create order, try again"));
+
+  } catch (error) {
+    next (error);
+  }
+}

@@ -19,6 +19,7 @@ exports.removeUserTempToken = async (info) => AccountModule.deleteTempToken(info
 exports.createAdmin = async (details) => AccountModule.create(details);
 exports.defaultAccount = async (details) => AccountModule.defaultRegistration(details);
 exports.emailExist = async (email) => AccountModule.checkEmail(email);
+exports.emailAndRoleExist = async (email, type) => AccountModule.checkEmailAndRole(email, type);
 exports.usernameExist = async (username) => AccountModule.checkUsername(username);
 exports.logOutUser = async (id) => AccountModule.logOut(id);
 exports.updateUserToken = async (id, refreshToken,token) => AccountModule.updateToken(id, refreshToken,token);

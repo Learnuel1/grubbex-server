@@ -11,8 +11,7 @@ authRoute.post('/register', tokenRequired, accountType(CONSTANTS.ACCOUNT_TYPE_OB
 authRoute.post('/register_user', tokenRequired, accountType(),validateRequestData("ZAccountSchema"), shared.Controllers.AccController.registerMobileUser);
 authRoute.post('/create', tokenRequired, Controller.AccountController.registerAdmin);
 authRoute.post('/login',validateRequestData("ZLoginSchema"), shared.Controllers.AuthController.login);
-authRoute.post('/verify-2fa', tokenRequired , checkRouteUsed, shared.Controllers.AuthController.m2FA_login);
-// authRoute.post('/default', accountType(CONSTANTS.ACCOUNT_TYPE_OBJ.admin, CONSTANTS.ACCOUNT_ROLE_OBJ.super), adminModule.accountCtrl.defaultAdminAccount);
+authRoute.post('/verify-2fa', tokenRequired , checkRouteUsed, shared.Controllers.AuthController.m2FA_login); 
 authRoute.post('/logout', userRequired, checkRouteUsed, shared.Controllers.AuthController.logout);
 authRoute.post('/refreshtoken', shared.Controllers.AuthController.handleRefreshToken);
 authRoute.post('/logout/all', shared.Controllers.AuthController.logoutAll);

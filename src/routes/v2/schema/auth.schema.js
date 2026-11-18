@@ -4,7 +4,7 @@ const { CONSTANTS } = require("../../../config");
 exports.ZLoginSchemaV2 = z.object({
   email: z.string({
     description: "Email for login",
-    required_error: "Email is bbbbbb",
+    required_error: "Email is required",
     validation_error: "Invalid email",
   })
   .email(),

@@ -20,7 +20,7 @@ const {
 	validateRequestData,
 } = require('../middleware/data_validator.middleware');
 const { registrationOTPMailHandler } = require('../utils/mailer');
-const { getCategoryPreference } = require('../../services');
+const { getCategoryPreference, emailExist } = require('../../services');
 const { getStoreByOwner } = require('../../api/store/service');
  
 exports.login = async (req, res, next) => {
@@ -100,10 +100,10 @@ exports.login = async (req, res, next) => {
 			payload.storeId = KYC.store[0].storeId;
 		}
 		let token = jwt.sign(payload, config.TOKEN_SECRETE, {
-			expiresIn: `${req.body?.rememberMe ? '10h' : '5h'}`,
+			expiresIn: `${req.body?.rememberMe ? '30h' : '1h'}`,
 		});
 		let newRefreshToken = jwt.sign(payload, config.REFRESH_TOKEN_SECRETE, {
-			expiresIn: `${req.body?.rememberMe ? '1d' : '10h'}`,
+			expiresIn: `${req.body?.rememberMe ? '1h' : '5h'}`,
 		});
 		if (exist.mFA) {
 			// create OTP
@@ -229,8 +229,8 @@ exports.m2FA_login = async (req, res, next) => {
 				return next(APIError.unauthorized(ERROR_FIELD.EXPIRED_TOKEN));
 			}
 		});
-		const exist = await userExistByMail(foundUser.email);
-		if (!exist) return next(APIError.notFound('User does not exist', 404));
+		const exist = await userExistByMail(foundUser.email, req.userType);
+		if (!exist) return next(APIError.notFound('User does not exist'));
 		if (exist?.error) return next(APIError.customError(exist.error, 400));
 		// GET KYC
 		let KYC;
@@ -268,9 +268,9 @@ exports.m2FA_login = async (req, res, next) => {
 		if (exist.type.toLowerCase() === CONSTANTS.ACCOUNT_TYPE_OBJ.business && KYC?.store) {
 			payload.storeI = KYC.store[0].storeId;
 		}
-		const token = jwt.sign(payload, config.TOKEN_SECRETE, { expiresIn: '5h' });
+		const token = jwt.sign(payload, config.TOKEN_SECRETE, { expiresIn: '30m' });
 		const newRefreshToken = jwt.sign(payload, config.REFRESH_TOKEN_SECRETE, {
-			expiresIn: '10h',
+			expiresIn: '1h',
 		});
 
 		res.clearCookie('grub_ex', token, {
@@ -343,7 +343,6 @@ exports.logout = async (req, res, next) => {
 			.status(200)
 			.json({ success: true, msg: 'You have successfully logged out' });
 	} catch (error) {
-		// if (error.message === ERROR_FIELD.JWT_EXPIRED) next(APIError.unauthenticated());
 		next(error);
 	}
 };
@@ -396,10 +395,10 @@ exports.handleRefreshToken = async (req, res, next) => {
 				onBoarded: foundUser.role === CONSTANTS.ACCOUNT_TYPE_OBJ.admin ? true : foundUser?.onBoarded
 			};
 			const token = jwt.sign(payload, config.TOKEN_SECRETE, {
-				expiresIn: '5h',
+				expiresIn: '30m',
 			});
 			const newRefreshToken = jwt.sign(payload, config.REFRESH_TOKEN_SECRETE, {
-				expiresIn: '10h',
+				expiresIn: '1h',
 			});
 			foundUser.refreshToken = [...newRefreshTokenArr, token];
 			foundUser.save();
@@ -494,7 +493,7 @@ exports.resetLogin = async (req, res, next) => {
 		if (!reset) return next(APIError.customError());
 		if (reset.error) return next(APIError.customError(reset.error, 400));
 		await logOutUser(req.userId);
-		logger.info('Login reset successful', { meta: 'auth-service' });
+		logger.info('Login reset successful', { service: META.AUTH, });
 		res.clearCookie('grub_ex');
 		res.status(200).json({ success: true, msg: 'Password reset successful' });
 	} catch (error) {
@@ -508,10 +507,58 @@ exports.logoutAll = async (req, res, next) => {
 		if (!refreshToken) refreshToken = req.headers?.cookie?.split('=')[1];
 		const found = await AccountModel.findOne({ refreshToken }).exec();
 		if (!found) {
-			const { username, password } = req.body;
-			if (!username || !password)
+			const { email, password } = req.body;
+			if (!email || !password)
 				return next(APIError.customError('You need to login first', 401));
-			const exist = await usernameExist(username);
+			const exist = await emailExist(email);
+			if (!exist)
+				return next(APIError.customError('You need to login first', 401));
+			if (exist.error) return next(APIError.customError(exist.error, 400));
+			const verify = compareSync(password, exist.password);
+			if (!verify)
+				return next(APIError.customError('You need to login first', 401));
+			exist.refreshToken = [];
+			exist.save();
+			logger.info('Logged out all sessions successfully', {
+				service: META.AUTH,
+			});
+			res.clearCookie('grub_ex');
+			res
+				.status(200)
+				.json({ success: true, msg: 'You have successfully logged out' });
+		} else {
+			if (!refreshToken)
+				return next(APIError.customError('You need to login first', 401));
+			const payload = jwt.decode(refreshToken, config.REFRESH_TOKEN_SECRETE);
+			const isUser = await getUserById(payload.id);
+			if (!isUser)
+				return next(APIError.customError(`user does not exist`, 404));
+			if (isUser.error) return next(APIError.customError(isUser.error));
+			isUser.refreshToken = [];
+			isUser.save();
+			logger.info('Logged out all sessions successfully', {
+				service: META.AUTH,
+			});
+			res.clearCookie('grub_ex');
+			res
+				.status(200)
+				.json({ success: true, msg: 'You have successfully logged out' });
+		}
+	} catch (error) {
+		next(error);
+	}
+};
+exports.logoutAllV2 = async (req, res, next) => {
+	try {
+		let refreshToken = req.cookies?.jwt;
+		if (!refreshToken) refreshToken = req.headers?.authorization?.split(' ')[1];
+		if (!refreshToken) refreshToken = req.headers?.cookie?.split('=')[1];
+		const found = await AccountModel.findOne({ refreshToken }).exec();
+		if (!found) {
+			const { email, password } = req.body;
+			if (!email || !password)
+				return next(APIError.customError('You need to login first', 401));
+			const exist = await emailExistAndRole(email, req.userType);
 			if (!exist)
 				return next(APIError.customError('You need to login first', 401));
 			if (exist.error) return next(APIError.customError(exist.error, 400));

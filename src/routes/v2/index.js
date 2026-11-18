@@ -4,6 +4,9 @@ const AuthModule = require("./auth.route");
 
 Router_v2.use("/auth", AuthModule.authRoute); 
 
+
+MobileRouter_v2.use("/auth", AuthModule.authRoute); 
+
 module.exports = {
     Router_v2,
     MobileRouter_v2

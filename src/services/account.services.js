@@ -129,6 +129,14 @@ exports.checkEmail = async (email) => {
     return {error};
 }
 };
+exports.checkEmailAndRole = async (email, type) => {
+  try {
+   return await AccountModel.findOne({email:email, type}).exec(); 
+  } catch (error) {
+    if(error.name === "ValidationError" || error.name === "CastError") return {error: "Invalid data"};
+    return {error};
+}
+};
 exports.checkUsername = async (username) => {
   try {
     let exist = await TemporalAccountModel.findOne({username});

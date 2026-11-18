@@ -339,10 +339,53 @@ const OrderConfirmationOptions = async (to, orderData) => {
   }
   }
 }
+const RiderTipPaymentOptions = async (to, orderData) => {
+  return {
+  from: `${CONFIG.APP_NAME} ${domainMail.mail()}`,
+      to,
+      subject:`Tip For Order #${orderData.orderId}`,
+      template: "order_confirmation",
+      context:{ 
+    logoUrl: config.GRUBBEX_LOGO,
+    homeUrl:`${config.FRONTEND_ORIGIN_URL}/home`,
+    customerName: orderData.customerName,
+    orderId: orderData.orderId,
+    orderDate: new Date(orderData.createdAt).toLocaleDateString('en-GB'),
+    items: orderData.items.map(item => ({
+      name: item.name,
+      quantity: item.quantity,
+      price: (item.price / 100).toFixed(2), // if stored in kobo
+    })),
+    totalAmount: (orderData.total / 100).toFixed(2),
+    paymentReference: orderData.reference,
+    paymentMethod: orderData.paymentType,
+    unsubscribeUrl: `${config.FRONTEND_ORIGIN_URL}/unsubscribe?email=${to}`,
+    privacyUrl: `${config.BASE_URL}/privacy`,
+  }
+  }
+}
 exports.OrderConfirmationMailer = async (to, orderData) => {
    try {
       return new Promise((resolve, reject) => {
         const mail = OrderConfirmationOptions(
+          to,
+          orderData
+        );
+        transporter.sendMail(mail, (err, data) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve({ success: true });
+        });
+      });
+    } catch (error) {
+      return { error: error };
+    }
+}
+exports.RiderTipPaymentMailer = async (to, orderData) => {
+   try {
+      return new Promise((resolve, reject) => {
+        const mail = RiderTipPaymentOptions(
           to,
           orderData
         );

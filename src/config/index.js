@@ -174,7 +174,8 @@ exports.CONSTANTS = {
     credit: 'credit',
     debit: 'debit',
     transfer: 'transfer',
-    deposit: 'deposit'
+    deposit: 'deposit',
+    riderTip: 'riderTip'
   },
   LOCATION_STATUS: {
     set: "set",

@@ -222,7 +222,7 @@ exports.verifyOTP = async (req, res, next) => {
       isOTP: "checked", 
     }
       let registrationToken = jwt.sign(payload, config.TOKEN_SECRETE, {
-        expiresIn: '1d',
+        expiresIn: '4m',
       });
       payload.refreshToken = registrationToken
       const createTemAccount = await createTemporalAccount(validateRequestData("ZTemporalAccountSchema"), payload);

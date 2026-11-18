@@ -19,6 +19,7 @@ const {
   getProfile,
   recoverInfoByRef,
   getUserById,
+  emailAndRoleExist,
 } = require('../services');
 const { ERROR_FIELD, META } = require('../shared/utils/actions');
 const { APIError } = require('../utils/apiError');
@@ -368,6 +369,62 @@ exports.registerAdmin = async (req, res, next) => {
     const { id } = req.query;
     
     let exist = await emailExist(email);
+    if (exist) return next(APIError.customError(`${email} already exist`, 400));
+    const invite = await findInvitation(id);
+    if (!invite)
+      return next(
+        APIError.badRequest('Invite ID or token is required, click on link')
+      );
+    const currentDate = new Date();
+    const validDate = currentDate.getDate() - invite.createdAt.getDate();
+    if (validDate > 7) {
+      await deleteInvite(id);
+      logger.info('Expired Invite detected', { meta: META.INVITATION });
+      return next(APIError.customError(ERROR_FIELD.INVITE_EXPIRED, 400));
+    }
+    if (email !== invite.email) {
+      logger.info('Admin registration email mismatch detected', {
+        meta: META.INVITATION,
+      });
+      return next(APIError.badRequest('Email mismatched'));
+    }
+    const details = { email };
+    const hashedPassword = hashSync(password, 12);
+    details.password = hashedPassword;
+    if (req.body.phone) details.phone = req.body.phone;
+    details.type = CONSTANTS.ACCOUNT_TYPE_OBJ.admin;
+    details.role = invite.role;
+    details.status = CONSTANTS.ACCOUNT_STATUS[1];
+    details.firstName = req.body.firstName;
+    details.lastName= req.body.lastName;
+    const register = await createAdmin(details);
+    if (register.error) return next(APIError.badRequest(register.error));
+    logger.info('Admin registration successful', { meta: META.ACCOUNT});
+    await deleteInvite(id);
+    logger.info('Invite id invalided', { meta: META.ACCOUNT });
+    const data = resBuilder.removeAuth(register.toObject());
+    const result = await registrationMailHandler(email);
+    if (result.error) {
+      await deleteUser(email);
+      return next(APIError.customError(ERROR_FIELD.REG_FAILED));
+    }
+    const response = resBuilder.commonResponse(
+      'Registration successful',
+      data,
+      'account'
+    );
+    res.status(201).json(response);
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.registerAdminV2 = async (req, res, next) => {
+  try {
+    const { name, password, email } = req.body;
+    const { id } = req.query;
+    
+    let exist = await emailAndRoleExist(email, req.userType);
     if (exist) return next(APIError.customError(`${email} already exist`, 400));
     const invite = await findInvitation(id);
     if (!invite)
